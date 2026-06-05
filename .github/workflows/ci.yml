@@ -16,20 +16,64 @@ jobs:
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
+      - name: Check package-lock.json Existence
+        id: check_lockfiles
+        run: |
+          if [ -f "package-lock.json" ]; then
+            echo "has_lockfile=true" >> $GITHUB_OUTPUT
+            echo "✓ Found package-lock.json inside repository."
+          else
+            echo "has_lockfile=false" >> $GITHUB_OUTPUT
+            echo "⚠️ package-lock.json not found inside repository."
+          fi
+
       - name: Setup Node.js Runtime environment
+        if: steps.check_lockfiles.outputs.has_lockfile == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
 
+      - name: Setup Node.js (Fallback without Caching)
+        if: steps.check_lockfiles.outputs.has_lockfile == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Install Project Dependencies
-        run: npm ci
+        run: |
+          if [ -f "package.json" ]; then
+            if [ -f "package-lock.json" ]; then
+              echo "📦 package-lock.json found. Running Clean Install with npm ci..."
+              npm ci
+            else
+              echo "⚠️ package-lock.json NOT found. Running Standard Install with npm install..."
+              npm install
+            fi
+          else
+            echo "ℹ️ No package.json found. This is a documentation-only repository. Skipping installation."
+          fi
 
       - name: Type Check Verification (TypeScript Lint)
-        run: npm run lint
+        run: |
+          if [ -f "package.json" ]; then
+            npm run lint
+          else
+            echo "ℹ️ No package.json found. Skipping lint."
+          fi
 
       - name: Build Production Assets Bundle
-        run: npm run build
+        run: |
+          if [ -f "package.json" ]; then
+            npm run build
+          else
+            echo "ℹ️ No package.json found. Skipping build."
+          fi
 
       - name: Interactive Security Auditing (OWASP Snyk / npm audit)
-        run: npm audit --audit-level=high || echo "Security Warnings found. Review vulnerability dashboard before production."
+        run: |
+          if [ -f "package.json" ]; then
+            npm audit --audit-level=high || echo "Security Warnings found. Review vulnerability dashboard before production."
+          else
+            echo "ℹ️ No package.json found. Skipping security audit."
+          fi
