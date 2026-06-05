@@ -22,7 +22,7 @@ import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
 
 // @ts-ignore
-import cityLogo from './assets/images/city_logo_1779750911433.png';
+import cityLogo from './assets/images/city_logo_1779750911433-1.png';
 
 export default function App() {
 
@@ -61,6 +61,16 @@ export default function App() {
   const [currentLang, setCurrentLang] = useState<LanguageCode>(
     (localStorage.getItem('mycity_lang') as LanguageCode) || 'FR'
   );
+
+  const [currentCity, setCurrentCity] = useState<string>(() => {
+    return localStorage.getItem('mycity_city') || 'Casablanca';
+  });
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+
+  // Sync document title with active city name
+  useEffect(() => {
+    document.title = `MyCity Companion - ${currentCity}`;
+  }, [currentCity]);
 
   // WCAG 2.1 AA Compliance - Screen Reader Language and Text Direction Sync
   useEffect(() => {
@@ -294,13 +304,53 @@ export default function App() {
               referrerPolicy="no-referrer"
             />
           </div>
-          <div>
-            <h1 className="text-base lg:text-lg font-semibold leading-tight tracking-tight text-white font-title">
-              MyCity <span className="text-[#6C3CFF] font-black">{currentLang === 'AR' ? "Companion" : "Companion"}</span>
+          <div className="flex flex-col justify-center">
+            <h1 className="text-base font-bold leading-tight tracking-tight text-white font-title">
+              MyCity
             </h1>
-            <p className="text-[10px] text-white/40 font-mono uppercase tracking-widest leading-none mt-0.5">
-              {t.appSub}
-            </p>
+            <div className="relative">
+              <button 
+                onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
+                className="flex items-center gap-1 text-[11px] font-medium leading-none text-gray-400 hover:text-white transition-colors py-0.5"
+                title="Changer de ville"
+              >
+                <span className="text-gray-400 font-semibold">{currentCity}</span>
+                <span className="text-[#6C3CFF] font-black">{currentLang === 'AR' ? 'Companion' : 'Companion'}</span>
+                <svg className={`w-2.5 h-2.5 ml-0.5 text-[#6C3CFF] transition-transform duration-200 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {isCityDropdownOpen && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setIsCityDropdownOpen(false)}
+                  />
+                  <div className="absolute left-0 mt-1.5 w-40 bg-[#161821] border border-white/10 rounded-xl shadow-2xl z-50 py-1.5">
+                    {['Casablanca', 'Rabat', 'Tanger', 'Marrakech', 'Agadir', 'Fes'].map((city) => (
+                      <button
+                        key={city}
+                        onClick={() => {
+                          setCurrentCity(city);
+                          localStorage.setItem('mycity_city', city);
+                          setIsCityDropdownOpen(false);
+                          handleAddPrivacyLog("City Changed", `Utilisateur a changé la ville active vers: ${city}`);
+                        }}
+                        className={`w-full text-left px-3.5 py-2 text-xs font-semibold transition-colors hover:bg-white/5 flex items-center justify-between ${
+                          currentCity === city ? 'text-[#6C3CFF] bg-white/5' : 'text-gray-300 hover:text-white'
+                        }`}
+                      >
+                        <span>{city}</span>
+                        {currentCity === city && (
+                          <span className="text-[8px] text-[#6C3CFF]">●</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
 
@@ -737,6 +787,7 @@ export default function App() {
         isOpen={isGithubRoomOpen}
         onClose={() => setIsGithubRoomOpen(false)}
         onAddLog={handleAddPrivacyLog}
+        currentCity={currentCity}
       />
 
       {/* BEAUTIFUL NON-BLOCKING CUSTOM NOTIFICATION TOAST OVERLAY */}
