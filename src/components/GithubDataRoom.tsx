@@ -558,7 +558,11 @@ jobs:
 
         if (!commitResp.ok) {
           const errBody = await commitResp.json().catch(() => ({}));
-          throw new Error(`Échec de l'envoi de ${gitPath} : ${errBody.message || commitResp.statusText}`);
+          let errMsg = errBody.message || commitResp.statusText || "";
+          if (commitResp.status === 403 || errMsg.toLowerCase().includes("personal access token") || errMsg.toLowerCase().includes("not accessible")) {
+            errMsg += " (⚠️ Conseil d'autorisation : Votre Personal Access Token GitHub ne possède pas les permissions d'écriture indispensables. S'il s'agit d'un jeton classique (Classic), cochez la case 'repo'. S'il s'agit d'un jeton fin (Fine-grained), configurez 'Repository permissions -> Contents' en 'Read and Write' pour ce dépôt.)";
+          }
+          throw new Error(`Échec de l'envoi de ${gitPath} : ${errMsg}`);
         }
 
         setExportLogs(prev => [...prev, `✓ Fichier ${gitPath} poussé et versionné avec succès !`]);
