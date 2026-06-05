@@ -19,7 +19,7 @@ Le flux suit un schéma strict d'interception, enrichissement, validation et iso
 ## 🔄 Analyse Étape par Étape
 
 ### 1. Client & API Gateway
-Le citoyen initie sa demande (par exemple, le signalement d'un incident de voirie dans l'arrondissement d'Anfa). La requête est enveloppée d'un en-tête d'autorisation conforme `Authorization: Bearer <JWT_SECRET_KEY>` et transmise à l'**API Gateway**. L'intercepteur y applique :
+Le citoyen initie sa demande (par exemple, le signalement d'un incident de voirie dans l'arrondissement principal). La requête est enveloppée d'un en-tête d'autorisation conforme `Authorization: Bearer <JWT_SECRET_KEY>` et transmise à l'**API Gateway**. L'intercepteur y applique :
 * Un rate-limiting strict de **10 requêtes/minute** pour juguler les dénis de service et attaques automatisées.
 * La terminaison TLS pour chiffrer les données en transit (conformément aux normes SSL/TLS requis par l'ISO 27001).
 
