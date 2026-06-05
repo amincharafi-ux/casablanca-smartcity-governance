@@ -91,7 +91,6 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity 
     'src/data/mockData.ts',
     'src/data/translations.ts',
     'src/assets/images/city_logo_1779750911433-1.png',
-    'src/assets/images/city_logo_1779750911433.png',
     'src/components/BLEMeshSim.tsx',
     'src/components/BusinessPortal.tsx',
     'src/components/ChatCompanion.tsx',
