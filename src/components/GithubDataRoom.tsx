@@ -90,6 +90,8 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity 
     'src/data/downloadCode.ts',
     'src/data/mockData.ts',
     'src/data/translations.ts',
+    'src/assets/images/city_logo_1779750911433-1.png',
+    'src/assets/images/city_logo_1779750911433.png',
     'src/components/BLEMeshSim.tsx',
     'src/components/BusinessPortal.tsx',
     'src/components/ChatCompanion.tsx',
@@ -487,6 +489,9 @@ jobs:
         setExportLogs(prev => [...prev, `⏳ (${index + 1}/${filesToPush.length}) Récupération de : ${gitPath}...`]);
 
         let rawContent = '';
+        let b64Content = '';
+        let isBinaryFile = false;
+
         if (fileName === 'ARCHITECTURE.md') rawContent = ARCHITECTURE_MD;
         else if (fileName === 'SECURITY.md') rawContent = SECURITY_MD;
         else if (fileName === 'CNDP_COMPLIANCE.md') rawContent = CNDP_COMPLIANCE_MD;
@@ -500,20 +505,27 @@ jobs:
               throw new Error(`Code de statut HTTP : ${fileResp.status}`);
             }
             const fileData = await fileResp.json();
-            rawContent = fileData.content;
+            if (fileData.encoding === 'base64') {
+              b64Content = fileData.content;
+              isBinaryFile = true;
+            } else {
+              rawContent = fileData.content;
+            }
           } catch (fetchErr: any) {
             setExportLogs(prev => [...prev, `⚠️ Attention : Impossible de charger le fichier source ${fileName} (${fetchErr.message}). Ignoré.`]);
             continue;
           }
         }
 
-        // Safe base64 conversion in browser for Unicode/UTF-8
-        const utf8Bytes = new TextEncoder().encode(rawContent);
-        let binaryString = '';
-        for (let i = 0; i < utf8Bytes.length; i++) {
-          binaryString += String.fromCharCode(utf8Bytes[i]);
+        if (!isBinaryFile) {
+          // Safe base64 conversion in browser for Unicode/UTF-8
+          const utf8Bytes = new TextEncoder().encode(rawContent);
+          let binaryString = '';
+          for (let i = 0; i < utf8Bytes.length; i++) {
+            binaryString += String.fromCharCode(utf8Bytes[i]);
+          }
+          b64Content = btoa(binaryString);
         }
-        const b64Content = btoa(binaryString);
 
         setExportLogs(prev => [...prev, `📤 Analyse du fichier cible sur le dépôt : ${gitPath}...`]);
 
