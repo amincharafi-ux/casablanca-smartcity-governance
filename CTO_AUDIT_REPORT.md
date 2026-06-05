@@ -1,11 +1,11 @@
 # RAPPORT D'AUDIT TECHNIQUE ET STRATÉGIQUE (CTO SENIOR / INVESTISSEUR)
-## PROJET : MYCITY CASABLANCA SMART CITY (PLATEFORME TERRITORIALE SOUVERAINE)
+## PROJET : MYCITY MULTI-TENANT SMART CITY (Casablanca, Rabat, Tanger, Marrakech, Agadir, Fes)
 
 ---
 
 ## Executive Summary (Synthèse Décisionnelle)
 
-Cet audit évalue l'état de maturité technologique, la viabilité architecturale et la conformité légale du système souverain **MyCity Casablanca** dans le cadre d'une préparation à une **Technical Due Diligence** pour une levée de fonds.
+Cet audit évalue l'état de maturité technologique, la viabilité architecturale et la conformité légale du système souverain saas **MyCity** (déployé pour Casablanca, Rabat, Tanger, Marrakech, Agadir, Fes) dans le cadre d'une préparation à une **Technical Due Diligence** pour une levée de fonds.
 
 Le diagnostic est clair : le MVP actuel possède une **excellente ergonomie (UX/UI)**, une architecture modulaire propre (Vite, React 18, Express, Tailwind) et démontre une vision produit exceptionnelle pour une infrastructure numérique territoriale. Cependant, pour passer d'un démonstrateur interactif (ou MVP) à une plate-forme d'envergure nationale supportant **plus d'un million d'utilisateurs**, des transitions techniques rigoureuses sont indispensables.
 
@@ -200,14 +200,14 @@ L'IA ne doit pas être un simple "proxy" direct vers GPT ou Gemini sans contrôl
 
 ## 6. Architecture Cible Multi-Tenant pour la Scalabilité Économique
 
-Pour convaincre un investisseur institutionnel, MyCity ne doit pas simplement être l'application de Casablanca. Elle doit être commercialisable comme un modèle de **Software as a Service (SaaS)** multi-tenant pour toutes les municipalités du Royaume (Casablanca, Rabat, Marrakech, Tanger) et leurs structures internes (Arrondissements, Résidences Co-propriétés, Commerces Locaux).
+Pour convaincre un investisseur institutionnel, MyCity ne doit pas simplement être l'application d'une seule ville. Elle doit être commercialisable comme un modèle de **Software as a Service (SaaS)** multi-tenant pour toutes les municipalités du Royaume (Casablanca, Rabat, Marrakech, Tanger, Agadir, Fes) et leurs structures internes (Arrondissements, Résidences Co-propriétés, Commerces Locaux).
 
 ```
                             [ PLATFORME MULTI-TENANT ]
                                         │
                   ┌─────────────────────┼─────────────────────┐
                   ▼                     ▼                     ▼
-          [ Tenant: Casa ]       [ Tenant: Rabat ]     [ Tenant: Tanger ]
+          [ Tenant: Casa ]       [ Tenant: Rabat ]     [ Tenant: Tanger ]     [ Tenant: Agadir ]     [ Tenant: Fes ]
                   │
         ┌─────────┴─────────┐
         ▼                   ▼
