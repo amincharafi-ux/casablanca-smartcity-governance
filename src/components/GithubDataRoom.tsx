@@ -34,9 +34,10 @@ interface GithubDataRoomProps {
   isOpen: boolean;
   onClose: () => void;
   onAddLog?: (action: string, details: string) => void;
+  currentCity?: string;
 }
 
-export default function GithubDataRoom({ isOpen, onClose, onAddLog }: GithubDataRoomProps) {
+export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity = 'Casablanca' }: GithubDataRoomProps) {
   if (!isOpen) return null;
 
   const [activeSubTab, setActiveSubTab] = useState<'FILES' | 'PITCH' | 'ACTIONS' | 'EXPORT'>('FILES');
@@ -161,7 +162,7 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog }: GithubData
   // Content for files
   const ARCHITECTURE_MD = `# 🗺️ ARCHITECTURE.md - Flux de Données Souverain MyCity
 
-Ce document détaille l'architecture des flux de données de la plateforme MyCity Casablanca, de la saisie d'un signalement citoyen jusqu'à l'indexation spatiale optimisée dans la base de données PostgreSQL/PostGIS.
+Ce document détaille l'architecture des flux de données de la plateforme MyCity ${currentCity}, de la saisie d'un signalement citoyen jusqu'à l'indexation spatiale optimisée dans la base de données PostgreSQL/PostGIS.
 
 ---
 
@@ -180,7 +181,7 @@ Le flux suit un schéma strict d'interception, enrichissement, validation et iso
 ## 🔄 Analyse Étape par Étape
 
 ### 1. Client & API Gateway
-Le citoyen initie sa demande (par exemple, le signalement d'un incident de voirie dans l'arrondissement d'Anfa). La requête est enveloppée d'un en-tête d'autorisation conforme \`Authorization: Bearer <JWT_SECRET_KEY>\` et transmise à l'**API Gateway**. L'intercepteur y applique :
+Le citoyen initie sa demande (par exemple, le signalement d'un incident de voirie dans l'arrondissement principal). La requête est enveloppée d'un en-tête d'autorisation conforme \`Authorization: Bearer <JWT_SECRET_KEY>\` et transmise à l'**API Gateway**. L'intercepteur y applique :
 * Un rate-limiting strict de **10 requêtes/minute** pour juguler les dénis de service et attaques automatisées.
 * La terminaison TLS pour chiffrer les données en transit (conformément aux normes SSL/TLS requis par l'ISO 27001).
 
@@ -199,7 +200,7 @@ Les données sont persistées à l'aide de l'ORM **Drizzle** configuré pour le 
 
   const SECURITY_MD = `# 🛡️ SECURITY.md - Politique Globale de Sécurité "Zero-Trust"
 
-La plateforme souveraine MyCity Casablanca adopte une philosophie de sécurité **"Security and Privacy by Design"** et des principes **Zero-Trust**. Chaque composant de l'architecture est conçu en partant du postulat que le réseau et les postes clients sont potentiellement compromis.
+La plateforme souveraine MyCity ${currentCity} adopte une philosophie de sécurité **"Security and Privacy by Design"** et des principes **Zero-Trust**. Chaque composant de l'architecture est conçu en partant du postulat que le réseau et les postes clients sont potentiellement compromis.
 
 ---
 
@@ -243,7 +244,7 @@ La plateforme souveraine MyCity Casablanca adopte une philosophie de sécurité 
 
   const CNDP_COMPLIANCE_MD = `# 🔒 CNDP_COMPLIANCE.md - Mapping Réglementaire Loi 09-08
 
-Ce document dresse le mapping fonctionnel et technique rigoureux entre le cadre légal national marocain de la **Loi 09-08** (portant sur la protection des personnes physiques à l'égard du traitement des données à caractère personnel) et l'architecture logicielle de la plateforme MyCity Casablanca.
+Ce document dresse le mapping fonctionnel et technique rigoureux entre le cadre légal national marocain de la **Loi 09-08** (portant sur la protection des personnes physiques à l'égard du traitement des données à caractère personnel) et l'architecture logicielle de la plateforme MyCity ${currentCity}.
 
 ---
 
@@ -264,7 +265,7 @@ Ce document dresse le mapping fonctionnel et technique rigoureux entre le cadre 
 `;
 
   const WORKFLOWS_CI_YML = `# ⚙️ CI/CD pipeline definition - Github Actions YAML
-name: MyCity Casablanca CI Pipeline
+name: MyCity ${currentCity} CI Pipeline
 
 on:
   push:
@@ -388,11 +389,15 @@ jobs:
 
   // Real GitHub Export Direct API Integration
   const handleGitHubExport = async () => {
-    if (!githubUsername) {
+    const cleanUsername = githubUsername.trim();
+    const cleanToken = githubToken.trim();
+    const cleanRepo = repoName.trim();
+
+    if (!cleanUsername) {
       setExportError("Le nom d'utilisateur GitHub est requis.");
       return;
     }
-    if (!githubToken) {
+    if (!cleanToken) {
       setExportError("Le token d'accès personnel GitHub (PAT) est requis pour l'exportation en direct.");
       setExportLogs([
         "❌ ERREUR DE SYNCHRONISATION : Token d'accès personnel GitHub (PAT) manquant !",
@@ -408,7 +413,7 @@ jobs:
       ]);
       return;
     }
-    if (!repoName) {
+    if (!cleanRepo) {
       setExportError("Le nom du dépôt cible est requis.");
       return;
     }
@@ -416,41 +421,41 @@ jobs:
     setExportState('LOADING');
     setExportLogs([
       "🚀 Connexion sécurisée au serveur API GitHub (api.github.com)...",
-      `📡 Vérification du dépôt : ${githubUsername}/${repoName}...`
+      `📡 Vérification du dépôt : ${cleanUsername}/${cleanRepo}...`
     ]);
     setExportError('');
 
     try {
       // Try to read repository using fetch
-      const checkRepoUrl = `https://api.github.com/repos/${githubUsername}/${repoName}`;
+      const checkRepoUrl = `https://api.github.com/repos/${cleanUsername}/${cleanRepo}`;
       const checkResponse = await fetch(checkRepoUrl, {
         method: 'GET',
         headers: {
-          'Authorization': `token ${githubToken}`,
+          'Authorization': `token ${cleanToken}`,
           'Accept': 'application/vnd.github.v3+json'
         }
       });
 
       if (checkResponse.status === 401) {
-        throw new Error("Token d'accès personnel non valide ou expiré (401 Unauthorized).");
+        throw new Error("Token d'accès personnel non valide ou expiré (401 Unauthorized). Veuillez vérifier votre clé ghp_... et vous assurer qu'elle dispose des permissions 'repo'.");
       }
 
       let repoExists = checkResponse.status === 200;
 
       if (!repoExists) {
-        setExportLogs(prev => [...prev, `📦 Le dépôt 'github.com/${githubUsername}/${repoName}' n'existe pas. Tentative de création automatique...`]);
+        setExportLogs(prev => [...prev, `📦 Le dépôt 'github.com/${cleanUsername}/${cleanRepo}' n'existe pas. Tentative de création automatique...`]);
         
         // Create repository via API
         const createResponse = await fetch('https://api.github.com/user/repos', {
           method: 'POST',
           headers: {
-            'Authorization': `token ${githubToken}`,
+            'Authorization': `token ${cleanToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            name: repoName,
-            description: "Blueprints d'architecture souveraine et profils de base de données PostGIS pour la ville de Casablanca.",
+            name: cleanRepo,
+            description: `Blueprints d'architecture souveraine et profils de base de données PostGIS pour la ville de ${currentCity}.`,
             private: false,
             auto_init: true // creates a default main branch with a README.md so we can push contents safely
           })
@@ -513,11 +518,11 @@ jobs:
         setExportLogs(prev => [...prev, `📤 Analyse du fichier cible sur le dépôt : ${gitPath}...`]);
 
         // Check if file exists to retrieve its SHA (required for updating files in GitHub REST API)
-        const fileUrl = `https://api.github.com/repos/${githubUsername}/${repoName}/contents/${gitPath}`;
+        const fileUrl = `https://api.github.com/repos/${cleanUsername}/${cleanRepo}/contents/${gitPath}`;
         const fileCheckResp = await fetch(fileUrl, {
           method: 'GET',
           headers: {
-            'Authorization': `token ${githubToken}`,
+            'Authorization': `token ${cleanToken}`,
             'Accept': 'application/vnd.github.v3+json'
           }
         });
@@ -533,7 +538,7 @@ jobs:
 
         // Commit content
         const commitBody: any = {
-          message: `chore: synchronisation souveraine de ${gitPath} - MyCity Casablanca`,
+          message: `chore: synchronisation de ${gitPath} - MyCity ${currentCity}`,
           content: b64Content,
           branch: 'main'
         };
@@ -544,7 +549,7 @@ jobs:
         const commitResp = await fetch(fileUrl, {
           method: 'PUT',
           headers: {
-            'Authorization': `token ${githubToken}`,
+            'Authorization': `token ${cleanToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Content-Type': 'application/json'
           },
@@ -563,10 +568,10 @@ jobs:
         ...prev,
         "🎉 SYNCHRONISATION COMPLETE ET SANS ERREUR !",
         "📈 Toutes les fiches techniques, schémas de base de données PostGIS et pipelines de CI ont été répliqués.",
-        `➡️ URL PUBLIQUE : https://github.com/${githubUsername}/${repoName}`
+        `➡️ URL PUBLIQUE : https://github.com/${cleanUsername}/${cleanRepo}`
       ]);
       setExportState('SUCCESS');
-      onAddLog?.("GitHub Live Export SUCCESS", `Fichiers d'audit exportés avec succès sur github.com/${githubUsername}/${repoName}`);
+      onAddLog?.("GitHub Live Export SUCCESS", `Fichiers d'audit exportés avec succès sur github.com/${cleanUsername}/${cleanRepo}`);
     } catch (err: any) {
       console.error(err);
       setExportError(err.message || "Impossible de communiquer avec l'API GitHub.");
@@ -1034,7 +1039,7 @@ jobs:
                 </div>
 
                 {pipelineLogs.length === 0 ? (
-                  <p className="text-gray-500 italic text-center py-12">Le terminal CI/CD est au repos. Cliquez sur &quot;Run CI Pipeline&quot; pour évaluer la base de code municipale Casablanca SmartCity.</p>
+                  <p className="text-gray-500 italic text-center py-12">Le terminal CI/CD est au repos. Cliquez sur &quot;Run CI Pipeline&quot; pour évaluer la base de code municipale de {currentCity} ({currentCity} SmartCity).</p>
                 ) : (
                   pipelineLogs.map((log, index) => {
                     const isSuccess = log.startsWith('✓') || log.includes('SUCCESSFULLY');
@@ -1296,7 +1301,7 @@ jobs:
 
         {/* FOOTER BAR */}
         <div className="px-6 py-3 bg-[#161b22] border-t border-[#30363d] flex items-center justify-between shrink-0 font-mono text-[10px] text-[#8b949e]">
-          <span>© 2026 MyCity Casablanca GovTech • Dual-Licence Propriétaire/Souverain</span>
+          <span>© 2026 MyCity {currentCity} GovTech • Dual-Licence Propriétaire/Souverain</span>
           <div className="flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
             <span className="text-emerald-400 font-bold">PIPELINE VERIFICATION POSTURE STABLE</span>
