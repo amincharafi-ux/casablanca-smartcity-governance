@@ -529,8 +529,14 @@ app.get("/api/codebase/config-file", (req, res) => {
       return res.status(400).json({ error: "Le chemin cible est un dossier, pas un fichier." });
     }
 
-    const content = fs.readFileSync(fullPath, "utf-8");
-    res.json({ path: filePath, content });
+    const isBinary = filePath.endsWith(".png") || filePath.endsWith(".jpg") || filePath.endsWith(".jpeg") || filePath.endsWith(".gif") || filePath.endsWith(".ico") || filePath.endsWith(".svg");
+    if (isBinary) {
+      const content = fs.readFileSync(fullPath, "base64");
+      res.json({ path: filePath, content, encoding: "base64" });
+    } else {
+      const content = fs.readFileSync(fullPath, "utf-8");
+      res.json({ path: filePath, content, encoding: "utf-8" });
+    }
   } catch (err: any) {
     res.status(500).json({ error: `Erreur durant la lecture : ${err.message}` });
   }
