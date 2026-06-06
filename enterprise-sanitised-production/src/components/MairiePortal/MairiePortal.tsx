@@ -1,0 +1,643 @@
+import React, { useState } from 'react';
+import { ShieldCheck, MessageSquare, AlertCircle, Send, CheckCircle, BarChart2, Eye, Server, RefreshCw, Sparkles, Phone, Shield } from 'lucide-react';
+import { CitizenClaim, PharmacyDeGarde, HospitalStatus, CNDPPrivacyLog } from '../../types';
+import { translations, LanguageCode } from '../../data/translations';
+
+interface MairiePortalProps {
+  claims: CitizenClaim[];
+  pharmacies: PharmacyDeGarde[];
+  hospitals: HospitalStatus[];
+  privacyLogs: CNDPPrivacyLog[];
+  onUpdateClaimStatus: (claimId: string, newStatus: CitizenClaim['status'], reply?: string) => void;
+  onAddLog: (action: string, details: string) => void;
+  currentLang?: LanguageCode;
+  onChangeUserRole?: (role: any) => void;
+  onChangeActiveModule?: (module: 'URBAN' | 'MYHOME') => void;
+  onOpenSqlSpec?: () => void;
+  currentUserRole?: any;
+}
+
+export default function MairiePortal({
+  claims,
+  pharmacies,
+  hospitals,
+  privacyLogs,
+  onUpdateClaimStatus,
+  onAddLog,
+  currentLang = 'FR',
+  onChangeUserRole,
+  onChangeActiveModule,
+  onOpenSqlSpec,
+  currentUserRole,
+}: MairiePortalProps) {
+  const t = translations[currentLang];
+
+  const [activeSubTab, setActiveSubTab] = useState<'CLAIMS' | 'SERVICES' | 'FLASH' | 'AUDIT' | 'USERS'>('CLAIMS');
+
+  // Simulated User Accounts state list
+  const [simulatedAccounts, setSimulatedAccounts] = useState([
+    { id: 'usr-1', name: 'Sara Belghiti', role: 'PUBLIC', email: 'sara.belghiti@casacity.ma', status: 'Actif', tier: 'Citoyen Gratuit', consent: 'Conforme CNDP (Loi 09-08)', initials: 'SB', color: '#10b981' },
+    { id: 'usr-2', name: 'Omar Kabbaj', role: 'BUSINESS_CAT1', email: 'o.kabbaj@cafegauthier.ma', status: 'Actif', tier: 'Basic Formule (299 MAD)', consent: 'Conforme CNDP (Loi 09-08)', initials: 'OK', color: '#9ca3af' },
+    { id: 'usr-3', name: 'Ilyas El Omari', role: 'BUSINESS_CAT2', email: 'i.elomari@premiumcasablanca.ma', status: 'Actif', tier: 'Premium Formule (799 MAD)', consent: 'Conforme CNDP (Loi 09-08)', initials: 'IE', color: '#3ccfff' },
+    { id: 'usr-4', name: 'Mme. Fatim-Zahra', role: 'MAIRIE', email: 'fz.mayor@mairie-casablanca.ma', status: 'Actif', tier: 'Conseil Municipal Admin', consent: 'Conforme Immuable', initials: 'FZ', color: '#ff3c83' },
+    { id: 'usr-5', name: 'Khadija Chraibi', role: 'PUBLIC', email: 'k.chraibi@copro-alkasbah.ma', status: 'Copropriétaire', tier: 'Résident Al Kasbah (Apt 14)', consent: 'Conforme CNDP (Loi 09-08)', initials: 'KC', color: '#10b981', isResidentFlow: true },
+    { id: 'usr-6', name: 'Yassine Alami', role: 'PUBLIC', email: 'y.alami@syndic-alkasbah.ma', status: 'Syndic Élu', tier: 'Syndic Certifié (Loi 18-00)', consent: 'Conforme CNDP (Loi 09-08)', initials: 'YA', color: '#a78bfa', isSyndicFlow: true }
+  ]);
+
+  const [banStatus, setBanStatus] = useState<Record<string, boolean>>({});
+
+  const handleToggleBan = (userId: string, name: string) => {
+    const isNowBanned = !banStatus[userId];
+    setBanStatus(prev => ({ ...prev, [userId]: isNowBanned }));
+    onAddLog(isNowBanned ? "Ban Simulated" : "Unban Simulated", `${isNowBanned ? 'Bannissement' : 'Restauration'} immuable simulé pour le compte de ${name}.`);
+  };
+
+  // Claim moderation panel states
+  const [selectedClaimId, setSelectedClaimId] = useState<string | null>(claims[0]?.id || null);
+  const [municipalMsgInput, setMunicipalMsgInput] = useState('');
+
+  // Universal Message Flash fields
+  const [flashMessage, setFlashMessage] = useState('⚠️ VAGUE DE CHALEUR : Distribution d\'eau minérale gratuite aux points de services de Maârif.');
+  const [flashZone, setFlashZone] = useState('ALL');
+  const [flashFeedback, setFlashFeedback] = useState(false);
+
+  // Gemini AI automatic claims report
+  const [aiReport, setAiReport] = useState<any | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+
+  const handleUpdateClaimSubmit = (claimId: string, status: CitizenClaim['status']) => {
+    onUpdateClaimStatus(claimId, status, municipalMsgInput);
+    setMunicipalMsgInput('');
+    onAddLog("Claim Triage", `Mise à jour du statut ticket #${claimId} vers [${status}] avec réponse administrative.`);
+  };
+
+  const handlePostFlashMessage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!flashMessage.trim()) return;
+
+    setFlashFeedback(true);
+    onAddLog("Universal Flash Alert", `Diffusion de l'alerte Flash à destination de "${flashZone === 'ALL' ? 'Toute la ville' : flashZone}": ${flashMessage}`);
+    setTimeout(() => {
+      setFlashFeedback(false);
+      setFlashMessage('');
+    }, 2500);
+  };
+
+  // Perform backend query to analyze claims with Gemini 2.0/2.5 AI
+  const handleQueryGeminiClaimsAnalysis = async () => {
+    setAiLoading(true);
+    setAiReport(null);
+    try {
+      const response = await fetch('/api/gemini/analyze-claims', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ claims })
+      });
+
+      if (!response.ok) {
+        throw new Error("Erreur de retour de l'API de modération.");
+      }
+
+      const reportData = await response.json();
+      setAiReport(reportData);
+      onAddLog("Gemini Moderation Query", "Génération automatique du rapport analytique IA de sécurité par la Mairie.");
+    } catch (err: any) {
+      console.error(err);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const activeClaim = claims.find(c => c.id === selectedClaimId);
+
+  // Strategic statistics calculations
+  const resolvedCount = claims.filter(c => c.status === 'RESOLU').length;
+  const resolutionPercentage = claims.length > 0 ? (resolvedCount / claims.length) * 100 : 100;
+  
+  return (
+    <div id="mairie-portal-container" className="space-y-4 text-xs">
+      
+      {/* Top Strategical stats summary banner */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 font-mono text-gray-300">
+        <div className="bg-[#161821] border border-white/5 p-3 rounded-lg flex items-center justify-between animate-fade-in">
+          <div>
+            <span className="text-gray-500 text-[10px] uppercase block">{t.statsResolutionRate}</span>
+            <span className="text-sm font-bold text-[#00ff66]">{resolutionPercentage.toFixed(0)} %</span>
+          </div>
+          <CheckCircle className="w-5 h-5 text-emerald-400" />
+        </div>
+
+        <div className="bg-[#161821] border border-white/5 p-3 rounded-lg flex items-center justify-between animate-fade-in">
+          <div>
+            <span className="text-gray-500 text-[10px] uppercase block">{t.statsOpenClaims}</span>
+            <span className="text-sm font-bold text-red-400">{claims.filter(c => c.status === 'OUVERT').length} incidents</span>
+          </div>
+          <AlertCircle className="w-5 h-5 text-red-400" />
+        </div>
+
+        <div className="bg-[#161821] border border-white/5 p-3 rounded-lg flex items-center justify-between animate-fade-in">
+          <div>
+            <span className="text-gray-500 text-[10px] uppercase block">{t.statsResolutionBeds}</span>
+            <span className="text-sm font-bold text-yellow-400">4.8 / 5 ⭐</span>
+          </div>
+          <BarChart2 className="w-5 h-5 text-yellow-500" />
+        </div>
+      </div>
+
+      {/* Sub Menu */}
+      <div className="flex border-b border-white/5 bg-[#0f111a] rounded-lg p-1 gap-1 overflow-x-auto scroller-hidden">
+        <button
+          id="mairie-tab-claims"
+          onClick={() => setActiveSubTab('CLAIMS')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
+            activeSubTab === 'CLAIMS' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          {t.mairieTabClaims} ({claims.filter(c => c.status !== 'RESOLU').length})
+        </button>
+        <button
+          id="mairie-tab-services"
+          onClick={() => setActiveSubTab('SERVICES')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
+            activeSubTab === 'SERVICES' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          {t.mairieTabServices}
+        </button>
+        <button
+          id="mairie-tab-users"
+          onClick={() => setActiveSubTab('USERS')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
+            activeSubTab === 'USERS' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          👤 Comptes Utilisateurs
+        </button>
+        <button
+          id="mairie-tab-flash"
+          onClick={() => setActiveSubTab('FLASH')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
+            activeSubTab === 'FLASH' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          {t.mairieTabFlash}
+        </button>
+        <button
+          id="mairie-tab-audit"
+          onClick={() => setActiveSubTab('AUDIT')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] flex-1 ${
+            activeSubTab === 'AUDIT' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          {t.mairieTabAudit}
+        </button>
+      </div>
+
+      {/* Triage Workspace */}
+      {activeSubTab === 'CLAIMS' && (
+        <div id="mairie-claims-panel" className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          
+          {/* Claims checklist pipeline */}
+          <div className="bg-[#161821] p-3 rounded-xl border border-white/5 space-y-2.5">
+            <span className="font-title font-semibold text-xs text-white block">{t.claimsQueueTitle}</span>
+            
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1">
+              {claims.map((claim) => (
+                <button
+                  key={claim.id}
+                  id={`mairie-claim-card-${claim.id}`}
+                  onClick={() => setSelectedClaimId(claim.id)}
+                  className={`w-full text-justify p-2.5 rounded-lg border text-xs transition-all cursor-pointer block ${
+                    selectedClaimId === claim.id 
+                      ? 'bg-neutral-900 border-[#6c3cff]/60 shadow-lg' 
+                      : 'bg-[#1b1d2a] border-transparent hover:border-white/5'
+                  }`}
+                >
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="font-mono text-[9px] text-[#00f0ff]">{claim.id}</span>
+                    <span className={`px-1.5 py-0.2 rounded text-[8px] font-mono text-white ${
+                      claim.status === 'OUVERT' ? 'bg-red-500' :
+                      claim.status === 'EN_COURS' ? 'bg-yellow-500 text-black font-semibold' : 'bg-emerald-500'
+                    }`}>
+                      {claim.status}
+                    </span>
+                  </div>
+                  <h4 className="font-semibold text-white truncate">{claim.title}</h4>
+                  <p className="text-gray-500 text-[10px] truncate">{claim.location}</p>
+                </button>
+              ))}
+            </div>
+
+            {/* AI Claims summary button */}
+            <button
+              id="mairie-ai-audit-btn"
+              onClick={handleQueryGeminiClaimsAnalysis}
+              disabled={aiLoading}
+              className="w-full py-2 bg-[#6c3cff] hover:bg-[#5329df] text-white font-mono font-bold text-[10px] rounded flex items-center justify-center gap-1.5 transition-all cursor-pointer uppercase shadow-lg"
+            >
+              {aiLoading ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  {t.aiReportLoading}
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  {t.aiReportGenerateBtn}
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Active Claim details and resolution form */}
+          <div className="bg-[#161821] p-4 rounded-xl border border-white/5 md:col-span-2 space-y-4">
+            {activeClaim ? (
+              <div className="space-y-3">
+                <div className="flex justify-between items-start border-b border-white/5 pb-2">
+                  <div>
+                    <span className="font-mono text-[8.5px] text-gray-500">{t.claimDetailsTitle} {activeClaim.id}</span>
+                    <h3 className="font-title font-bold text-sm text-white">{activeClaim.title}</h3>
+                    <p className="text-gray-400 font-mono text-[10px] mt-0.5">🟢 {activeClaim.location}</p>
+                  </div>
+                  <div className="text-right text-[10.5px] font-mono">
+                    <span className="text-gray-400 block mb-0.5">{t.anonymousCitizen}:</span>
+                    <strong className="text-white block">{activeClaim.citizenName}</strong>
+                  </div>
+                </div>
+
+                <div className="bg-black/30 p-3 rounded text-gray-300 leading-relaxed text-xs">
+                  {activeClaim.description}
+                </div>
+
+                {/* Conversation flow */}
+                <div className="space-y-2">
+                  <span className="font-mono text-[9px] text-gray-500 uppercase block">{t.claimHistoryExchange}</span>
+                  <div className="max-h-[120px] overflow-y-auto space-y-1.5 pr-1">
+                    {activeClaim.replies.map((rep, idx) => (
+                      <div key={idx} className={`p-2 rounded max-w-[90%] ${
+                        rep.sender === 'MAIRIE' ? 'bg-[#1e2030] border border-white/5 mr-auto' : 'bg-neutral-900 ml-auto border border-white/5'
+                      }`}>
+                        <div className="flex justify-between font-mono text-[8px] text-[#00f0ff] mb-1">
+                          <span>{rep.sender === 'MAIRIE' ? '🏛️ Administration' : `📱 ${activeClaim.citizenName}`}</span>
+                          <span>{new Date(rep.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        <p className="text-gray-300 italic">"{rep.message}"</p>
+                      </div>
+                    ))}
+                    {activeClaim.replies.length === 0 && (
+                      <span className="text-gray-600 block text-[10px] italic">{t.claimHistoryEmpty}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Status action station */}
+                {activeClaim.status !== 'RESOLU' ? (
+                  <div className="pt-2 border-t border-white/5 space-y-2.5">
+                    <span className="text-gray-500 text-[9.5px] font-mono block uppercase">{t.claimReplyLabel}</span>
+                    <textarea
+                      value={municipalMsgInput}
+                      onChange={(e) => setMunicipalMsgInput(e.target.value)}
+                      placeholder={t.claimReplyPlaceholder}
+                      className="w-full bg-black/40 border border-white/10 rounded p-2 text-xs text-white focus:outline-none"
+                      rows={2}
+                    />
+                    <div className="flex justify-end gap-2">
+                      <button
+                        id="claim-status-executing"
+                        onClick={() => handleUpdateClaimSubmit(activeClaim.id, 'EN_COURS')}
+                        className="px-3 py-1.5 bg-yellow-600 hover:bg-yellow-500 text-black font-title font-bold text-[10.5px] rounded transition-colors cursor-pointer"
+                      >
+                        {t.engageWorkBtn}
+                      </button>
+                      
+                      <button
+                        id="claim-status-resolved"
+                        onClick={() => handleUpdateClaimSubmit(activeClaim.id, 'RESOLU')}
+                        className="px-3 py-1.5 bg-emerald-600 hover:bg-[#00ff66] text-white hover:text-black font-title font-bold text-[10.5px] rounded transition-colors cursor-pointer"
+                      >
+                        {t.resolveIncidentBtn}
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-emerald-950/20 text-emerald-400 border border-emerald-500/20 rounded-lg flex items-center justify-between font-mono">
+                    <span>{t.incidentResolvedCndpAlert}</span>
+                    {activeClaim.satisfactionScore && <span>{t.satisfactionScoreLabel} {activeClaim.satisfactionScore}/5 ⭐</span>}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <span className="text-gray-500 italic block py-12 text-center text-xs">{t.selectIncidentPlaceholder}</span>
+            )}
+
+            {/* Render AI summary claims response outcomes */}
+            {aiReport && (
+              <div className="bg-[#121422] border border-[#a78bfa]/20 rounded-xl p-4 space-y-3 mt-4 animate-stagger">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5 text-indigo-400 font-bold uppercase tracking-wide">
+                    <Sparkles className="w-4 h-4 text-purple-400" />
+                    <span>Gemini AI Safety Modératrice</span>
+                  </div>
+                  <button
+                    onClick={() => setAiReport(null)}
+                    className="text-gray-500 hover:text-white transition-colors cursor-pointer text-xs"
+                  >
+                    {t.aiReportCloseBtn}
+                  </button>
+                </div>
+
+                <div className="text-gray-300 font-mono text-[10.5px] whitespace-pre-line text-justify leading-relaxed">
+                  {aiReport.summary}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[10px] font-mono">
+                  <div className="bg-black/30 p-2 rounded">
+                    <span className="text-red-400 font-bold block mb-1">{t.aiReportCriticalZones}</span>
+                    <ul className="list-disc pl-3 text-gray-400 space-y-0.5">
+                      {aiReport.criticalZones.map((z: string, i: number) => (
+                        <li key={i}>{z}</li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="bg-black/30 p-2 rounded">
+                    <span className="text-[#00f0ff] font-bold block mb-1">{t.aiReportActions}</span>
+                    <ol className="list-decimal pl-3 text-gray-400 space-y-0.5">
+                      {aiReport.actions.map((act: string, i: number) => (
+                        <li key={i}>{act}</li>
+                      ))}
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* SERVICES EMERGENCY / DE GARDE */}
+      {activeSubTab === 'SERVICES' && (
+        <div id="mairie-hospital-panel" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Pharmacy duty roster list */}
+          <div className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-3 shadow-md">
+            <span className="font-title font-semibold text-xs text-white block">{t.pharmacyTitle}</span>
+            
+            <div className="space-y-2">
+              {pharmacies.map(ph => (
+                <div key={ph.id} className="p-2.5 bg-black/30 rounded border border-white/5 flex justify-between items-center font-mono">
+                  <div>
+                    <strong className="text-white text-[11px] block">{ph.name}</strong>
+                    <span className="text-gray-400 text-[9.5px] block">{ph.address}</span>
+                    <span className="text-gray-500 text-[8.5px] block">📞 {ph.phone}</span>
+                  </div>
+                  <div className="text-right flex flex-col items-end gap-1">
+                    <span className={`px-2 py-0.5 rounded text-[8px] font-bold text-white uppercase ${
+                      ph.dutyType === 'PERMANENT' ? 'bg-[#ff3c83]' : 'bg-emerald-600'
+                    }`}>
+                      {ph.dutyType === 'PERMANENT' ? t.mapCatDutyPharma : ph.dutyType}
+                    </span>
+                    <span className="text-[10px] text-[#00ff66] block font-bold mt-1">🟡 {currentLang === 'FR' ? 'Active' : currentLang === 'AR' ? 'نشطة' : 'Active'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Hospital Occupancy beds */}
+          <div className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-3 shadow-md">
+            <span className="font-title font-semibold text-xs text-white block">{t.hospitalOccupancyTitle}</span>
+
+            <div className="space-y-3">
+              {hospitals.map(hosp => (
+                <div key={hosp.id} className="p-2.5 bg-black/30 rounded border border-white/5 font-mono text-[10.5px]">
+                  <div className="flex justify-between items-center mb-1">
+                    <strong className="text-white text-[11px] block">{hosp.name}</strong>
+                    <span className="text-gray-400">📞 {hosp.contact}</span>
+                  </div>
+
+                  <div className="flex justify-between text-[10px] text-gray-500 mb-0.5">
+                    <span>Occupation lits</span>
+                    <span>{hosp.occupancyRate}% ({hosp.availableBeds} {t.hospitalAvailableBeds})</span>
+                  </div>
+
+                  <div className="w-full bg-neutral-900 h-2 rounded overflow-hidden">
+                    <div className={`h-full rounded ${
+                      hosp.occupancyRate > 80 ? 'bg-red-500 animate-pulse' :
+                      hosp.occupancyRate > 60 ? 'bg-amber-500' : 'bg-emerald-500'
+                    }`} style={{ width: `${hosp.occupancyRate}%` }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* COMPOSING BROADCAST FLASH ALERT */}
+      {activeSubTab === 'FLASH' && (
+        <div id="mairie-flash-panel" className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-4 shadow-md">
+          <div className="flex items-center gap-2 text-amber-400">
+            <ShieldCheck className="w-5 h-5 animate-bounce text-red-400" />
+            <div>
+              <h3 className="font-title font-bold text-xs text-white">{t.flashChannelTitle}</h3>
+              <p className="font-mono text-[9px] text-gray-400">{t.flashChannelDesc}</p>
+            </div>
+          </div>
+
+          <form onSubmit={handlePostFlashMessage} className="space-y-3 font-mono">
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1">{t.flashTargetLabel}</label>
+              <select
+                value={flashZone}
+                onChange={(e) => setFlashZone(e.target.value)}
+                className="w-full bg-black/40 border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none"
+              >
+                <option value="ALL">{t.flashTargetAll}</option>
+                <option value="Maârif">{t.flashTargetDistrict} (Maârif)</option>
+                <option value="Anfa">{t.flashTargetDistrict} (Anfa)</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-[10px] text-gray-400 mb-1">{t.flashTextInputLabel}</label>
+              <input
+                type="text"
+                value={flashMessage}
+                onChange={(e) => setFlashMessage(e.target.value)}
+                placeholder={t.flashTextPlaceholder}
+                className="w-full bg-black/40 border border-white/10 rounded px-3 py-1.5 text-xs text-white focus:outline-none"
+                required
+              />
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                id="mairie-post-flash-btn"
+                className="px-4 py-1.5 bg-red-600 hover:bg-red-500 text-white font-bold font-title text-xs rounded transition-colors cursor-pointer"
+              >
+                {t.flashSendBtn}
+              </button>
+            </div>
+
+            {flashFeedback && (
+              <div className="p-2.5 bg-red-950/20 text-red-300 border border-red-500/20 rounded font-mono text-[9px] animate-pulse">
+                {t.flashSuccessAlert}
+              </div>
+            )}
+          </form>
+        </div>
+      )}
+
+      {/* COMPTES UTILISATEURS SUPERVISION PANEL */}
+      {activeSubTab === 'USERS' && (
+        <div id="mairie-users-panel" className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-4 shadow-md">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+            <div className="flex items-center gap-1.5 text-indigo-400">
+              <Shield className="w-5 h-5 text-purple-400" />
+              <div>
+                <strong className="text-white text-xs block">👥 Annuaire Souverain des Comptes Citoyens</strong>
+                <span className="font-mono text-[9px] text-gray-500">Traçabilité et Certifications Loi CNDP 09-08</span>
+              </div>
+            </div>
+
+            {currentUserRole === 'MAIRIE' && onOpenSqlSpec && (
+              <button
+                type="button"
+                id="mairie-inspect-sql-btn"
+                onClick={() => {
+                  onAddLog("SQL_SHORTCUT_CLICK", "Clic sur le raccourci de consultation du Schéma SQL technique.");
+                  onOpenSqlSpec();
+                }}
+                className="px-3 py-1 bg-purple-950/40 border border-purple-500/20 hover:border-purple-500/50 text-purple-300 font-mono text-[10px] rounded-lg transition-all cursor-pointer flex items-center gap-1 shrink-0"
+              >
+                <Server className="w-3.5 h-3.5" />
+                <span>Consulter le Schéma SQL Technique</span>
+              </button>
+            )}
+          </div>
+
+          <p className="text-gray-400 text-[11px] leading-relaxed select-none">
+            En tant qu'autorité municipale de Casablanca, vous pouvez superviser la souveraineté numérique des citoyens et partenaires commerciaux, valider les certifications de syndics élus (Loi 18-00), ou permuter instantanément de session expérimentale pour tester les différentes vues.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-1">
+            {simulatedAccounts.map((user) => {
+              const isBanned = !!banStatus[user.id];
+              return (
+                <div 
+                  key={user.id} 
+                  className={`bg-black/30 border p-3 rounded-2xl flex flex-col justify-between gap-3 transition-all relative ${
+                    isBanned ? 'border-red-500/20 opacity-60 bg-red-950/5' : 'border-white/5 hover:border-white/10'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div 
+                      className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-xs shrink-0 select-none border"
+                      style={{ borderColor: user.color, color: user.color, background: `${user.color}10` }}
+                    >
+                      {user.initials}
+                    </div>
+
+                    <div className="text-left space-y-0.5">
+                      <div className="flex items-center gap-1.5">
+                        <strong className="text-white text-[11.5px] font-title">{user.name}</strong>
+                        {isBanned && (
+                          <span className="px-1.5 py-0.2 rounded text-[8px] bg-red-500 text-white font-mono uppercase font-black">
+                            Banni
+                          </span>
+                        )}
+                      </div>
+                      <span className="text-gray-500 text-[9.5px] block font-mono">{user.email}</span>
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#1c1d29] border border-white/5 text-gray-400">
+                          ⚙️ {user.tier}
+                        </span>
+                        <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-[#10b981]/15 text-[#10b981] font-medium">
+                          ✓ {user.consent}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-1.5 pt-2 border-t border-white/5">
+                    {onChangeUserRole && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onChangeUserRole(user.role);
+                          onAddLog("Session Switch", `Simulation d'accès direct au rôle ${user.role} pour ${user.name}`);
+                          if (user.isResidentFlow || user.isSyndicFlow) {
+                            onChangeActiveModule?.('MYHOME');
+                          } else {
+                            onChangeActiveModule?.('URBAN');
+                          }
+                        }}
+                        className="flex-1 py-1 px-2 bg-[#6c3cff]/25 hover:bg-[#6c3cff] border border-[#6c3cff]/40 text-white text-[10px] font-bold rounded-lg transition-all cursor-pointer font-mono whitespace-nowrap text-center"
+                      >
+                        🔌 Permuter Session
+                      </button>
+                    )}
+
+                    {(user.isResidentFlow || user.isSyndicFlow) && onChangeActiveModule && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onChangeUserRole?.('PUBLIC');
+                          onChangeActiveModule('MYHOME');
+                          onAddLog("Inspect Copro", `Navigation municipale vers l'Espace Co-propriété pour inspecter Résidence Al Kasbah.`);
+                        }}
+                        className="flex-1 py-1 px-2 bg-emerald-600/20 hover:bg-emerald-600 border border-emerald-500/30 text-emerald-300 hover:text-white text-[10px] font-bold rounded-lg transition-all cursor-pointer font-mono whitespace-nowrap text-center"
+                      >
+                        🏠 Ouvrir MyHome
+                      </button>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={() => handleToggleBan(user.id, user.name)}
+                      className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer ${
+                        isBanned 
+                          ? 'bg-amber-500/15 border border-amber-500/30 text-amber-400 hover:bg-amber-500 hover:text-black' 
+                          : 'bg-red-500/10 border border-red-500/25 text-red-400 hover:bg-red-500 hover:text-white'
+                      }`}
+                    >
+                      {isBanned ? 'Restaurer' : 'Bannir'}
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* CNDP CYBERSECURITY AUDIT LOGS DISPLAY */}
+      {activeSubTab === 'AUDIT' && (
+        <div id="mairie-audit-panel" className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-3 shadow-md">
+          <div className="flex items-center gap-1 text-emerald-400 mb-1">
+            <Server className="w-5 h-5" />
+            <div>
+              <strong className="text-white text-xs block">{t.auditRegistryTitle}</strong>
+              <span className="font-mono text-[9px] text-gray-500">{t.auditRegistryDesc}</span>
+            </div>
+          </div>
+
+          <p className="text-gray-400 text-[10.5px]">
+            {t.auditRegistryIntro}
+          </p>
+
+          <div className="bg-black/40 border border-white/10 rounded-lg p-3 font-mono text-[9px] text-slate-300 max-h-[220px] overflow-y-auto space-y-1.5">
+            {privacyLogs.map((log, index) => (
+              <div key={index} className="flex flex-col sm:flex-row justify-between border-b border-white/5 pb-1.5 hover:bg-neutral-900/50">
+                <span className="text-[#00f0ff] w-36 shrink-0">{log.timestamp}</span>
+                <span className="text-amber-500 w-36 shrink-0 font-bold uppercase">[{log.action}]</span>
+                <span className="text-slate-200">{log.details}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
