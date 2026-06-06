@@ -45,10 +45,10 @@ jobs:
           if [ -f "package.json" ]; then
             if [ -f "package-lock.json" ]; then
               echo "📦 package-lock.json found. Running Clean Install with npm ci..."
-              npm ci
+              npm ci --legacy-peer-deps || { echo "⚠️ npm ci failed. Falling back to npm install with legacy peer dependencies..."; npm install --legacy-peer-deps; }
             else
               echo "⚠️ package-lock.json NOT found. Running Standard Install with npm install..."
-              npm install
+              npm install --legacy-peer-deps
             fi
           else
             echo "ℹ️ No package.json found. This is a documentation-only repository. Skipping installation."
