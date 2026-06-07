@@ -1256,6 +1256,17 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               </div>
             </div>
 
+            {/* Institution representative banner for Notaires - FIXED and non-scrollable */}
+            <div className="p-3 bg-amber-950/20 border border-amber-500/15 rounded-2xl space-y-1 font-sans select-none">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold">🏛️</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono text-amber-400">Conseil Régional des Notaires de Casablanca</span>
+              </div>
+              <p className="text-[9.5px] text-amber-200/90 leading-normal">
+                Ordre National des Notaires du Maroc — Organe représentatif légal et de contrôle déontologique régissant l'authenticité et la sécurité juridique des actes notariés à Casablanca.
+              </p>
+            </div>
+
             <div className="space-y-3">
               {defaultNotaries.map(not => (
                 <div key={not.id} className="bg-black/20 p-3 rounded-xl border border-white/5 flex justify-between gap-2 text-xs">
