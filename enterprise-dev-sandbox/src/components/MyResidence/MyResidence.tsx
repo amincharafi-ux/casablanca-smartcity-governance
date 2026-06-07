@@ -1635,6 +1635,19 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
             ))}
           </div>
 
+          {/* Institution banner for Avocats if filter is ALL or AVOCAT */}
+          {(activeTradeFilter === 'ALL' || activeTradeFilter === 'AVOCAT') && (
+            <div className="p-4 bg-indigo-950/40 border border-[#6c3cff]/15 rounded-2xl space-y-1 select-none">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🏛️</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Ordre des Avocats de Casablanca</span>
+              </div>
+              <p className="text-[9.5px] text-indigo-300 leading-normal">
+                Bâtonnier de Casablanca & Conseil de l'Ordre — Organe représentatif légal répertoriant le tableau officiel des avocats et veillant aux règles d'éthique, de confraternité et d'excellence professionnelle.
+              </p>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTrades.map(t => (
               <div key={t.id} className="bg-[#1a1d29]/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between relative hover:border-white/10 transition-transform">
