@@ -12,6 +12,7 @@ import jwt from "jsonwebtoken";
 import * as postgresService from "./src/db/postgres-service.ts";
 import { isDbConnected, db } from "./src/db/index.ts";
 import { eq } from "drizzle-orm";
+import missingEndpointsRouter from "./src/routes/missingEndpoints.ts";
 
 // Load environment variables
 dotenv.config();
@@ -183,6 +184,11 @@ const aiRateLimiter = rateLimit({
 
 // Apply rate limiter to all api routes
 app.use("/api/", generalRateLimiter);
+
+// Robust registration of the B2G Certified Missing Audit Endpoints Router (supporting all prefix environments)
+app.use("/v1", missingEndpointsRouter);
+app.use("/api/v1", missingEndpointsRouter);
+app.use("/api", missingEndpointsRouter);
 
 // ============================================================================
 // INPUT SANITIZATION & PROMPT INJECTION ENGINE (ISO 27001 CONFORMATION)
