@@ -1,6 +1,6 @@
 import crypto from "crypto";
-import { db, isDbConnected } from "./index.ts";
-import * as schema from "./schema.ts";
+import { db, isDbConnected } from "./index";
+import * as schema from "./schema";
 import { eq, desc } from "drizzle-orm";
 
 // ============================================================================
