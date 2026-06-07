@@ -153,7 +153,7 @@ export default function MairiePortal({
             activeSubTab === 'DASHBOARD' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
           }`}
         >
-          📊 Dashboard Analytics
+          Dashboard Analytics
         </button>
         <button
           id="mairie-tab-claims"
@@ -180,7 +180,7 @@ export default function MairiePortal({
             activeSubTab === 'USERS' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
           }`}
         >
-          👤 Comptes Utilisateurs
+          Comptes Utilisateurs
         </button>
         <button
           id="mairie-tab-flash"
@@ -213,7 +213,6 @@ export default function MairiePortal({
               <div>
                 <div className="flex items-center justify-between">
                   <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
-                    <BarChart2 className="w-4 h-4 text-purple-400" />
                     Répartition par Thème
                   </span>
                   <span className="font-mono text-[10px] text-gray-400 font-semibold">{claims.length} au total</span>
@@ -251,7 +250,6 @@ export default function MairiePortal({
             <div className="bg-[#161821] p-4 rounded-xl border border-white/5 space-y-3.5 flex flex-col justify-between">
               <div>
                 <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
-                  <MapPin className="w-4 h-4 text-[#00f0ff]" />
                   Performance Territoriale
                 </span>
                 <p className="text-[10px] text-gray-400 leading-normal mt-1">
@@ -284,7 +282,6 @@ export default function MairiePortal({
             <div className="bg-[#161821] p-4 rounded-xl border border-white/5 space-y-3.5 flex flex-col justify-between">
               <div>
                 <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
                   Souveraineté & Cyber-Défense
                 </span>
                 <p className="text-[10px] text-gray-400 leading-normal mt-1">
@@ -560,10 +557,21 @@ export default function MairiePortal({
       {activeSubTab === 'SERVICES' && (
         <div id="mairie-hospital-panel" className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Pharmacy duty roster list */}
-          <div className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-3 shadow-md">
+          <div className="bg-[#161821] border border-white/5 p-4 rounded-xl space-y-3 shadow-md flex flex-col">
             <span className="font-title font-semibold text-xs text-white block">{t.pharmacyTitle}</span>
             
-            <div className="space-y-2">
+            {/* FIXED Header - L'Ordre des Pharmaciens de Casablanca */}
+            <div className="p-3 bg-[#6c3cff]/10 border border-[#6c3cff]/20 rounded-xl space-y-1 select-none">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🏛️</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Ordre des Pharmaciens de Casablanca</span>
+              </div>
+              <p className="text-[9.5px] text-purple-300 leading-normal">
+                Conseil Régional des Pharmaciens du Sud — Organe de régulation légal et de validation de la charte de garde pharmaceutique à Casablanca.
+              </p>
+            </div>
+
+            <div className="space-y-2 max-h-[380px] overflow-y-auto pr-1">
               {pharmacies.map(ph => (
                 <div key={ph.id} className="p-2.5 bg-black/30 rounded border border-white/5 flex justify-between items-center font-mono">
                   <div>
