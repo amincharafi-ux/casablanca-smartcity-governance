@@ -1346,6 +1346,19 @@ export default function MyLifePortal({
         </div>
       </div>
 
+      {/* Institution representative banner for Médecins if activeCategoryId is 2 */}
+      {activeCategoryId === 2 && (
+        <div className="p-4 bg-emerald-950/20 border border-emerald-500/15 rounded-2xl mb-4 space-y-1 select-none">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🏥</span>
+            <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Conseil de l'Ordre des Médecins de Casablanca</span>
+          </div>
+          <p className="text-[9.5px] text-emerald-300 leading-normal">
+            Ordre National des Médecins du Maroc — Organe de régulation déontologique et légal de l'exercice médical veillant sur la qualité, la probité et le respect absolu de la déontologie professionnelle.
+          </p>
+        </div>
+      )}
+
       {/* 4. Active List of Matching Providers & Services */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" id="mylife-providers-grid">
         {filteredProviders.map((provider) => {
