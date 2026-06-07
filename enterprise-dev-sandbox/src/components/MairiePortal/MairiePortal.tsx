@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ShieldCheck, MessageSquare, AlertCircle, Send, CheckCircle, BarChart2, Eye, Server, RefreshCw, Sparkles, Phone, Shield } from 'lucide-react';
+import { ShieldCheck, MessageSquare, AlertCircle, Send, CheckCircle, BarChart2, Eye, Server, RefreshCw, Sparkles, Phone, Shield, MapPin, TrendingUp } from 'lucide-react';
 import { CitizenClaim, PharmacyDeGarde, HospitalStatus, CNDPPrivacyLog } from '../../types';
 import { translations, LanguageCode } from '../../data/translations';
 
@@ -32,7 +32,7 @@ export default function MairiePortal({
 }: MairiePortalProps) {
   const t = translations[currentLang];
 
-  const [activeSubTab, setActiveSubTab] = useState<'CLAIMS' | 'SERVICES' | 'FLASH' | 'AUDIT' | 'USERS'>('CLAIMS');
+  const [activeSubTab, setActiveSubTab] = useState<'DASHBOARD' | 'CLAIMS' | 'SERVICES' | 'FLASH' | 'AUDIT' | 'USERS'>('DASHBOARD');
 
   // Simulated User Accounts state list
   const [simulatedAccounts, setSimulatedAccounts] = useState([
@@ -147,6 +147,15 @@ export default function MairiePortal({
       {/* Sub Menu */}
       <div className="flex border-b border-white/5 bg-[#0f111a] rounded-lg p-1 gap-1 overflow-x-auto scroller-hidden">
         <button
+          id="mairie-tab-dashboard"
+          onClick={() => setActiveSubTab('DASHBOARD')}
+          className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
+            activeSubTab === 'DASHBOARD' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
+          }`}
+        >
+          📊 Dashboard Analytics
+        </button>
+        <button
           id="mairie-tab-claims"
           onClick={() => setActiveSubTab('CLAIMS')}
           className={`px-3 py-1.5 rounded text-center transition-all cursor-pointer font-semibold text-xs whitespace-nowrap min-w-[70px] ${
@@ -192,6 +201,178 @@ export default function MairiePortal({
           {t.mairieTabAudit}
         </button>
       </div>
+
+      {/* DASHBOARD TAB WORKSPACE */}
+      {activeSubTab === 'DASHBOARD' && (
+        <div id="mairie-dashboard-panel" className="space-y-4 animate-fade-in">
+          {/* Main Grid: Categories, Geography and System Health */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            
+            {/* 1. Categorized Claims distribution with styled progress bars */}
+            <div className="bg-[#161821] p-4 rounded-xl border border-white/5 space-y-3.5 flex flex-col justify-between">
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
+                    <BarChart2 className="w-4 h-4 text-purple-400" />
+                    Répartition par Thème
+                  </span>
+                  <span className="font-mono text-[10px] text-gray-400 font-semibold">{claims.length} au total</span>
+                </div>
+                <p className="text-[10px] text-gray-400 leading-normal mt-1">
+                  Distribution fonctionnelle des incidents actifs déclarés par les citoyens de Casablanca.
+                </p>
+
+                <div className="space-y-2 mt-3.5">
+                  {[
+                    { label: 'Voirie & Route', count: claims.filter(c => c.category === 'CHAUSEE' || c.title.toLowerCase().includes('nid') || c.title.toLowerCase().includes('trou') || c.title.toLowerCase().includes('carref')).length, color: 'bg-indigo-500' },
+                    { label: 'Éclairage Public', count: claims.filter(c => c.category === 'ECLAIRAGE' || c.title.toLowerCase().includes('panne') || c.title.toLowerCase().includes('lamp') || c.title.toLowerCase().includes('sombre')).length, color: 'bg-yellow-500' },
+                    { label: 'Propreté & Déchets', count: claims.filter(c => c.category === 'DECHETS' || c.title.toLowerCase().includes('poubelle') || c.title.toLowerCase().includes('déchet') || c.title.toLowerCase().includes('ordure')).length, color: 'bg-emerald-500' },
+                    { label: 'Eau & Canalisations', count: claims.filter(c => c.category === 'EAU_ASSAINISSEMENT' || c.title.toLowerCase().includes('fuite') || c.title.toLowerCase().includes('eau') || c.title.toLowerCase().includes('égout')).length, color: 'bg-cyan-500' },
+                    { label: 'Sécurité & Citoyenneté', count: claims.filter(c => c.category === 'AUTRE' || c.title.toLowerCase().includes('bruit') || c.title.toLowerCase().includes('commerce') || c.title.toLowerCase().includes('syndic') || c.title.toLowerCase().includes('incendie')).length, color: 'bg-rose-500' },
+                  ].map((cat, i) => {
+                    const pct = claims.length > 0 ? (cat.count / claims.length) * 100 : 0;
+                    return (
+                      <div key={i} className="space-y-1">
+                        <div className="flex justify-between items-center text-[10px] font-mono">
+                          <span className="text-gray-300 font-sans">{cat.label}</span>
+                          <span className="text-white font-bold">{cat.count} ({pct.toFixed(0)}%)</span>
+                        </div>
+                        <div className="w-full bg-black/40 h-1.5 rounded-full overflow-hidden">
+                          <div className={`h-full ${cat.color} rounded-full transition-all duration-500`} style={{ width: `${Math.max(pct, 5)}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Geographic SLA compliance by Arrondissements */}
+            <div className="bg-[#161821] p-4 rounded-xl border border-white/5 space-y-3.5 flex flex-col justify-between">
+              <div>
+                <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-[#00f0ff]" />
+                  Performance Territoriale
+                </span>
+                <p className="text-[10px] text-gray-400 leading-normal mt-1">
+                  Temps de résolution estimé et conformité SLA par pôle urbain de Casablanca.
+                </p>
+
+                <div className="space-y-3 mt-3.5">
+                  {[
+                    { zone: 'Maârif / Gauthier', perf: '94%', delay: '1.8 j', status: 'Optimal', badgeColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                    { zone: 'Sidi Maârouf / Oasis', perf: '89%', delay: '2.5 j', status: 'Conforme', badgeColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                    { zone: 'Anfa / Aïn Diab', perf: '82%', delay: '3.1 j', status: 'Conforme', badgeColor: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
+                    { zone: 'Roches Noires / Belvédère', perf: '68%', delay: '4.7 j', status: 'Attention', badgeColor: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+                  ].map((arr, i) => (
+                    <div key={i} className="p-2 bg-black/20 rounded-lg flex items-center justify-between border border-white/5">
+                      <div className="space-y-0.5">
+                        <span className="text-gray-300 font-bold block text-[10px]">{arr.zone}</span>
+                        <span className="text-[9px] text-gray-500 font-mono">Délai moyen : <strong className="text-gray-400">{arr.delay}</strong></span>
+                      </div>
+                      <div className="text-right flex flex-col items-end gap-1">
+                        <span className="text-xs font-bold font-mono text-white">{arr.perf} SLA</span>
+                        <span className={`px-1 rounded-[4px] border font-mono text-[7.5px] uppercase font-bold ${arr.badgeColor}`}>{arr.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Sovereign Cybersecurity, Registry and Identity sync */}
+            <div className="bg-[#161821] p-4 rounded-xl border border-white/5 space-y-3.5 flex flex-col justify-between">
+              <div>
+                <span className="text-white font-semibold text-xs font-mono uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  Souveraineté & Cyber-Défense
+                </span>
+                <p className="text-[10px] text-gray-400 leading-normal mt-1">
+                  Sûreté cryptographique des clés, registres CNDP et logs immuables.
+                </p>
+
+                <div className="space-y-2 mt-3.5 font-mono text-[10px]">
+                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                    <span className="text-gray-400">Uptime Services Cloud Run</span>
+                    <span className="text-[#00ff66] font-bold">99.998% (Actif)</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                    <span className="text-gray-400">Base Drizzle Relational</span>
+                    <span className="text-white font-bold">PostgreSQL Active</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                    <span className="text-gray-400">Intégrité Sessions JWT</span>
+                    <span className="text-[#00f0ff] font-bold">256-bit HS256 Active</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 border-b border-white/5">
+                    <span className="text-gray-400">Registres d'Audits CNDP</span>
+                    <span className="text-purple-400 font-bold">{privacyLogs.length} Entrées Scellées</span>
+                  </div>
+                  <div className="flex justify-between items-center py-1.5 pt-2">
+                    <span className="text-gray-400">Assainissement Doppler Vault</span>
+                    <span className="text-emerald-400 font-bold uppercase text-[9px] bg-emerald-500/15 border border-emerald-500/20 px-1.5 py-0.5 rounded">Activé</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Analytical Deep-Dive / AI Insight Generation inside Dashboard */}
+          <div className="p-4 bg-gradient-to-r from-[#0f111a] via-[#161821] to-[#0f111a] border border-[#6c3cff]/15 rounded-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-[#6c3cff]/10 flex items-center justify-center border border-[#6c3cff]/20 shrink-0">
+                <Sparkles className="w-5 h-5 text-[#6c3cff]" />
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="font-title font-bold text-xs text-white">Analyse Prédictive par Intelligence Artificielle</h4>
+                <p className="text-[10px] text-gray-400 max-w-xl">
+                  Générez un rapport de tri automatisé des goulots d'étranglement urbains ou des pannes récurrentes avec l'IA Souveraine Gemini.
+                </p>
+              </div>
+            </div>
+            <button
+              id="mairie-dash-ai-btn"
+              onClick={handleQueryGeminiClaimsAnalysis}
+              disabled={aiLoading}
+              className="px-4 py-2 bg-[#6c3cff] hover:bg-[#5329df] disabled:bg-[#6c3cff]/40 text-white font-bold text-[10px] uppercase font-mono rounded flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+            >
+              {aiLoading ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Analyse en cours...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Consulter l'IA</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* If AI Report loaded, show it inside Dashboard too! */}
+          {aiReport && (
+            <div className="p-4 bg-[#0a0c10] border border-white/5 rounded-xl space-y-3 animate-fade-in text-xs leading-relaxed text-gray-300">
+              <div className="flex justify-between items-center border-b border-white/5 pb-2">
+                <span className="text-white font-bold font-mono text-xs flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" />
+                  Rapport Analytique Généré par Gemini AI
+                </span>
+                <span className="text-[9px] text-[#00f0ff] bg-indigo-950/40 border border-indigo-700/30 px-2 py-0.5 rounded font-mono font-bold uppercase tracking-wider">Automatique</span>
+              </div>
+              <div className="space-y-2 text-[11px] max-h-48 overflow-y-auto pr-1">
+                <p className="font-bold text-indigo-300">📌 Synthèse des Priorities Urbaines :</p>
+                <p className="text-gray-400">{aiReport.analysis || "Rapports d'incident urbains impeccables détectés."}</p>
+                
+                <p className="font-bold text-emerald-400 mt-2">🛡️ Recommandations de Planification Municipale :</p>
+                <div className="bg-black/20 p-2.5 rounded border border-white/5 font-mono text-[10px] text-slate-300 whitespace-pre-line">
+                  {aiReport.moderationAdvice || "Aucune alerte prioritaire détectée pour le moment."}
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Triage Workspace */}
       {activeSubTab === 'CLAIMS' && (
