@@ -25,6 +25,7 @@ export default function SecurityAuditIntegrale({ isOpen, onClose, onAddLog }: Se
   const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'CHECKLIST' | 'PENTEST' | 'REPORT'>('OVERVIEW');
   const [isSimulatingAll, setIsSimulatingAll] = useState(false);
   const [overallScore, setOverallScore] = useState(9.4);
+  const [selectedStage, setSelectedStage] = useState<'ACTUEL' | 'ROADMAP' | 'TRACTION'>('ROADMAP');
   
   // 4 Core attack vectors for simulation
   const [vectors, setVectors] = useState<PentestVector[]>([
@@ -248,100 +249,231 @@ export default function SecurityAuditIntegrale({ isOpen, onClose, onAddLog }: Se
           
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'OVERVIEW' && (
-            <div className="space-y-6 animate-fade-in">
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div className="space-y-6 animate-fade-in text-[#c9d1d9]">
+              
+              {/* TOP GRID: STATS AND SECURITY INSIGHTS (FROM SCREENSHOT) */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
                 
-                {/* CYBERSECURITY POSTURE KPI */}
-                <div className="bg-[#121320] border border-white/5 p-5 rounded-2xl flex flex-col items-center justify-center text-center space-y-3">
-                  <div className="relative w-28 h-28 flex items-center justify-center">
-                    <svg className="w-full h-full transform -rotate-90">
-                      <circle cx="56" cy="56" r="48" className="stroke-white/5 fill-none" strokeWidth="6" />
-                      <circle cx="56" cy="56" r="48" className="stroke-red-500 fill-none" strokeWidth="6" strokeDasharray="301.59" strokeDashoffset="18" />
-                    </svg>
-                    <div className="absolute flex flex-col items-center leading-none">
-                      <span className="font-mono text-3xl font-black text-rose-400">9.4</span>
-                      <span className="text-[10px] text-gray-500 font-bold mt-1">SUR 10</span>
-                    </div>
-                  </div>
-                  <div>
-                    <h3 className="text-white text-xs font-bold uppercase tracking-wider">Score d'Intégrité Consolidé</h3>
-                    <p className="text-[10px] text-gray-400 mt-1">
-                      Posture excellente après mise en conformité et sécurisation du BLE-Mesh local.
-                    </p>
-                  </div>
-                </div>
-
-                {/* METRICS SUMMARY */}
-                <div className="bg-[#121320] border border-white/5 p-5 rounded-2xl lg:col-span-2 space-y-3.5">
-                  <h3 className="text-xs font-mono font-bold text-white uppercase tracking-wider border-b border-white/5 pb-1.5 flex items-center justify-between">
-                    <span>🔬 Synthèse d'Audit Red-Team</span>
-                    <span className="text-[9px] text-[#00f0ff] animate-pulse">Statut : Systèmes Protégés</span>
-                  </h3>
+                {/* COLUMN 1: SCORE & QUICK FACTS (5 SPAN) */}
+                <div className="lg:col-span-5 space-y-4">
                   
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Canaux Mesh BLE</span>
-                      <span className="text-xs font-bold text-emerald-400 font-mono mt-0.5 block">✓ Nonces Actifs</span>
+                  {/* CYBERSECURITY POSTURE KPI */}
+                  <div className="bg-[#121320] border border-red-500/10 p-5 rounded-2xl flex items-center gap-5">
+                    <div className="relative w-20 h-20 shrink-0 flex items-center justify-center">
+                      <svg className="w-full h-full transform -rotate-90">
+                        <circle cx="40" cy="40" r="34" className="stroke-white/5 fill-none" strokeWidth="5" />
+                        <circle cx="40" cy="40" r="34" className="stroke-emerald-500 fill-none" strokeWidth="5" strokeDasharray="213.62" strokeDashoffset="12" />
+                      </svg>
+                      <div className="absolute flex flex-col items-center leading-none">
+                        <span className="font-mono text-xl font-black text-emerald-400">9.4</span>
+                        <span className="text-[8px] text-gray-500 font-bold mt-0.5 uppercase">Sur 10</span>
+                      </div>
                     </div>
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Identités Citoyennes</span>
-                      <span className="text-xs font-bold text-purple-400 font-mono mt-0.5 block">✓ Aucun Stock Direct</span>
+                    <div>
+                      <h3 className="text-white text-xs font-bold uppercase tracking-wider font-mono">Score de Posture Consolidé</h3>
+                      <p className="text-[10px] text-gray-400 mt-1 leading-normal">
+                        Défenses robustes en Sandbox : JWT standardisé (\`HS256\`), middlewares de rôles (RBAC) actifs et chiffrement BLE-Mesh.
+                      </p>
                     </div>
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Purge GDPR/CNDP</span>
-                      <span className="text-xs font-bold text-[#00f0ff] font-mono mt-0.5 block">✓ Temps Réel (Art. 7)</span>
+                  </div>
+
+                  {/* MINIMALIST METRICS MATRIX */}
+                  <div className="bg-[#0f111a] border border-[#30363d] p-4 rounded-2xl space-y-3">
+                    <span className="text-[9px] font-mono font-bold text-gray-400 tracking-wider block uppercase">🔬 Diagnostic Rapide</span>
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div className="bg-black/30 p-2 rounded-xl border border-white/[0.03] space-y-0.5">
+                        <span className="text-gray-500 uppercase block text-[8px] font-mono">Mesh BLE</span>
+                        <span className="text-emerald-400 font-bold font-mono">✓ Nonces Actifs</span>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-xl border border-white/[0.03] space-y-0.5">
+                        <span className="text-gray-500 uppercase block text-[8px] font-mono">Identités</span>
+                        <span className="text-purple-400 font-bold font-mono">✓ Zero Stock Direct</span>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-xl border border-white/[0.03] space-y-0.5">
+                        <span className="text-gray-500 uppercase block text-[8px] font-mono">Purge CNDP</span>
+                        <span className="text-[#00f0ff] font-bold font-mono">✓ Temps réel</span>
+                      </div>
+                      <div className="bg-black/30 p-2 rounded-xl border border-white/[0.03] space-y-0.5">
+                        <span className="text-gray-500 uppercase block text-[8px] font-mono">Limiteur API</span>
+                        <span className="text-teal-300 font-bold font-mono">✓ Actif</span>
+                      </div>
                     </div>
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Sceau Administratif</span>
-                      <span className="text-xs font-bold text-amber-400 font-mono mt-0.5 block">✓ OCR Validé</span>
+                  </div>
+
+                </div>
+
+                {/* COLUMN 2: CRITICAL DIAGNOSTIC CARD (7 SPAN - DIRECT REPRODUCTION OF THE SCREENSHOT BULLETS) */}
+                <div className="lg:col-span-7 bg-[#121320] border border-white/5 p-5 rounded-3xl flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <div className="flex items-center gap-2">
+                        <ShieldAlert className="w-4 h-4 text-rose-400 animate-pulse" />
+                        <h3 className="text-white text-xs font-bold font-title uppercase tracking-wide">Constats Techniques d'Audit CTO</h3>
+                      </div>
+                      <span className="px-2 py-0.5 bg-red-950/40 border border-red-900/40 text-[8px] text-rose-400 font-bold font-mono rounded-full">3 POINTS CLÉS</span>
                     </div>
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Intégrité Log</span>
-                      <span className="text-xs font-bold text-rose-400 font-mono mt-0.5 block">✓ SHA-256 Immuable</span>
+
+                    {/* RED FLAG ITEM (Architecture monolithique) */}
+                    <div className="flex items-start gap-3 bg-red-950/15 border border-red-500/10 p-3 rounded-2xl">
+                      <div className="w-5 h-5 rounded-full bg-rose-500/25 border border-rose-500/45 flex items-center justify-center shrink-0 font-bold text-xs text-rose-400 font-mono mt-0.5">
+                        !
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-white font-bold text-[11px] font-sans">Architecture monolithique</h4>
+                        <p className="text-[10px] text-rose-200/85 leading-relaxed font-sans">
+                          Impossible de scaler horizontalement vers <strong>1M d'utilisateurs</strong> sans refactoring microservices majeur.
+                        </p>
+                      </div>
                     </div>
-                    <div className="bg-black/35 p-3 rounded-xl border border-white/5">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono block">Limiteur API</span>
-                      <span className="text-xs font-bold text-teal-300 font-mono mt-0.5 block">✓ 10 requêtes/min</span>
+
+                    {/* WARN ITEM (Pas de cache layer ni CDN) */}
+                    <div className="flex items-start gap-3 bg-amber-950/15 border border-amber-500/10 p-3 rounded-2xl">
+                      <div className="w-5 h-5 rounded-full bg-amber-500/25 border border-amber-500/45 flex items-center justify-center shrink-0 font-bold text-xs text-amber-400 font-mono mt-0.5">
+                        ~
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-white font-bold text-[11px] font-sans">Pas de cache layer ni CDN</h4>
+                        <p className="text-[10px] text-amber-200/85 leading-relaxed font-sans">
+                          Chaque requête frappe directement la base de données. Pas de Redis configuré, pas de répliques en lecture seule.
+                        </p>
+                      </div>
                     </div>
+
+                    {/* GREEN COMPLIANT ITEM (Consent management & Event Sourcing) */}
+                    <div className="flex items-start gap-3 bg-emerald-950/15 border border-emerald-500/10 p-3 rounded-2xl">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500/25 border border-emerald-500/45 flex items-center justify-center shrink-0 font-bold text-xs text-emerald-400 font-mono mt-0.5">
+                        ✓
+                      </div>
+                      <div className="space-y-0.5">
+                        <h4 className="text-white font-bold text-[11px] font-sans">Consent management & Event Sourcing</h4>
+                        <p className="text-[10px] text-emerald-200/85 leading-relaxed font-sans">
+                          Implémentation solide — les tables <code className="text-emerald-300 font-mono text-[9.5px]">user_consents</code>, <code className="text-emerald-300 font-mono text-[9.5px]">event_store</code> et la procédure <code className="text-emerald-300 font-mono text-[9.5px]">anonymize_user_cascade()</code> sont extrêmement bien pensées.
+                        </p>
+                      </div>
+                    </div>
+
                   </div>
                 </div>
 
               </div>
 
-              {/* WHY WE NEED EXTREME SECURITY FOR BLE-MESH */}
-              <div className="bg-gradient-to-r from-[#121320] to-[#121921] border border-emerald-500/10 p-5 rounded-2xl space-y-3">
-                <div className="flex items-center gap-2 text-emerald-400">
-                  <Radio className="w-5 h-5 animate-spin-slow" />
-                  <h3 className="font-title font-bold text-xs uppercase tracking-wider text-white">Focus Crucial : Sécurisation du BLE-MESH Municipale</h3>
-                </div>
-                <p className="text-[11px] text-gray-300 leading-relaxed text-justify">
-                  Dans une ville connectée et résiliente comme Casablanca, le <strong>Bluetooth Low Energy (BLE) Mesh</strong> est le canal d'ultime recours en cas de coupure d'Internet ou de catastrophes majeures. Néanmoins, sa nature décentralisée le rend hautement vulnérable au <strong>Spoofing</strong> (usurpation de bornes de diffusion) et aux <strong>attaques par rejeu</strong> de vieux signaux de panique. 
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 pt-2 text-[10.5px]">
-                  <div className="bg-black/30 p-3.5 rounded-xl border border-white/5 space-y-1.5">
-                    <span className="text-emerald-400 font-bold font-mono text-[10px] block uppercase tracking-wide">⚔️ Attaque Redoutée : Le Faux Transpondeur (Sybil)</span>
-                    <p className="text-gray-400 text-[10px] leading-relaxed">
-                      Un acteur injecte des dizaines de faux messages "Séisme détecté ! Évacuez l'immeuble Anfa !". Ce qui génère une hystérie publique imminente ou détourne les services de secours de la Mairie vers des zones erronées.
-                    </p>
+              {/* SECTION: VALORISATION & POSITIONNEMENT (EXACT MATCH DISCORD GRAPH) */}
+              <div className="bg-[#121320] border border-[#30363d] p-5 rounded-3xl space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-white/5 pb-3">
+                  <div>
+                    <h3 className="text-white text-xs font-bold uppercase tracking-wider font-mono">Valorisation & Positionnement Stratégique</h3>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Impact direct des milestones techniques de la roadmap sur l'évaluation financière du projet devant les fonds d'investissements.</p>
                   </div>
-                  <div className="bg-black/30 p-3.5 rounded-xl border border-white/5 space-y-1.5">
-                    <span className="text-emerald-400 font-bold font-mono text-[10px] block uppercase tracking-wide">🛡️ Parade MyCity : Signature Numérique ECDSA</span>
-                    <p className="text-gray-400 text-[10px] leading-relaxed">
-                      MyCity intègre une validation par <strong>clé cryptographique ECDSA secp256k1</strong>. Seuls les terminaux de secours de la Mairie, de la Police ou des syndics certifiés sur l'application peuvent initier une alerte. Les relais interdépendants vérifient la validité de la signature avant de rediffuser l'onde.
-                    </p>
-                  </div>
+                  <span className="p-1.5 bg-purple-900/25 border border-purple-500/30 text-[9px] text-purple-400 font-mono font-bold rounded-lg uppercase tracking-wider shrink-0">
+                    Simulation Valide d'Audit
+                  </span>
                 </div>
-              </div>
 
-              {/* EXECUTIVE SUMMARY OUTLINE */}
-              <div className="bg-[#1c0e12] border border-rose-500/10 p-5 rounded-2xl space-y-2">
-                <div className="flex items-center gap-2 text-rose-400">
-                  <ShieldCheck className="w-4.5 h-4.5" />
-                  <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-white">Conclusion d'Audit Non-Confidentiel (Sanitised)</span>
+                {/* THE PILLS SELECTOR BAR (MATCHING CLAUDE CHAT DESIGN) */}
+                <div className="grid grid-cols-3 gap-2.5">
+                  <button
+                    onClick={() => setSelectedStage('ACTUEL')}
+                    className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer relative overflow-hidden ${
+                      selectedStage === 'ACTUEL'
+                        ? 'bg-amber-950/20 border-amber-500 shadow-lg'
+                        : 'bg-[#0d1117] border-[#30363d] hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="px-2 py-0.5 bg-amber-500/15 border border-amber-500/20 text-amber-300 font-bold text-[8px] font-mono rounded uppercase tracking-wider">
+                        État actuel
+                      </span>
+                      <span className="text-[10px] text-gray-400 mt-1.5 font-sans leading-tight block">Pre-seed / Seed tardif</span>
+                      <span className="text-xs font-black text-amber-400 font-mono mt-1 block">€500K – €1M</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedStage('ROADMAP')}
+                    className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer relative overflow-hidden ${
+                      selectedStage === 'ROADMAP'
+                        ? 'bg-blue-950/20 border-blue-500 shadow-lg'
+                        : 'bg-[#0d1117] border-[#30363d] hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="absolute top-1 right-1">
+                      <span className="px-1 py-0.2 bg-emerald-500/20 border border-emerald-500/30 text-[7px] text-emerald-400 font-bold font-mono rounded">SÉCURISÉ</span>
+                    </div>
+                    <div className="flex flex-col items-center">
+                      <span className="px-2 py-0.5 bg-blue-500/15 border border-blue-500/20 text-blue-300 font-bold text-[8px] font-mono rounded uppercase tracking-wider">
+                        Après roadmap
+                      </span>
+                      <span className="text-[10px] text-gray-400 mt-1.5 font-sans leading-tight block">JWT fixé + tables + tests</span>
+                      <span className="text-xs font-black text-blue-400 font-mono mt-1 block">€1.5M – €2.5M</span>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => setSelectedStage('TRACTION')}
+                    className={`p-3.5 rounded-2xl border text-center transition-all cursor-pointer relative overflow-hidden ${
+                      selectedStage === 'TRACTION'
+                        ? 'bg-emerald-950/20 border-emerald-500 shadow-lg'
+                        : 'bg-[#0d1117] border-[#30363d] hover:border-gray-600'
+                    }`}
+                  >
+                    <div className="flex flex-col items-center">
+                      <span className="px-2 py-0.5 bg-emerald-500/15 border border-emerald-500/20 text-emerald-300 font-bold text-[8px] font-mono rounded uppercase tracking-wider">
+                        Avec traction
+                      </span>
+                      <span className="text-[10px] text-gray-400 mt-1.5 font-sans leading-tight block">Series A possible</span>
+                      <span className="text-xs font-black text-emerald-400 font-mono mt-1 block">€3M – €5M</span>
+                    </div>
+                  </button>
                 </div>
-                <p className="text-[10.5px] text-gray-400 leading-normal">
-                  L'écosystème MyCity maintient une étanchéité de premier ordre grâce au principe de <strong>Privacy-by-Design</strong>. En scindant intelligemment la base de données brute des services interactifs de haut niveau (IA), le blueprint neutre prévient tout point de défaillance unique. Le rapport détaillé ci-contre confirme la solidité de la protection des données citoyennes.
-                </p>
+
+                {/* DYNAMIC CARD DETAIL OF SELECTED VALUATION STAGE */}
+                <div className="bg-[#0b0d16] border border-white/[0.04] p-4 rounded-2xl">
+                  {selectedStage === 'ACTUEL' && (
+                    <div className="space-y-1 animate-fade-in text-[10.5px]">
+                      <h4 className="font-bold text-amber-400 flex items-center gap-1.5">
+                        <span>🏷️ Diagnostic Pré-seed : €500K – €1.0M</span>
+                      </h4>
+                      <p className="text-gray-400 leading-relaxed font-sans">
+                        La structure actuelle de Casablanca souffre de Red Flags de sécurité qui freinent les gros institutionnels (comme des JWT non normalisés ou des anomalies dans <code className="text-gray-300 font-mono text-[9px]">package.json</code>). Suite aux Hotfixes que nous avons développés dans la Sandbox de code, les plus gros risques sont sous contrôle !
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedStage === 'ROADMAP' && (
+                    <div className="space-y-1 animate-fade-in text-[10.5px]">
+                      <h4 className="font-bold text-blue-400 flex items-center gap-1.5">
+                        <span>🚀 Diagnostic Roadmap Validé : €1.5M – €2.5M</span>
+                        <span className="px-1.5 py-0.2 bg-emerald-500/20 text-emerald-400 text-[8px] rounded font-mono font-bold">LIVRÉ EN SANDBOX</span>
+                      </h4>
+                      <p className="text-gray-400 leading-relaxed font-sans">
+                        <strong>Félicitations !</strong> Les critères techniques requis par l'auditeur pour atteindre ce palier intermédiaire de valorisation sont pleinement validés au sein de notre <em>Sandbox de Livraison d'Entreprise</em> : le JWT a été standardisé par des protocoles robustes, les middlewares Express protègent chaque point d'API avec du contrôle d'accès basé sur les rôles (RBAC), et des scripts d'onboarding ont été rédigés.
+                      </p>
+                    </div>
+                  )}
+
+                  {selectedStage === 'TRACTION' && (
+                    <div className="space-y-1 animate-fade-in text-[10.5px]">
+                      <h4 className="font-bold text-emerald-400 flex items-center gap-1.5">
+                        <span>🎯 Diagnostic Cible avec Traction : €3.0M – €5.0M</span>
+                      </h4>
+                      <p className="text-gray-400 leading-relaxed font-sans">
+                        Pour atteindre la Series A, l'écosystème doit démontrer une solide traction sur ses cas d'usage urbains de souveraineté à Casablanca (traitement de plaintes, monitoring d'énergie BLE, CNDP stricte), un passage vers des microservices Docker, et une couverture de tests unitaires/E2E supérieure à 70% pour garantir la résilience globale.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* THE RECOMMENDATION (EXACTLY REPRODUCED FROM THE SCREENSHOT BOTTOM) */}
+                <div className="bg-[#1b1c2b] border border-purple-500/20 p-4.5 rounded-2xl flex items-start gap-3 mt-2">
+                  <span className="text-indigo-400 text-lg select-none shrink-0 mt-0.5">💡</span>
+                  <div className="space-y-1">
+                    <strong className="text-purple-300 font-mono text-[10px] uppercase block tracking-wider">Recommandation Stratégique Financement :</strong>
+                    <p className="text-[11px] text-gray-200 leading-relaxed font-sans">
+                      Lever <strong>€750K – €1M</strong> en pre-seed avec des milestones clairs : suppression immédiate du JWT hardcodé, implémentation complète des tables manquantes, et maintien d'une couverture de test d'au moins 70% avant l'ouverture de négociations pour une Series A nationale.
+                    </p>
+                  </div>
+                </div>
+
               </div>
 
             </div>
