@@ -666,8 +666,27 @@ jobs:
   // Real GitHub Export Direct API Integration
   const handleGitHubExport = async () => {
     const cleanUsername = githubUsername.trim();
-    // Sanitize the token to prevent non-ASCII characters from causing WebIDL Request constructor conversion errors
-    const cleanToken = githubToken.trim().split('').filter(c => c.charCodeAt(0) <= 255).join('');
+    
+    // Ultimate robust sanitizer for GitHub Personal Access Tokens (Classic or Fine-grained)
+    // Strips quotes, backticks, "token ", "bearer ", and filters to printable ASCII characters to remove hidden bytes
+    let rawToken = githubToken.trim();
+    while (
+      (rawToken.startsWith('"') && rawToken.endsWith('"')) ||
+      (rawToken.startsWith("'") && rawToken.endsWith("'")) ||
+      (rawToken.startsWith("`") && rawToken.endsWith("`"))
+    ) {
+      rawToken = rawToken.slice(1, -1).trim();
+    }
+    if (rawToken.toLowerCase().startsWith("token ")) {
+      rawToken = rawToken.substring(6).trim();
+    } else if (rawToken.toLowerCase().startsWith("bearer ")) {
+      rawToken = rawToken.substring(7).trim();
+    }
+    const cleanToken = rawToken.split('').filter(c => {
+      const code = c.charCodeAt(0);
+      return code >= 33 && code <= 126;
+    }).join('');
+
     const cleanRepo = repoName.trim();
 
     if (!cleanUsername) {
@@ -724,7 +743,7 @@ jobs:
           "  4. Si vous souhaitez tester le comportement et la double-structure de livraison sans clé réelle, cliquez directement sur le bouton violet 'Mode Simulation' !",
           "───────────────────────────────────────────────────"
         ]);
-        throw new Error("Token d'accès personnel GitHub non valide ou expiré (401 Unauthorized). Veuillez s'il vous plaît vérifier ou renouveler votre clé d'accès.");
+        throw new Error("Token d'accès personnel GitHub non valide ou expiré (401 Unauthorized / Bad credentials). Veuillez s'il vous plaît vérifier, nettoyer ou renouveler votre clé d'accès.");
       }
 
       let repoExists = checkResponse.status === 200;
@@ -881,6 +900,10 @@ jobs:
           }
         });
 
+        if (fileCheckResp.status === 401) {
+          throw new Error("Token d'accès personnel GitHub incorrect ou expiré (Erreur 401 Unauthorized / Bad credentials). Veuillez s'il vous plaît vérifier la clé saisie.");
+        }
+
         let fileSha: string | undefined;
         if (fileCheckResp.status === 200) {
           const fileData = await fileCheckResp.json();
@@ -913,7 +936,10 @@ jobs:
         if (!commitResp.ok) {
           const errBody = await commitResp.json().catch(() => ({}));
           let errMsg = errBody.message || commitResp.statusText || "";
-          if (commitResp.status === 403 || errMsg.toLowerCase().includes("personal access token") || errMsg.toLowerCase().includes("not accessible")) {
+          
+          if (commitResp.status === 401 || errMsg === "Bad credentials") {
+            errMsg += " (⚠️ Erreur d'authentification : Votre jeton d'accès GitHub (PAT) est incorrect, expiré ou révoqué. Assurez-vous de l'avoir copier-coller correctement sans espaces ni guillemets.)";
+          } else if (commitResp.status === 403 || errMsg.toLowerCase().includes("personal access token") || errMsg.toLowerCase().includes("not accessible")) {
             errMsg += " (⚠️ Conseil d'autorisation : Votre Personal Access Token GitHub ne possède pas les permissions d'écriture indispensables. S'il s'agit d'un jeton classique (Classic), cochez la case 'repo'. S'il s'agit d'un jeton fin (Fine-grained), configurez 'Repository permissions -> Contents' en 'Read and Write' pour ce dépôt.)";
           }
           throw new Error(`Échec de l'envoi de ${gitPath} : ${errMsg}`);
