@@ -9,10 +9,10 @@ import crypto from "crypto";
 import rateLimit from "express-rate-limit";
 import sharp from "sharp";
 import jwt from "jsonwebtoken";
-import * as postgresService from "./src/db/postgres-service.ts";
-import { isDbConnected, db } from "./src/db/index.ts";
+import * as postgresService from "./src/db/postgres-service";
+import { isDbConnected, db } from "./src/db/index";
 import { eq } from "drizzle-orm";
-import missingEndpointsRouter from "./src/routes/missingEndpoints.ts";
+import missingEndpointsRouter from "./src/routes/missingEndpoints";
 
 // Load environment variables
 dotenv.config();
