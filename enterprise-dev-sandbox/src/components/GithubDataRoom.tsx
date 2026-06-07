@@ -95,6 +95,7 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity 
     'src/db/drizzle.config.ts',
     'src/db/index.ts',
     'src/db/schema.ts',
+    'src/db/postgres-service.ts',
     'src/routes/missingEndpoints.ts',
     'src/data/downloadCode.ts',
     'src/data/mockData.ts',
