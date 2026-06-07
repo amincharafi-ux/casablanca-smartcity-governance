@@ -2,9 +2,9 @@ import { Router, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { z } from "zod";
-import * as postgresService from "../db/postgres-service.ts";
-import { db, isDbConnected } from "../db/index.ts";
-import * as schema from "../db/schema.ts";
+import * as postgresService from "../db/postgres-service";
+import { db, isDbConnected } from "../db/index";
+import * as schema from "../db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
 
