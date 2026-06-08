@@ -952,6 +952,7 @@ export default function MyLifePortal({
   const [checkoutEvent, setCheckoutEvent] = useState<CityEvent | null>(null);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [calendarSyncTarget, setCalendarSyncTarget] = useState<string | null>(null);
+  const [showMedecinModal, setShowMedecinModal] = useState(false);
 
   const tGlobal = globalTranslations[currentLang];
 
@@ -1348,15 +1349,136 @@ export default function MyLifePortal({
 
       {/* Institution representative banner for Médecins if activeCategoryId is 2 */}
       {activeCategoryId === 2 && (
-        <div className="p-4 bg-emerald-950/20 border border-emerald-500/15 rounded-2xl mb-4 space-y-1 select-none">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🏥</span>
-            <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Conseil de l'Ordre des Médecins de Casablanca</span>
+        <>
+          <div 
+            onClick={() => setShowMedecinModal(true)}
+            className="p-4 bg-emerald-950/20 border border-emerald-500/25 rounded-2xl mb-4 space-y-2 cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+            title="Cliquez pour consulter le rôle, les recours en cas d'erreur médicale et les coordonnées"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🏥</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Conseil de l'Ordre des Médecins de Casablanca</span>
+              </div>
+              <span className="text-[9px] bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                📖 Guide Patient & Recours
+              </span>
+            </div>
+            <p className="text-[9.5px] text-emerald-300 leading-normal">
+              Ordre National des Médecins du Maroc — Organe de régulation déontologique et légal veillant au respect absolu de la déontologie. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal patient complet</span>.
+            </p>
           </div>
-          <p className="text-[9.5px] text-emerald-300 leading-normal">
-            Ordre National des Médecins du Maroc — Organe de régulation déontologique et légal de l'exercice médical veillant sur la qualité, la probité et le respect absolu de la déontologie professionnelle.
-          </p>
-        </div>
+
+          {/* Médecin Detailed Malpractice & Patient Rights Modal */}
+          {showMedecinModal && (
+            <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+              <div className="bg-[#11131e] border border-emerald-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                {/* Header */}
+                <div className="p-6 border-b border-emerald-500/15 flex items-start justify-between bg-emerald-950/20">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏥</span>
+                    <div>
+                      <h3 className="font-title font-bold text-base text-white">Conseil Régional de l'Ordre des Médecins</h3>
+                      <p className="text-xs text-emerald-300 font-mono">Territoire Casablanca-Settat — Déontologie & Protection des Patients</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setShowMedecinModal(false)}
+                    className="p-1 px-2.5 bg-emerald-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                  >
+                    ✕ Fermer
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                  {/* Section 1: Rôle Légal */}
+                  <div className="space-y-2">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>🩺</span> Rôle Légal de l'Ordre & Mission Publique
+                    </h4>
+                    <p>
+                      Régit par la <b>Loi n° 08-12</b> et la <b>Loi n° 131-13</b> relatives à la pratique de la médecine au Maroc, le Conseil de l'Ordre assure de manière exclusive la tenue de l'inscription des praticiens (secteur libéral et public) autorisés à exercer légalement la médecine humaine sur Casablanca. Il veille de manière stricte au Code de Déontologie, définit les exigences morales et éthiques (Serment d'Hippocrate), arbitre les conflits professionnels et émet des avis obligatoires sur l'organisation sanitaire publique de la commune.
+                    </p>
+                  </div>
+
+                  {/* Section 2: Protection face aux maladresses / malpratiques */}
+                  <div className="space-y-2">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>🛡️</span> Protection & Assistance face aux erreurs de traitement (Malpratiques Médicales)
+                    </h4>
+                    <p className="mb-2">
+                      Si vous suspectez une erreur technique, une négligence active ou un manquement éthique de la part d'un médecin ou d'une clinique privée :
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-emerald-950/20 p-3.5 rounded-xl border border-emerald-500/10">
+                      <div className="space-y-1">
+                        <h5 className="font-bold text-white">🚫 Sanctions Disciplinaires Éthiques</h5>
+                        <p className="text-gray-400 text-[10.5px]">L'Ordre traite de force les plaintes pour manquement au devoir d'assistance humaine, publicité illégale, prescriptions abusives ou violation du secret médical. Les sanctions vont du blâme formel à la suspension temporaire, voire la radiation pénale.</p>
+                      </div>
+                      <div className="space-y-1">
+                        <h5 className="font-bold text-white">🧑‍⚖️ Recours pour Erreurs Cliniques</h5>
+                        <p className="text-gray-400 text-[10.5px]">Une erreur médicale flagrante requiert l'établissement d'une faute, d'un préjudice corporel et d'un lien de causalité direct. L'Ordre instruit des enquêtes de pairs de manière contradictoire pour certifier s'il y a eu violation de l'état de l'art de la science médicale.</p>
+                      </div>
+                      <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                        <h5 className="font-bold text-white">🤝 Médiation Pacifique Obligatoire</h5>
+                        <p className="text-gray-400 text-[10.5px]">Avant d'entamer une procédure judiciaire longue et ardue, l'Ordre peut désigner un médecin conciliateur indépendant pour organiser une séance de médiation afin de s'accorder sur une solution amiable indemnisée par l'Assurance R.C.P. du médecin.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Vos Droits & Comment les obtenir */}
+                  <div className="space-y-3">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>📋</span> Droits Fondamentaux du Patient & Voies d'Action Légales
+                    </h4>
+                    <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                      <li>
+                        <b className="text-white">Le Droit fondamental aux Dossiers Médicaux :</b> Conformément au cadre légal marocain, tout patient (ou tuteur légal) a un droit inaliénable d'obtenir une copie intégrale et scellée de son dossier clinique (comptes rendus opératoires, examens d'imagerie, tracés EEG/ECG, fiches d'hospitalisation, bilans sanguins).
+                      </li>
+                      <li>
+                        <b className="text-white">Saisine officielle de l'Ordre :</b> Adresser une lettre de doléances argumentée au Président du Conseil Régional de l'Ordre de Casablanca. Mentionnez le nom du praticien réfuté, la date de la prise en charge, ainsi que l'historique précis des symptômes et prescriptions.
+                      </li>
+                      <li>
+                        <b className="text-white">Désignation d'un Expert Judiciaire :</b> En cas de contentieux lourd, déposez immédiatement un référé devant le Tribunal de Première Instance pour mandater un Expert Médical Assermenté (répertorié sur le tableau de la Cour d'Appel) pour évaluer impartialement l'IPP (Incapacité Partielle Permanente) consécutive à l'accident thérapeutique.
+                      </li>
+                      <li>
+                        <b className="text-white">Responsabilité Civile & Caisse d'Assurance :</b> Les médecins libéraux ont l'obligation légale de souscrire une assurance de responsabilité civile professionnelle (RCP). Une fois la faute avérée, l'indemnisation est versée de plein droit pour le préjudice moral, esthétique et la perte de revenus.
+                      </li>
+                    </ol>
+                  </div>
+
+                  {/* Section 4: Contact Officiel */}
+                  <div className="space-y-3 bg-[#11131e] border border-emerald-500/15 p-4 rounded-2xl">
+                    <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                      <div>
+                        <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">12 Rue d'Oran, Quartier Gauthier, Casablanca, Maroc</span></p>
+                        <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-emerald-400">regional.casablanca@ordre-medecins.ma</span></p>
+                      </div>
+                      <div>
+                        <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-22 15 16</span></p>
+                        <p><span className="text-gray-500">📠 Copieur / Fax :</span> <span className="text-gray-400 font-sans">+212 (0) 522-27 80 70</span></p>
+                        <p className="mt-1"><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 09:00 - 16:00</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 bg-emerald-950/20 border-t border-emerald-500/15 flex justify-end">
+                  <button 
+                    onClick={() => setShowMedecinModal(false)}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-emerald-500/10"
+                  >
+                    J'ai bien compris mes droits de patient
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
       )}
 
       {/* 4. Active List of Matching Providers & Services */}
