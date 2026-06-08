@@ -1177,7 +1177,7 @@ export default function MyLifePortal({
       
       {/* 1. Header Hero Card with Local Vibe & Indicators */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#11131a] via-[#151926] to-[#0c0e14] border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#6C3CFF]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#d4af7a]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
         <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1188,7 +1188,7 @@ export default function MyLifePortal({
             </div>
             <h1 className="text-xl md:text-3xl font-black font-title text-white tracking-tight leading-tight flex items-center gap-2">
               <span>{t("title")}</span>
-              <span className="text-sm px-2.5 py-0.5 rounded bg-[#6C3CFF]/20 text-[#9E8BFF] font-mono border border-[#6C3CFF]/40 font-bold uppercase">
+              <span className="text-sm px-2.5 py-0.5 rounded bg-[#d4af7a]/20 text-[#e6c697] font-mono border border-[#d4af7a]/40 font-bold uppercase">
                 8 Axes Libres
               </span>
             </h1>
@@ -1216,7 +1216,7 @@ export default function MyLifePortal({
           onClick={() => setMyLifeTab('AGENDA')}
           className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             myLifeTab === 'AGENDA' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#6C3CFF] text-white shadow-md' 
+              ? 'bg-gradient-to-r from-indigo-600 to-[#d4af7a] text-white shadow-md' 
               : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
           }`}
         >
@@ -1229,7 +1229,7 @@ export default function MyLifePortal({
           onClick={() => setMyLifeTab('PROVIDERS')}
           className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
             myLifeTab === 'PROVIDERS' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#6C3CFF] text-white shadow-md' 
+              ? 'bg-gradient-to-r from-indigo-600 to-[#d4af7a] text-white shadow-md' 
               : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
           }`}
         >
@@ -1257,7 +1257,7 @@ export default function MyLifePortal({
               }}
               className={`p-3 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 cursor-pointer relative overflow-hidden group ${
                 isActive 
-                  ? 'bg-gradient-to-b from-[#1c1a2f] to-[#121124] border-[#6C3CFF] text-[#9E8BFF] shadow-lg shadow-[#6C3CFF]/10 scale-[1.03]' 
+                  ? 'bg-gradient-to-b from-[#1c1a2f] to-[#121124] border-[#d4af7a] text-[#e6c697] shadow-lg shadow-[#d4af7a]/10 scale-[1.03]' 
                   : 'bg-[#10121a]/85 border-white/5 text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/10'
               }`}
             >
@@ -1282,7 +1282,7 @@ export default function MyLifePortal({
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#6C3CFF]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#d4af7a]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
             />
           </div>
 
@@ -1291,7 +1291,7 @@ export default function MyLifePortal({
             <select
               value={selectedSubCategory}
               onChange={(e) => setSelectedSubCategory(e.target.value)}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="ALL">{t("allSubCategoriesLabel")}</option>
               {activeCategory.subCategories.map(sub => (
@@ -1303,7 +1303,7 @@ export default function MyLifePortal({
             <select
               value={selectedNeighborhood}
               onChange={(e) => setSelectedNeighborhood(e.target.value)}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="ALL">{t("allNeighborhoodsLabel")}</option>
               {uniqueNeighborhoods.filter(n => n !== "ALL").map(neigh => (
@@ -1315,7 +1315,7 @@ export default function MyLifePortal({
             <select
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-yellow-400 rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-yellow-400 rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="0">Tout score</option>
               <option value="4.6">★ 4.6+</option>
@@ -1493,7 +1493,7 @@ export default function MyLifePortal({
               <div className="space-y-3">
                 {/* Badges and SubCategory */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[9px] font-mono uppercase px-2.5 py-0.5 bg-[#6C3CFF]/15 text-[#9E8BFF] border border-[#6C3CFF]/20 rounded-full">
+                  <span className="text-[9px] font-mono uppercase px-2.5 py-0.5 bg-[#d4af7a]/15 text-[#e6c697] border border-[#d4af7a]/20 rounded-full">
                     {provider.subCategory}
                   </span>
 
@@ -1513,7 +1513,7 @@ export default function MyLifePortal({
 
                 {/* Name, Highlight and Description */}
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-white group-hover:text-[#9E8BFF] transition-colors font-title flex items-center gap-1.5">
+                  <h3 className="text-sm font-black text-white group-hover:text-[#e6c697] transition-colors font-title flex items-center gap-1.5">
                     {provider.name}
                   </h3>
                   <p className="text-[11px] text-[#00f0ff] font-mono font-medium">
@@ -1674,7 +1674,7 @@ export default function MyLifePortal({
                       required
                       value={quoteFormData.serviceType}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, serviceType: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
 
@@ -1685,7 +1685,7 @@ export default function MyLifePortal({
                     <select
                       value={quoteFormData.urgencyLevel}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, urgencyLevel: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-gray-300 rounded-lg p-2 text-xs font-mono outline-none cursor-pointer"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-gray-300 rounded-lg p-2 text-xs font-mono outline-none cursor-pointer"
                     >
                       <option value="normal">Normal (Sans urgence)</option>
                       <option value="rapid">Rapide (Sous 48 heures)</option>
@@ -1704,7 +1704,7 @@ export default function MyLifePortal({
                     placeholder="Surface, nature des travaux, horaires recommandés, contraintes d'accès d'appartement de Casablanca etc."
                     value={quoteFormData.description}
                     onChange={(e) => setQuoteFormData({ ...quoteFormData, description: e.target.value })}
-                    className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-xl p-3 text-xs font-mono placeholder-gray-600 outline-none resize-none"
+                    className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-xl p-3 text-xs font-mono placeholder-gray-600 outline-none resize-none"
                   />
                 </div>
 
@@ -1718,7 +1718,7 @@ export default function MyLifePortal({
                       required
                       value={quoteFormData.deliveryDate}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, deliveryDate: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
 
@@ -1731,7 +1731,7 @@ export default function MyLifePortal({
                       placeholder="Ex: 500 MAD"
                       value={quoteFormData.estimatedBudget}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, estimatedBudget: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
                 </div>
@@ -1749,7 +1749,7 @@ export default function MyLifePortal({
                       placeholder="Nom complet"
                       value={quoteFormData.clientName}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientName: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                     <input
                       type="text"
@@ -1757,7 +1757,7 @@ export default function MyLifePortal({
                       placeholder="Téléphone"
                       value={quoteFormData.clientPhone}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientPhone: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                     <input
                       type="email"
@@ -1765,7 +1765,7 @@ export default function MyLifePortal({
                       placeholder="Email de contact"
                       value={quoteFormData.clientEmail}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientEmail: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                   </div>
                 </div>
@@ -1858,7 +1858,7 @@ export default function MyLifePortal({
                       setIsQuoteModalOpen(false);
                       setQuoteStep(1);
                     }}
-                    className="px-4 py-2 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-500/20 text-[#9E8BFF] hover:text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
+                    className="px-4 py-2 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-500/20 text-[#e6c697] hover:text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
                   >
                     Fermer l'accusé de réception
                   </button>
@@ -1947,7 +1947,7 @@ export default function MyLifePortal({
                     <div className="pt-2 border-t border-white/5 text-[11px] flex justify-between items-center text-gray-500 font-mono">
                       <span>{tGlobal.eventOrganizer} <strong className="text-gray-300 font-semibold">{evt.partnerName}</strong></span>
                       {evt.ticketPrice > 0 ? (
-                        <span className="text-[#9E8BFF] font-black">{evt.ticketPrice} MAD</span>
+                        <span className="text-[#e6c697] font-black">{evt.ticketPrice} MAD</span>
                       ) : (
                         <span className="text-[#00ff66] font-bold">{tGlobal.freeEntry}</span>
                       )}
@@ -1985,7 +1985,7 @@ export default function MyLifePortal({
 
                       <button
                         onClick={() => handleTicketCheckout(evt)}
-                        className="px-3 py-1.5 bg-[#6c3cff] hover:bg-[#562ee6] text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all hover:shadow-[#6c3cff]/15"
+                        className="px-3 py-1.5 bg-[#d4af7a] hover:bg-[#562ee6] text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all hover:shadow-[#d4af7a]/15"
                       >
                         {evt.ticketPrice > 0 ? tGlobal.reserveBtn : tGlobal.registerBtn}
                       </button>
@@ -1998,7 +1998,7 @@ export default function MyLifePortal({
                       <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">{tGlobal.commentsCount} ({evt.reviews.length})</span>
                       <button
                         onClick={() => setActiveReviewEventId(activeReviewEventId === evt.id ? null : evt.id)}
-                        className="text-[10px] text-[#9E8BFF] hover:underline cursor-pointer font-bold font-mono"
+                        className="text-[10px] text-[#e6c697] hover:underline cursor-pointer font-bold font-mono"
                       >
                         {activeReviewEventId === evt.id ? tGlobal.hideBtn : tGlobal.rateBtn}
                       </button>
@@ -2029,7 +2029,7 @@ export default function MyLifePortal({
                             value={userComment}
                             onChange={(e) => setUserComment(e.target.value)}
                             placeholder={tGlobal.giveOpinion}
-                            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-xl text-[11px] px-3 py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-[#6c3cff] font-mono"
+                            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-xl text-[11px] px-3 py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-[#d4af7a] font-mono"
                           />
                           <button
                             onClick={() => {
@@ -2038,7 +2038,7 @@ export default function MyLifePortal({
                               setUserComment('');
                               setActiveReviewEventId(null);
                             }}
-                            className="bg-[#6c3cff] hover:bg-[#5324e9] text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
+                            className="bg-[#d4af7a] hover:bg-[#5324e9] text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
                           >
                             {tGlobal.publishBtn}
                           </button>
@@ -2075,7 +2075,7 @@ export default function MyLifePortal({
           {/* CMI Checkout Modal inside Agenda tab */}
           {checkoutEvent && (
             <div id="cmi-checkout-modal" className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm bg-[#161821] border border-[#6c3cff]/40 rounded-3xl p-5 space-y-4 shadow-2xl relative animate-scale-in">
+              <div className="w-full max-w-sm bg-[#161821] border border-[#d4af7a]/40 rounded-3xl p-5 space-y-4 shadow-2xl relative animate-scale-in">
                 <span className="absolute top-3 right-3 px-2 py-0.5 bg-indigo-950 text-[#00f0ff] font-mono text-[8px] rounded border border-indigo-500/20 uppercase tracking-widest">{tGlobal.cmiGateway}</span>
                 
                 <div className="flex items-center gap-2.5">
@@ -2126,7 +2126,7 @@ export default function MyLifePortal({
                       </button>
                       <button
                         onClick={handlePayTicketSim}
-                        className="flex-1 py-2 bg-[#6c3cff] hover:bg-[#5424e9] text-white rounded-xl text-xs font-bold cursor-pointer select-none transition-all hover:shadow-[#6c3cff]/15"
+                        className="flex-1 py-2 bg-[#d4af7a] hover:bg-[#5424e9] text-white rounded-xl text-xs font-bold cursor-pointer select-none transition-all hover:shadow-[#d4af7a]/15"
                       >
                         {tGlobal.checkoutPayBtn}
                       </button>
