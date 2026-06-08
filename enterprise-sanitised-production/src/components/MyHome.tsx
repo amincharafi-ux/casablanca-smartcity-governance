@@ -546,9 +546,9 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     <div id="myhome-container" className="space-y-6">
       
       {/* Simulation Command Center Bar */}
-      <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#6C3CFF]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#a16eff]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <span className="text-[10px] font-mono text-[#6C3CFF] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
+          <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
           <h4 className="text-xs font-bold text-white uppercase mt-0.5">Permuter l'identité de simulation de listing :</h4>
           <p className="text-[10px] text-gray-400 mt-1">Conforme à la condition stricte anti-spam (Max 1 annonce pour particuliers).</p>
         </div>
@@ -572,7 +572,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             onClick={() => setUserRole('CITIZEN')}
             className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
               userRole === 'CITIZEN'
-                ? 'bg-[#6C3CFF] text-white border-[#6C3CFF] shadow-md'
+                ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-md'
                 : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
             }`}
           >
@@ -609,7 +609,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
         ) : (
           <>
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
+              <div className="w-14 h-14 rounded-2xl bg-[#a16eff]/10 border border-[#a16eff]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
                 ME
               </div>
               <div className="space-y-1">
@@ -623,7 +623,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             </div>
             <div className="flex flex-col items-end gap-1 font-mono text-xs">
               <span className="text-gray-500">Contact personnel vérifié :</span>
-              <span className="text-[#6C3CFF] font-black flex items-center gap-1">
+              <span className="text-[#a16eff] font-black flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
               </span>
               <div className="text-[10px] text-gray-500 mt-1">
@@ -640,7 +640,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
           onClick={() => setMyHomeSubTab('IMMO')}
           className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             myHomeSubTab === 'IMMO' 
-              ? 'bg-[#6C3CFF] text-white shadow-lg' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -651,7 +651,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
           onClick={() => setMyHomeSubTab('BUSINESS')}
           className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
             myHomeSubTab === 'BUSINESS' 
-              ? 'bg-[#6C3CFF] text-white shadow-lg' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
@@ -665,12 +665,12 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
         <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
           {/* Header Card for Business Portal */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#6C3CFF]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+            <div className="absolute top-0 right-0 w-80 h-80 bg-[#a16eff]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
             <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
             
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#6C3CFF]/15 border border-[#6C3CFF]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#a16eff]/15 border border-[#a16eff]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
                   <Sparkles className="w-3.5 h-3.5" />
                   Réseau d'Experts Habitat
                 </div>
@@ -693,7 +693,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 placeholder="Rechercher canapé, tapis Beni Ouarain, dressing, paysagiste, plâtrier, zellige..."
                 value={businessSearch}
                 onChange={(e) => setBusinessSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#6C3CFF]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
+                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#a16eff]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
                 id="business-search-input"
               />
             </div>
@@ -730,7 +730,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 onClick={() => setSelectedBusinessCategory(cat.id)}
                 className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
                   selectedBusinessCategory === cat.id
-                    ? 'bg-[#6C3CFF] text-white border-[#6C3CFF] shadow-lg shadow-[#6C3CFF]/20'
+                    ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-lg shadow-[#a16eff]/20'
                     : 'bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40'
                 }`}
               >
@@ -751,11 +751,11 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             }).map(biz => (
               <div
                 key={biz.id}
-                className="bg-[#161821] border border-white/5 hover:border-[#6C3CFF]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
+                className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
               >
                 <div>
                   <div className="flex justify-between items-start gap-2 mb-2">
-                    <span className="text-[10px] font-mono uppercase bg-[#6C3CFF]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#6C3CFF]/10 font-bold">
+                    <span className="text-[10px] font-mono uppercase bg-[#a16eff]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#a16eff]/10 font-bold">
                       {biz.category === 'FURNITURE' && "Ameublement"}
                       {biz.category === 'DECO' && "Décoration d'Art"}
                       {biz.category === 'KITCHEN' && "Cuisiniste d'Art"}
@@ -798,7 +798,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <div className="border-t border-white/5 mt-5 pt-4 flex gap-2">
                   <button
                     onClick={() => setSelectedBusiness(biz)}
-                    className="w-full py-2 bg-[#6C3CFF]/15 hover:bg-[#6C3CFF] text-white hover:text-white border border-[#6C3CFF]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
+                    className="w-full py-2 bg-[#a16eff]/15 hover:bg-[#a16eff] text-white hover:text-white border border-[#a16eff]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
                   >
                     🤝 Voir Showroom & Services
                   </button>
@@ -823,7 +823,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 placeholder="Ex: Anfa, Gauthier, Maârif..."
                 value={searchDistrict}
                 onChange={(e) => setSearchDistrict(e.target.value)}
-                className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#6C3CFF]"
+                className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#a16eff]"
               />
             </div>
 
@@ -831,7 +831,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               <select
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
-                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#6C3CFF]"
+                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#a16eff]"
               >
                 <option value="ALL">Tous les types</option>
                 <option value="APPARTEMENT">🏢 Appartements</option>
@@ -845,7 +845,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               <select
                 value={searchCondition}
                 onChange={(e) => setSearchCondition(e.target.value)}
-                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#6C3CFF]"
+                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#a16eff]"
               >
                 <option value="ALL">Neuf ou Occasion</option>
                 <option value="NEW">🌟 Neuf (Promoteurs)</option>
@@ -863,7 +863,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             {filteredListings.map(item => (
               <div 
                 key={item.id} 
-                className="bg-[#161821] border border-white/5 hover:border-[#6C3CFF]/50 p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden shadow-lg hover:shadow-2xl shrink-0 w-[310px] md:w-[350px] snap-start"
+                className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/50 p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden shadow-lg hover:shadow-2xl shrink-0 w-[310px] md:w-[350px] snap-start"
               >
                 {/* Visual Label Tag */}
                 <div className="absolute top-3 right-3 flex gap-1.5">
@@ -882,7 +882,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     <span>{item.district}, {item.city}</span>
                   </div>
 
-                  <h4 className="font-title font-bold text-sm text-white leading-snug group-hover:text-[#6C3CFF] transition-colors pr-20">
+                  <h4 className="font-title font-bold text-sm text-white leading-snug group-hover:text-[#a16eff] transition-colors pr-20">
                     {item.title}
                   </h4>
 
@@ -946,7 +946,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <div className="flex gap-2 mt-4 pt-1 w-full">
                   <button
                     onClick={() => setSelectedOffer(item)}
-                    className="flex-1 py-1.5 bg-[#6C3CFF]/10 hover:bg-[#6C3CFF] text-white text-[10.5px] font-bold rounded-xl transition-all border border-[#6C3CFF]/20 cursor-pointer text-center font-title block"
+                    className="flex-1 py-1.5 bg-[#a16eff]/10 hover:bg-[#a16eff] text-white text-[10.5px] font-bold rounded-xl transition-all border border-[#a16eff]/20 cursor-pointer text-center font-title block"
                   >
                     🔍 Voir Détails
                   </button>
@@ -1001,7 +1001,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropTitle}
                     onChange={(e) => setNewPropTitle(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -1025,7 +1025,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   value={newPropDesc}
                   onChange={(e) => setNewPropDesc(e.target.value)}
                   rows={2}
-                  className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#6C3CFF] resize-none"
+                  className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff] resize-none"
                 />
               </div>
 
@@ -1038,7 +1038,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropPrice}
                     onChange={(e) => setNewPropPrice(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -1050,7 +1050,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropArea}
                     onChange={(e) => setNewPropArea(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -1475,7 +1475,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       {/* Details modal with Map simulation & PIN pointer */}
       {selectedOffer && (
         <div id="listing-details-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/100 animate-fade-in" style={{ backgroundColor: '#06070a' }}>
-          <div id="listing-details-card" className="bg-[#161821] border border-[#6C3CFF]/20 w-full max-w-4xl rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl h-[90vh] md:h-auto md:max-h-[85vh]" style={{ backgroundColor: '#161821' }}>
+          <div id="listing-details-card" className="bg-[#161821] border border-[#a16eff]/20 w-full max-w-4xl rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl h-[90vh] md:h-auto md:max-h-[85vh]" style={{ backgroundColor: '#161821' }}>
             
             {/* Left Hand: Property details info */}
             <div className="flex-1 p-6 md:p-8 space-y-4 overflow-y-auto border-b md:border-b-0 md:border-r border-white/5">
@@ -1535,8 +1535,8 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   <span className="text-[9px] font-mono text-gray-500 uppercase block">Situation :</span>
                   <span className="text-sm font-black text-[#a29bfe] font-mono">{selectedOffer.district}, Casablanca</span>
                 </div>
-                <div className="bg-black/30 p-3 rounded-xl border border-[#6C3CFF]/15 space-y-0.5">
-                  <span className="text-[9px] font-mono text-[#6C3CFF] uppercase block">Prix de cession :</span>
+                <div className="bg-black/30 p-3 rounded-xl border border-[#a16eff]/15 space-y-0.5">
+                  <span className="text-[9px] font-mono text-[#a16eff] uppercase block">Prix de cession :</span>
                   <span className="text-sm font-black text-emerald-400 font-mono">{selectedOffer.priceMAD.toLocaleString('fr-FR')} MAD</span>
                 </div>
               </div>
@@ -1557,7 +1557,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 text-[#6C3CFF] font-bold flex items-center justify-center text-xs">
+                    <div className="w-10 h-10 rounded-xl bg-[#a16eff]/10 border border-[#a16eff]/20 text-[#a16eff] font-bold flex items-center justify-center text-xs">
                       MP
                     </div>
                     <div>
@@ -1569,7 +1569,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
 
                 <div className="pt-2 border-t border-white/5 flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-mono">Ligne directe sécurisée :</span>
-                  <span className="text-[#6C3CFF] font-black font-mono select-all flex items-center gap-1">
+                  <span className="text-[#a16eff] font-black font-mono select-all flex items-center gap-1">
                     📞 {selectedOffer.promoterContact}
                   </span>
                 </div>
@@ -1615,18 +1615,18 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 
                 {/* Roads Map Vector Draw */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M 0 0 Q 30 15 55 10 T 100 0 L 0 0 Z" fill="#6C3CFF" />
+                  <path d="M 0 0 Q 30 15 55 10 T 100 0 L 0 0 Z" fill="#a16eff" />
                   <path d="M 10 45 L 90 25 M 20 25 Q 35 45 48 85 M 40 12 L 85 85" stroke="white" strokeWidth="0.8" fill="none" />
-                  <path d="M 5 25 Q 40 30 95 65" stroke="#6C3CFF" strokeWidth="1.2" strokeDasharray="3,3" fill="none" />
+                  <path d="M 5 25 Q 40 30 95 65" stroke="#a16eff" strokeWidth="1.2" strokeDasharray="3,3" fill="none" />
                 </svg>
 
                 {/* Grid nodes */}
-                <div className="absolute inset-0 opacity-15 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6C3CFF 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                <div className="absolute inset-0 opacity-15 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#a16eff 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
 
                 {/* Neighborhood labels */}
                 <span className="absolute left-[10%] top-[8%] text-white/20 font-mono text-[8px] uppercase tracking-widest">Atlantique</span>
-                <span className="absolute left-[30%] top-[45%] text-[#6C3CFF]/50 font-title font-medium text-[9px]">Gauthier</span>
-                <span className="absolute left-[50%] top-[70%] text-[#6C3CFF]/50 font-title font-medium text-[9px]">California</span>
+                <span className="absolute left-[30%] top-[45%] text-[#a16eff]/50 font-title font-medium text-[9px]">Gauthier</span>
+                <span className="absolute left-[50%] top-[70%] text-[#a16eff]/50 font-title font-medium text-[9px]">California</span>
 
                 {/* Targeted Property Interactive PIN of selected item */}
                 <div 
@@ -1648,7 +1648,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               </div>
 
               {/* Informative notice on legal search status */}
-              <div className="p-3 bg-[#6C3CFF]/5 border border-[#6C3CFF]/15 rounded-xl text-[10px] text-[#b2a9f4] space-y-1 font-mono">
+              <div className="p-3 bg-[#a16eff]/5 border border-[#a16eff]/15 rounded-xl text-[10px] text-[#b2a9f4] space-y-1 font-mono">
                 <span className="font-bold flex items-center gap-1 text-white">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Coordonnées Titrées Conformité
                 </span>
@@ -1659,7 +1659,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
 
               <button
                 onClick={() => setSelectedOffer(null)}
-                className="w-full py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/90 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-[#6C3CFF]/20"
+                className="w-full py-2 bg-[#a16eff] hover:bg-[#a16eff]/90 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-[#a16eff]/20"
               >
                 Fermer l'Aperçu Cartographique
               </button>
@@ -1672,11 +1672,11 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       {/* Selected Business Modal */}
       {selectedBusiness && (
         <div id="business-details-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/100 animate-fade-in" style={{ backgroundColor: '#06070a' }}>
-          <div id="business-details-card" className="bg-[#161821] border border-[#6C3CFF]/20 w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
+          <div id="business-details-card" className="bg-[#161821] border border-[#a16eff]/20 w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
             
             <div className="flex justify-between items-start border-b border-white/5 pb-4">
               <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase bg-[#6C3CFF]/20 text-[#BEB3FF] px-2.5 py-1 rounded-md border border-[#6C3CFF]/10 font-bold">
+                <span className="text-[10px] font-mono uppercase bg-[#a16eff]/20 text-[#BEB3FF] px-2.5 py-1 rounded-md border border-[#a16eff]/10 font-bold">
                   {selectedBusiness.category === 'FURNITURE' && "Ameublement & Mobilier"}
                   {selectedBusiness.category === 'DECO' && "Design & Décoration"}
                   {selectedBusiness.category === 'KITCHEN' && "Cuisines de Créateurs"}
@@ -1700,7 +1700,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               </p>
 
               {/* Highlights & Atouts */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-[#6C3CFF]/15 space-y-2">
+              <div className="bg-black/35 p-4 rounded-2xl border border-[#a16eff]/15 space-y-2">
                 <span className="text-[10px] font-mono text-[#9E8BFF] uppercase tracking-wider block font-bold">✨ Avantages & Services Exclusifs</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
                   {selectedBusiness.services.map((srv: string, ind: number) => (
@@ -1731,7 +1731,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <span className="text-[9px] font-mono text-gray-500 uppercase block">Contact direct Showroom</span>
                 <span className="text-white font-mono font-semibold">📞 Téléphone fixe & Service Clientèle</span>
               </div>
-              <span className="text-[#6C3CFF] font-black font-mono text-sm bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 px-3 py-1.5 rounded-xl select-all">
+              <span className="text-[#a16eff] font-black font-mono text-sm bg-[#a16eff]/10 border border-[#a16eff]/20 px-3 py-1.5 rounded-xl select-all">
                 {selectedBusiness.phone}
               </span>
             </div>
@@ -1739,7 +1739,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedBusiness(null)}
-                className="px-5 py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/90 text-white font-bold transition-all text-xs rounded-xl cursor-pointer shadow-lg shadow-[#6C3CFF]/25 font-title"
+                className="px-5 py-2 bg-[#a16eff] hover:bg-[#a16eff]/90 text-white font-bold transition-all text-xs rounded-xl cursor-pointer shadow-lg shadow-[#a16eff]/25 font-title"
               >
                 Fermer l'aperçu expert
               </button>
