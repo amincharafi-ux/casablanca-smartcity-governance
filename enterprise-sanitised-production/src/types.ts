@@ -1,4 +1,4 @@
-export type UserRole = 'PUBLIC' | 'BUSINESS_CAT1' | 'BUSINESS_CAT2' | 'MAIRIE';
+export type UserRole = 'PUBLIC' | 'PARTENAIRES' | 'MAIRIE' | 'DATA_TEAM';
 
 export interface CitizenConsent {
   location: boolean;
