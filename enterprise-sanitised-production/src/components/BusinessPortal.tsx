@@ -13,8 +13,14 @@ interface BusinessPortalProps {
 export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLang = 'FR' }: BusinessPortalProps) {
   const t = translations[currentLang];
 
-  const [partnerSubCat, setPartnerSubCat] = useState<'CAT1' | 'CAT2'>('CAT1');
+  const [partnerSubCat, setPartnerSubCat] = useState<'CAT1' | 'CAT2' | 'CAT3' | 'CAT4'>('CAT3');
   const [activeTab, setActiveTab] = useState<'METRICS' | 'PUBLISH' | 'MESSAGES'>('METRICS');
+
+  // Add-ons selections as requested by Image 2
+  const [boostIASelected, setBoostIASelected] = useState(false);
+  const [analyticsProSelected, setAnalyticsProSelected] = useState(false);
+  const [eventSponsorSelected, setEventSponsorSelected] = useState(false);
+  const [verificationPremiumSelected, setVerificationPremiumSelected] = useState(false);
 
   // New event registration fields
   const [newEventTitle, setNewEventTitle] = useState('');
@@ -53,17 +59,45 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
     e.preventDefault();
     if (!newEventTitle.trim() || !newEventDesc.trim()) return;
 
-    // Constraints checks
+    // Constraints checks based on 4 Category specs
     if (partnerSubCat === 'CAT1') {
       const cat1Count = events.filter(evt => evt.partnerId.includes('cat1')).length;
-      if (cat1Count >= 3) {
+      if (cat1Count >= 1) {
         setPublishFeedback(currentLang === 'FR' 
-          ? "⚠️ Limite de formule : Limite de 1 événement par semaine atteinte pour les abonnements Catérogie 1."
+          ? "⚠️ Limite de formule : Limite de 1 offre flash par mois atteinte pour l'abonnement Catégorie 1 (Quartier)."
           : currentLang === 'AR'
-            ? "⚠️ حد باقة فئة 1: تم الوصول للحد الأقصى المسموح به لمشتركي الفئة الأولى وهو إعلان واحد بالأسبوع."
-            : "⚠️ Subscription Limit: Limit of 1 event per week reached for Category 1 formulas.");
+            ? "⚠️ حد فئة 1: تم الوصول للحد الأقصى وهو عرض فلاش واحد شهرياً."
+            : "⚠️ Subscription Limit: Limit of 1 flash offer per month reached for Category 1 (Neighbourhood).");
         return;
       }
+    } else if (partnerSubCat === 'CAT2') {
+      const cat2Count = events.filter(evt => evt.partnerId.includes('cat2')).length;
+      if (cat2Count >= 4) {
+        setPublishFeedback(currentLang === 'FR' 
+          ? "⚠️ Limite de formule : Limite de 4 offres flash par mois atteinte pour l'abonnement Catégorie 2 (Arrondissement)."
+          : currentLang === 'AR'
+            ? "⚠️ حد فئة 2: تم الوصول للحد الأقصى وهو 4 عروض فلاش شهرياً."
+            : "⚠️ Subscription Limit: Limit of 4 flash offers per month reached for Category 2 (District).");
+        return;
+      }
+    }
+
+    let resolvedPartnerId = 'partner-cat3-user';
+    let resolvedPartnerName = 'PME Grand Casablanca (Recommandé)';
+    let isPremium = true;
+
+    if (partnerSubCat === 'CAT1') {
+      resolvedPartnerId = 'partner-cat1-user';
+      resolvedPartnerName = 'Commerce Local Quartier';
+      isPremium = false;
+    } else if (partnerSubCat === 'CAT2') {
+      resolvedPartnerId = 'partner-cat2-user';
+      resolvedPartnerName = 'Commerce District Arrondissement';
+      isPremium = true;
+    } else if (partnerSubCat === 'CAT4') {
+      resolvedPartnerId = 'partner-cat4-user';
+      resolvedPartnerName = 'Chaîne Nationale Multi-Account';
+      isPremium = true;
     }
 
     onAddEvent({
@@ -72,9 +106,9 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
       category: newEventCategory,
       date: new Date().toISOString().split('T')[0], // Today
       isToday: newEventIsToday,
-      partnerId: partnerSubCat === 'CAT2' ? 'partner-cat2-user' : 'partner-cat1-user',
-      partnerName: partnerSubCat === 'CAT2' ? "Commerce Premium (Épinglé)" : "Commerce Basique Max (Jour-J)",
-      isPremiumPartner: partnerSubCat === 'CAT2',
+      partnerId: resolvedPartnerId,
+      partnerName: resolvedPartnerName,
+      isPremiumPartner: isPremium,
       lat: 33.5821 + (Math.random() - 0.5) * 0.05,
       lng: -7.6382 + (Math.random() - 0.5) * 0.05,
       ticketPrice: Number(newEventPrice)
@@ -84,7 +118,7 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
     setNewEventTitle('');
     setNewEventDesc('');
     
-    onAddLog("Event Created", `Création de l'événement "${newEventTitle}" par le partenaire ${partnerSubCat}`);
+    onAddLog("Event Created", `Création de l'offre flash "${newEventTitle}" sous la formule ${partnerSubCat}`);
     
     setTimeout(() => {
       setPublishFeedback(null);
@@ -112,14 +146,18 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
 
   const handleExportCSV = () => {
     const headers = "Event ID,Title,Views,Ticket Sales Count,Price (MAD),Commission %,Net Profit (MAD)\n";
+    let activeCommPercent = 0.03;
+    if (partnerSubCat === 'CAT1') activeCommPercent = 0.08;
+    else if (partnerSubCat === 'CAT2') activeCommPercent = 0.05;
+    else if (partnerSubCat === 'CAT4') activeCommPercent = 0.02;
+
     const rows = events
       .filter(evt => evt.partnerId.includes(partnerSubCat.toLowerCase()))
       .map(e => {
-        const comm = partnerSubCat === 'CAT2' ? 0.05 : 0.08;
         const total = e.revenue;
-        const commMAD = total * comm;
+        const commMAD = total * activeCommPercent;
         const net = total - commMAD;
-        return `${e.id},"${e.title.replace(/"/g, '""')}",${e.views},${e.bookingsCount},${e.ticketPrice},${comm * 100}%,${net}`;
+        return `${e.id},"${e.title.replace(/"/g, '""')}",${e.views},${e.bookingsCount},${e.ticketPrice},${activeCommPercent * 100}%,${net}`;
       }).join("\n");
 
     const blob = new Blob([headers + rows], { type: 'text/csv;charset=utf-8;' });
@@ -132,62 +170,405 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
     document.body.removeChild(downloadLink);
   };
 
-  // Metrics statistics calculation
+  // Metrics statistics calculation for active subscription tier
   const partnerEvents = events.filter(evt => {
-    if (partnerSubCat === 'CAT2') {
-      return evt.isPremiumPartner;
-    }
-    return !evt.isPremiumPartner;
+    if (partnerSubCat === 'CAT4') return evt.partnerId.includes('cat4');
+    if (partnerSubCat === 'CAT3') return evt.partnerId.includes('cat3');
+    if (partnerSubCat === 'CAT2') return evt.partnerId.includes('cat2') || evt.isPremiumPartner;
+    return evt.partnerId.includes('cat1') || (!evt.isPremiumPartner && !evt.partnerId.includes('cat2') && !evt.partnerId.includes('cat3') && !evt.partnerId.includes('cat4'));
   });
 
   const totalViews = partnerEvents.reduce((acc, current) => acc + current.views, 0);
   const totalSalesCount = partnerEvents.reduce((acc, current) => acc + current.bookingsCount, 0);
   const totalRawBilling = partnerEvents.reduce((acc, current) => acc + current.revenue, 0);
-  const activeCommission = partnerSubCat === 'CAT2' ? 0.05 : 0.08;
+
+  // Commission dynamic based on 4 Category specs
+  let activeCommission = 0.03;
+  if (partnerSubCat === 'CAT1') activeCommission = 0.08;
+  else if (partnerSubCat === 'CAT2') activeCommission = 0.05;
+  else if (partnerSubCat === 'CAT4') activeCommission = 0.02;
+
   const netEarnings = Math.max(0, totalRawBilling * (1 - activeCommission));
 
   return (
     <div id="business-portal-container" className="space-y-4">
-      {/* Formula Sub-selector */}
-      <div className="flex items-center justify-between p-3 rounded-lg bg-[#1f212f] border border-[#6c3cff]/15">
+      <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-yellow-400" />
-          <div className="text-xs">
-            <span className="font-semibold text-white block">{t.partnerSubCatLabel}</span>
-            <p className="font-mono text-[9px] text-gray-400">
-              {currentLang === 'FR' && "Cliquez ci-contre pour permuter les paliers et tester les contraintes."}
-              {currentLang === 'EN' && "Click opposite to change subscription plans and test features."}
-              {currentLang === 'AR' && "انقر بجانب لتبديل العضوية وتأثير القيود على الخريطة."}
-            </p>
+          <Sparkles className="w-4 h-4 text-indigo-400" />
+          <span className="font-semibold text-xs text-white uppercase tracking-wider font-mono">
+            {currentLang === 'FR' ? "Formules Abonnements Commerçants — Choisissez votre Tiers" : "Merchant Subscriptions — Select your Tier"}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Card 1: NEIGHBOURHOOD */}
+          <div 
+            onClick={() => {
+              setPartnerSubCat('CAT1');
+              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 1 (Quartier - 199 MAD/mois).");
+            }}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+              partnerSubCat === 'CAT1' 
+                ? 'bg-[#1b253b] border-[#6c3cff] shadow-lg shadow-indigo-500/5' 
+                : 'bg-[#11131e] border-white/5 hover:border-white/15'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-gray-400 uppercase">CAT 1 • Quartier</span>
+                <span className="text-sm">📍</span>
+              </div>
+              <h4 className="font-title font-bold text-white text-xs mt-1">NEIGHBOURHOOD</h4>
+              <p className="text-[9px] text-gray-400 leading-tight mt-1">
+                Idéal pour artisans et commerces ultra-locaux.
+              </p>
+              
+              <div className="mt-2 pt-2 border-t border-white/5 space-y-1.5 text-[9.5px] text-gray-300">
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Profil vérifié</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Visibilité fil local</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span className="font-bold text-white">1 offre flash/mois</span>
+                </p>
+                <p className="flex items-center gap-1.5 text-gray-500">
+                  <span>✗</span> <span>Push & Analytics pro</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/5">
+              <div className="text-xs font-mono font-bold text-white">199 MAD<span className="text-[9px] text-gray-400">/mois</span></div>
+              <div className="text-[8.5px] text-indigo-300 font-mono mt-0.5">169 MAD/mois en annuel</div>
+              <div className="text-[8px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded mt-1.5 inline-block font-mono">
+                Portée: ~15K hab. (500m)
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: DISTRICT */}
+          <div 
+            onClick={() => {
+              setPartnerSubCat('CAT2');
+              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 2 (Arrondissement - 799 MAD/mois).");
+            }}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+              partnerSubCat === 'CAT2' 
+                ? 'bg-[#1b253b] border-[#6c3cff] shadow-lg shadow-indigo-500/5' 
+                : 'bg-[#11131e] border-white/5 hover:border-white/15'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-gray-400 uppercase">CAT 2 • Zone</span>
+                <span className="text-sm">🏢</span>
+              </div>
+              <h4 className="font-title font-bold text-white text-xs mt-1">DISTRICT</h4>
+              <p className="text-[9px] text-gray-400 leading-tight mt-1">
+                Parfait pour boutiques de mode & cafés installés.
+              </p>
+              
+              <div className="mt-2 pt-2 border-t border-white/5 space-y-1.5 text-[9.5px] text-gray-300">
+                <p className="flex items-center gap-1.5 text-indigo-300 font-bold">
+                  <span>+</span> <span>Tout Catégorie 1</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span className="font-bold text-white">4 offres flash/mois</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Push ciblées</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Démographie</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/5">
+              <div className="text-xs font-mono font-bold text-white">799 MAD<span className="text-[9px] text-gray-400">/mois</span></div>
+              <div className="text-[8.5px] text-indigo-300 font-mono mt-0.5">679 MAD/mois en annuel</div>
+              <div className="text-[8px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded mt-1.5 inline-block font-mono">
+                Portée: ~150K hab.
+              </div>
+            </div>
+          </div>
+
+          {/* Card 3: CITY */}
+          <div 
+            onClick={() => {
+              setPartnerSubCat('CAT3');
+              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 3 (Grand Casablanca - 2490 MAD/mois).");
+            }}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between relative overflow-hidden ${
+              partnerSubCat === 'CAT3' 
+                ? 'bg-[#1b253b] border-indigo-400 shadow-xl shadow-indigo-500/10 scale-[1.01]' 
+                : 'bg-[#11131e] border-[#6c3cff]/20 hover:border-[#6c3cff]/40'
+            }`}
+          >
+            {/* Recommendation badge as shown in image */}
+            <div className="absolute top-0 right-0 bg-indigo-600 text-white text-[7.5px] font-mono font-bold px-2 py-0.5 rounded-bl-lg uppercase tracking-wider">
+              ⭐ Recommandé PME
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-indigo-300 uppercase">CAT 3 • Élite</span>
+                <span className="text-sm">🌟</span>
+              </div>
+              <h4 className="font-title font-bold text-white text-xs mt-1">CITY (CASA-SETTAT)</h4>
+              <p className="text-[9px] text-gray-400 leading-tight mt-1">
+                La puissance métropolitaine complète.
+              </p>
+              
+              <div className="mt-2 pt-2 border-t border-white/5 space-y-1.5 text-[9.5px] text-gray-300">
+                <p className="flex items-center gap-1.5 text-indigo-300 font-bold">
+                  <span>+</span> <span>Tout Catégorie 2</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-[#00ffcc]">✓</span> <span className="font-bold text-[#00ffcc]">Offres illimitées</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Placement prioritaire</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>API Data Partenaire</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/5">
+              <div className="text-xs font-mono font-bold text-white">2 490 MAD<span className="text-[9px] text-gray-400">/mois</span></div>
+              <div className="text-[8.5px] text-indigo-300 font-mono mt-0.5">2 115 MAD/mois en annuel</div>
+              <div className="text-[8px] bg-indigo-950/45 border border-indigo-500/20 text-indigo-200 px-1.5 py-0.5 rounded mt-1.5 inline-block font-mono">
+                Portée: ~5 M hab. (Mégapole)
+              </div>
+            </div>
+          </div>
+
+          {/* Card 4: MULTI-ACCOUNT */}
+          <div 
+            onClick={() => {
+              setPartnerSubCat('CAT4');
+              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 4 (Chaînes & Malls - 4990 MAD/mois).");
+            }}
+            className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col justify-between ${
+              partnerSubCat === 'CAT4' 
+                ? 'bg-[#1b253b] border-[#6c3cff] shadow-lg shadow-indigo-500/5' 
+                : 'bg-[#11131e] border-white/5 hover:border-white/15'
+            }`}
+          >
+            <div>
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-mono font-bold text-gray-400 uppercase">CAT 4 • Réseau</span>
+                <span className="text-sm">🏢🏢</span>
+              </div>
+              <h4 className="font-title font-bold text-white text-xs mt-1">MULTI-ACCOUNT</h4>
+              <p className="text-[9px] text-gray-400 leading-tight mt-1">
+                Pour chaînes, franchises et centres commerciaux.
+              </p>
+              
+              <div className="mt-2 pt-2 border-t border-white/5 space-y-1.5 text-[9.5px] text-gray-300">
+                <p className="flex items-center gap-1.5 text-indigo-300 font-bold">
+                  <span>+</span> <span>Tout Catégorie 3</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>5 points de vente incl.</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>Consolidation Groupe</span>
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <span className="text-emerald-400">✓</span> <span>ERP / POS API</span>
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-3 border-t border-white/5">
+              <div className="text-xs font-mono font-bold text-white">4 990 MAD<span className="text-[9px] text-gray-400">/mois</span></div>
+              <div className="text-[8.5px] text-indigo-300 font-mono mt-0.5">+699 MAD/site add.</div>
+              <div className="text-[8px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded mt-1.5 inline-block font-mono">
+                Portée: Multi-sites locales
+              </div>
+            </div>
           </div>
         </div>
 
-        <div className="flex bg-[#161821] p-0.5 rounded border border-white/5 gap-1 text-[10px] font-mono font-bold">
-          <button
-            id="partner-switch-cat1"
-            onClick={() => {
-              setPartnerSubCat('CAT1');
-              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 1 (Basique 299 MAD/mois).");
-            }}
-            className={`px-3 py-1 rounded transition-all cursor-pointer ${
-              partnerSubCat === 'CAT1' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            {t.partnerSwitchCat1Label}
-          </button>
-          
-          <button
-            id="partner-switch-cat2"
-            onClick={() => {
-              setPartnerSubCat('CAT2');
-              onAddLog("Subscription Toggle", "Permutation vers l'abonnement Catégorie 2 (Premium 799 MAD/mois).");
-            }}
-            className={`px-3 py-1 rounded transition-all cursor-pointer flex items-center gap-1 ${
-              partnerSubCat === 'CAT2' ? 'bg-[#6c3cff] text-white shadow' : 'text-gray-400 hover:text-white'
-            }`}
-          >
-            <span>{t.partnerSwitchCat2Label}</span>
-          </button>
+        {/* Reach performance & Transversals add-ons - bento design */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mt-1.5">
+          {/* Panel A: Rapport Valeur/Coût par Portée */}
+          <div className="bg-[#11131e] border border-white/5 rounded-2xl p-4 space-y-3">
+            <div className="flex items-center justify-between border-b border-white/5 pb-2">
+              <h5 className="text-[11px] font-mono font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                <span>📊</span> Rapport Coût / Habitant Exposé (MAD)
+              </h5>
+              <span className="text-[8px] bg-indigo-950 text-indigo-300 px-2 py-0.5 rounded font-mono">Dégressif</span>
+            </div>
+
+            <div className="space-y-2">
+              {/* CAT 1 */}
+              <div>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono mb-0.5">
+                  <span>Cat 1 (NEIGHBOURHOOD)</span>
+                  <span className="text-white font-bold">0,013 MAD / hab.</span>
+                </div>
+                <div className="h-2 bg-[#0d0f17] rounded-full overflow-hidden">
+                  <div className="h-full bg-emerald-500" style={{ width: '10%' }}></div>
+                </div>
+              </div>
+
+              {/* CAT 2 */}
+              <div>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono mb-0.5">
+                  <span>Cat 2 (DISTRICT)</span>
+                  <span className="text-white font-bold">0,005 MAD / hab.</span>
+                </div>
+                <div className="h-2 bg-[#0d0f17] rounded-full overflow-hidden">
+                  <div className="h-full bg-[#00ffcc]" style={{ width: '40%' }}></div>
+                </div>
+              </div>
+
+              {/* CAT 3 */}
+              <div>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono mb-0.5">
+                  <span>Cat 3 (CITY - Recommandé)</span>
+                  <span className="text-indigo-400 font-bold">0,0005 MAD / hab.</span>
+                </div>
+                <div className="h-2 bg-[#0d0f17] rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-500" style={{ width: '100%' }}></div>
+                </div>
+              </div>
+
+              {/* CAT 4 */}
+              <div>
+                <div className="flex justify-between items-center text-[10px] text-gray-400 font-mono mb-0.5">
+                  <span>Cat 4 (MULTI-ACCOUNT)</span>
+                  <span className="text-amber-400 font-bold">Sur-mesure</span>
+                </div>
+                <div className="h-2 bg-[#0d0f17] rounded-full overflow-hidden animate-pulse">
+                  <div className="h-full bg-gradient-to-r from-indigo-500 to-amber-500" style={{ width: '85%' }}></div>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[9px] text-gray-400 font-mono leading-normal pt-1 border-t border-white/5">
+              💡 <b>Optimisation d'upsell :</b> La dégressivité du coût unitaire exposé (jusqu'à -96% par habitant) favorise naturellement l'adoption des tiers supérieurs d'abonnements.
+            </p>
+          </div>
+
+          {/* Panel B: Add-Ons Transversaux (Tous tiers) */}
+          <div className="bg-[#11131e] border border-white/5 rounded-2xl p-4 space-y-3">
+            <h5 className="text-[11px] font-mono font-bold text-white uppercase tracking-wider border-b border-white/5 pb-2 flex items-center gap-1.5">
+              <span>🔌</span> Add-Ons Optionnels Transversaux
+            </h5>
+
+            <div className="grid grid-cols-2 gap-2 text-[10px]">
+              {/* Addon 1 */}
+              <button 
+                onClick={() => {
+                  setBoostIASelected(!boostIASelected);
+                  onAddLog("Add-On Toggle", `${!boostIASelected ? 'Activation' : 'Désactivation'} de l'Add-On Boost IA (+299 MAD/mois).`);
+                }}
+                className={`p-2 rounded-xl text-left border flex flex-col justify-between transition-all ${
+                  boostIASelected 
+                    ? 'border-indigo-500 bg-indigo-950/25 text-white' 
+                    : 'border-white/5 bg-[#161821] hover:border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold">✨ Boost IA</span>
+                  <span className="text-[8px] font-mono text-yellow-500 font-bold">+299 MAD/m</span>
+                </div>
+                <p className="text-[8px] text-gray-500 mt-1">Ciblage prédictif Gemini intégré.</p>
+                <div className="mt-1.5 flex justify-end w-full">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-mono ${
+                    boostIASelected ? 'bg-indigo-600 text-white' : 'bg-white/5 text-gray-500'
+                  }`}>
+                    {boostIASelected ? "Activé ✓" : "Désactivé"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Addon 2 */}
+              <button 
+                onClick={() => {
+                  setAnalyticsProSelected(!analyticsProSelected);
+                  onAddLog("Add-On Toggle", `${!analyticsProSelected ? 'Activation' : 'Désactivation'} de l'Add-On Analytics Pro (+199 MAD/mois).`);
+                }}
+                className={`p-2 rounded-xl text-left border flex flex-col justify-between transition-all ${
+                  analyticsProSelected 
+                    ? 'border-[#00ffcc] bg-[#00ffcc]/5 text-white' 
+                    : 'border-white/5 bg-[#161821] hover:border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold">📊 Analytics Pro</span>
+                  <span className="text-[8px] font-mono text-yellow-500 font-bold">+199 MAD/m</span>
+                </div>
+                <p className="text-[8px] text-gray-500 mt-1">Heatmaps & flux piétons réels.</p>
+                <div className="mt-1.5 flex justify-end w-full">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-mono ${
+                    analyticsProSelected ? 'bg-emerald-600 text-white' : 'bg-white/5 text-gray-500'
+                  }`}>
+                    {analyticsProSelected ? "Activé ✓" : "Désactivé"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Addon 3 */}
+              <button 
+                onClick={() => {
+                  setEventSponsorSelected(!eventSponsorSelected);
+                  onAddLog("Add-On Toggle", `${!eventSponsorSelected ? 'Activation' : 'Désactivation'} de l'Add-On Event Sponsor (+490 MAD/événement).`);
+                }}
+                className={`p-2 rounded-xl text-left border flex flex-col justify-between transition-all ${
+                  eventSponsorSelected 
+                    ? 'border-amber-500 bg-amber-950/25 text-white' 
+                    : 'border-white/5 bg-[#161821] hover:border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold">⭐ Event Sponsor</span>
+                  <span className="text-[8px] font-mono text-yellow-500 font-bold">+490 MAD/év</span>
+                </div>
+                <p className="text-[8px] text-gray-500 mt-1">Sponsoring natif dans MyLife.</p>
+                <div className="mt-1.5 flex justify-end w-full">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-mono ${
+                    eventSponsorSelected ? 'bg-amber-600 text-white' : 'bg-white/5 text-gray-500'
+                  }`}>
+                    {eventSponsorSelected ? "Activé ✓" : "Désactivé"}
+                  </span>
+                </div>
+              </button>
+
+              {/* Addon 4 */}
+              <button 
+                onClick={() => {
+                  setVerificationPremiumSelected(!verificationPremiumSelected);
+                  onAddLog("Add-On Toggle", `${!verificationPremiumSelected ? 'Activation' : 'Désactivation'} de l'Add-On Badge Certifié (+99 MAD/mois).`);
+                }}
+                className={`p-2 rounded-xl text-left border flex flex-col justify-between transition-all ${
+                  verificationPremiumSelected 
+                    ? 'border-blue-500 bg-blue-950/25 text-white' 
+                    : 'border-white/5 bg-[#161821] hover:border-white/10 text-gray-400 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full">
+                  <span className="font-bold">🏅 Badge Certifié</span>
+                  <span className="text-[8px] font-mono text-yellow-500 font-bold">+99 MAD/m</span>
+                </div>
+                <p className="text-[8px] text-gray-500 mt-1">Garantie physique par la MAIRIE.</p>
+                <div className="mt-1.5 flex justify-end w-full">
+                  <span className={`text-[8px] px-1.5 py-0.5 rounded uppercase font-mono ${
+                    verificationPremiumSelected ? 'bg-blue-600 text-white' : 'bg-white/5 text-gray-500'
+                  }`}>
+                    {verificationPremiumSelected ? "Activé ✓" : "Désactivé"}
+                  </span>
+                </div>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -242,7 +623,10 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
                 {commPercent()}%
               </span>
               <p className="text-[8px] text-gray-400 font-mono leading-tight mt-0.5">
-                {partnerSubCat === 'CAT2' ? t.metricsCommissionLabelPremium : t.metricsCommissionLabelStandard}
+                {partnerSubCat === 'CAT4' && (currentLang === 'FR' ? "Commission ultra-réduite grand compte" : "Large account minimal fee")}
+                {partnerSubCat === 'CAT3' && (currentLang === 'FR' ? "Commission standard PME & Commerce" : "Standard business fee")}
+                {partnerSubCat === 'CAT2' && t.metricsCommissionLabelPremium}
+                {partnerSubCat === 'CAT1' && t.metricsCommissionLabelStandard}
               </p>
             </div>
 
@@ -493,15 +877,15 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
             <div className="flex items-center justify-between">
               <h4 className="font-title font-medium text-xs text-white">{t.campaignPushTitle}</h4>
               <span className={`px-2 py-0.5 text-[8.5px] font-mono rounded font-bold uppercase ${
-                partnerSubCat === 'CAT2' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                partnerSubCat !== 'CAT1' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
               }`}>
-                {partnerSubCat === 'CAT2' ? t.campaignPushAvailable : t.campaignPushLocked}
+                {partnerSubCat !== 'CAT1' ? t.campaignPushAvailable : t.campaignPushLocked}
               </span>
             </div>
 
             <p className="text-[10px] text-gray-500 leading-snug">{t.campaignPushText}</p>
 
-            {partnerSubCat === 'CAT2' ? (
+            {partnerSubCat !== 'CAT1' ? (
               <div id="partner-push-composer" className="space-y-2 text-xs font-mono animate-fade-in">
                 <div>
                   <label className="block text-[10.5px] text-gray-500 mb-0.5">{t.campaignTitleInputLabel}</label>
@@ -555,6 +939,9 @@ export default function BusinessPortal({ events, onAddEvent, onAddLog, currentLa
   );
 
   function commPercent() {
-    return partnerSubCat === 'CAT2' ? 5 : 8;
+    if (partnerSubCat === 'CAT4') return 2;
+    if (partnerSubCat === 'CAT3') return 3;
+    if (partnerSubCat === 'CAT2') return 5;
+    return 8;
   }
 }
