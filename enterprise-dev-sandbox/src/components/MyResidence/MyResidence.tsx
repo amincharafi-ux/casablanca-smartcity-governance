@@ -153,6 +153,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
   const [uploadedDocType, setUploadedDocType] = useState('Facture Lydec');
   const [apartmentNumber, setApartmentNumber] = useState('');
   const [authRoleSelection, setAuthRoleSelection] = useState<'RESIDENT' | 'SYNDIC'>('RESIDENT');
+  const [showAvocatModal, setShowAvocatModal] = useState(false);
 
   // New building registration inputs
   const [showNewBuildingModal, setShowNewBuildingModal] = useState(false);
@@ -1637,15 +1638,136 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
 
           {/* Institution banner for Avocats if filter is ALL or AVOCAT */}
           {(activeTradeFilter === 'ALL' || activeTradeFilter === 'AVOCAT') && (
-            <div className="p-4 bg-indigo-950/40 border border-[#6c3cff]/15 rounded-2xl space-y-1 select-none">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">🏛️</span>
-                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Ordre des Avocats de Casablanca</span>
+            <>
+              <div 
+                onClick={() => setShowAvocatModal(true)}
+                className="p-4 bg-indigo-950/40 border border-[#6c3cff]/25 rounded-2xl space-y-2 cursor-pointer hover:border-[#6c3cff]/60 hover:bg-[#6c3cff]/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+                title="Cliquez pour consulter le rôle, les recours en cas de malpratique et les coordonnées"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🏛️</span>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Ordre des Avocats de Casablanca</span>
+                  </div>
+                  <span className="text-[9px] bg-[#6c3cff]/30 text-indigo-300 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-[#6c3cff] group-hover:text-white transition-colors">
+                    📖 Guide des Droits & Recours
+                  </span>
+                </div>
+                <p className="text-[9.5px] text-indigo-300 leading-normal">
+                  Bâtonnier de Casablanca & Conseil de l'Ordre — Organe représentatif légal répertoriant le tableau officiel des avocats et veillant aux règles d'éthique. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal complet</span>.
+                </p>
               </div>
-              <p className="text-[9.5px] text-indigo-300 leading-normal">
-                Bâtonnier de Casablanca & Conseil de l'Ordre — Organe représentatif légal répertoriant le tableau officiel des avocats et veillant aux règles d'éthique, de confraternité et d'excellence professionnelle.
-              </p>
-            </div>
+
+              {/* Avocat Detailed Malpractice & Rights Modal */}
+              {showAvocatModal && (
+                <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+                  <div className="bg-[#11131e] border border-indigo-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                    {/* Header */}
+                    <div className="p-6 border-b border-indigo-500/15 flex items-start justify-between bg-indigo-950/20">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🏛️</span>
+                        <div>
+                          <h3 className="font-title font-bold text-base text-white">Ordre des Avocats de Casablanca</h3>
+                          <p className="text-xs text-indigo-300 font-mono">Bâtonnier de Casablanca & Protection Déontologique</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setShowAvocatModal(false)}
+                        className="p-1 px-2.5 bg-indigo-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                      >
+                        ✕ Fermer
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                      {/* Section 1: Rôle Légal */}
+                      <div className="space-y-2">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>⚖️</span> Rôle Légal & Prérogatives Publiques
+                        </h4>
+                        <p>
+                          Conformément à la <b>Loi n° 28-08</b> régissant la profession d'avocat au Maroc, l'Ordre des Avocats est l'institution régulatrice officielle de la profession de défenseur. Il dresse le tableau officiel des avocats autorisés à plaider à Casablanca, certifie les compétences professionnelles, et s'impose comme garant indéfectible du secret professionnel, du respect des règles déontologiques et de l'accès constitutionnel à la défense pour tous les citoyens.
+                        </p>
+                      </div>
+
+                      {/* Section 2: Protection face aux maladresses / malpratiques */}
+                      <div className="space-y-2">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>🛡️</span> Protection contre les Malpratiques des Praticiens (Abus & Négligences)
+                        </h4>
+                        <p className="mb-2">
+                          L'Ordre des Avocats a mis en place des mécanismes coercitifs et protecteurs pour réparer et arbitrer les cas d'abus :
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-500/10">
+                          <div className="space-y-1">
+                            <h5 className="font-bold text-white">💼 Contestation d'Honoraires</h5>
+                            <p className="text-gray-400 text-[10.5px]">En cas de surfacturation ou d'honoraires sans rapport avec les tâches réelles, le Bureau du Bâtonnier est la seule autorité compétente pour recalculer de force le montant équitable et ordonner un remboursement.</p>
+                          </div>
+                          <div className="space-y-1">
+                            <h5 className="font-bold text-white">⚠️ Erreurs de Procédure</h5>
+                            <p className="text-gray-400 text-[10.5px]">Négligence fatale (ex: dépassement d'un délai de recours entraînant la déchéance de vos droits). Le Conseil de l'Ordre mène des enquêtes débouchant sur des sanctions disciplinaires rigoureuses pouvant aller jusqu'à l'exclusion définitive (radiation).</p>
+                          </div>
+                          <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                            <h5 className="font-bold text-white">💰 Abus de Confiance & Détournement</h5>
+                            <p className="text-gray-400 text-[10.5px]">Tout encaissement direct de fonds destinés au client sans passer par la Caisse Spéciale de l'Ordre (Secrétariat des Consignations CARPA) est une infraction grave. L'Ordre intervient pour restituer de plein droit l'argent légitime.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 3: Vos Droits & Comment les obtenir */}
+                      <div className="space-y-3">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>📋</span> Vos Droits Légitimes & Démarches d'Action (Étape par Étape)
+                        </h4>
+                        <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                          <li>
+                            <b className="text-white">Demander l'état complet du dossier à l'avocat :</b> Vous avez le droit absolu d'obtenir à tout moment l'ensemble des conclusions écrites déposées, les notifications officielles des tribunaux et l'état détaillé de ses démarches.
+                          </li>
+                          <li>
+                            <b className="text-white">Saisine du Bâtonnier (Dépôt de plainte) :</b> Si un avocat manque à ses obligations déontologiques, adressez une lettre recommandée ou déposez contre décharge un pli écrit au secrétariat permanent du Bâtonnier. Mentionnez l'historique détaillé, le nom de l'avocat en cause, sa juridiction d'exercice et l'objet précis du grief.
+                          </li>
+                          <li>
+                            <b className="text-white">La commission d'Assistance Judiciaire :</b> Si vous êtes confronté à un avocat indélicat dans une cause vitale et sans ressources matérielles, l'Ordre vous garantit la désignation immédiate et gratuite d'un avocat d'office pour sauvegarder vos intérêts.
+                          </li>
+                          <li>
+                            <b className="text-white">Voie d'Appel des Arbitrages :</b> Si la décision du Bâtonnier concernant des honoraires ou un différend déontologique ne vous satisfait pas, la législation vous attribue un délai de 15 jours francs pour faire appel devant la cour d'appel locale.
+                          </li>
+                        </ol>
+                      </div>
+
+                      {/* Section 4: Contact Officiel */}
+                      <div className="space-y-3 bg-[#11131e] border border-[#6c3cff]/15 p-4 rounded-2xl">
+                        <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                          <div>
+                            <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">Maison de l'Avocat, Boulevard Moulay Youssef (à côté de la Cour d'Appel), Casablanca, Maroc</span></p>
+                            <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-indigo-400">contact@barreau-casablanca.ma</span></p>
+                          </div>
+                          <div>
+                            <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-26 23 04</span></p>
+                            <p><span className="text-gray-500">📠 Copieur / Fax :</span> <span className="text-gray-400 font-sans">+212 (0) 522-22 40 55</span></p>
+                            <p className="mt-1"><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 08:30 - 16:30</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-4 bg-indigo-950/20 border-t border-indigo-500/15 flex justify-end">
+                      <button 
+                        onClick={() => setShowAvocatModal(false)}
+                        className="px-5 py-2 bg-[#6c3cff] hover:bg-[#5329df] text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-indigo-500/10"
+                      >
+                        J'ai bien compris mes droits
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
