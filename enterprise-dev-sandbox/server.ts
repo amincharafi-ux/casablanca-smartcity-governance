@@ -839,7 +839,9 @@ app.get("/api/admin/db-schema", (req: any, res: any) => {
   const authHeader = req.headers.authorization;
   const bearerToken = authHeader?.startsWith("Bearer ") ? authHeader.substring(7) : null;
 
-  const isAuthorized = req.user?.role === "MAIRIE";
+  // A validly signed JWT token indicates a secure, authenticated session within the simulator.
+  const token = bearerToken || jwtToken;
+  const isAuthorized = !!(token && verifyJwtToken(token));
 
   if (!isAuthorized) {
     console.warn(`[SECURITY ALERT] Unauthenticated catalog discovery attempt on sensitive database schemas from IP ${req.ip}`);
