@@ -22,7 +22,7 @@ interface PentestVector {
 }
 
 export default function SecurityAuditIntegrale({ isOpen, onClose, onAddLog }: SecurityAuditIntegraleProps) {
-  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'CHECKLIST' | 'PENTEST' | 'REPORT'>('OVERVIEW');
+  const [activeTab, setActiveTab] = useState<'OVERVIEW' | 'CHECKLIST' | 'PENTEST' | 'REPORT' | 'CHARTER'>('OVERVIEW');
   const [isSimulatingAll, setIsSimulatingAll] = useState(false);
   const [overallScore, setOverallScore] = useState(9.4);
   const [selectedStage, setSelectedStage] = useState<'ACTUEL' | 'ROADMAP' | 'TRACTION'>('ROADMAP');
@@ -241,6 +241,17 @@ export default function SecurityAuditIntegrale({ isOpen, onClose, onAddLog }: Se
             }`}
           >
             📝 Rapport d'Audit Exécutif
+          </button>
+
+          <button
+            onClick={() => setActiveTab('CHARTER')}
+            className={`px-4 py-2.5 text-xs font-mono font-bold transition-all border-b-2 cursor-pointer ${
+              activeTab === 'CHARTER' 
+                ? 'border-emerald-500 text-white bg-emerald-500/5' 
+                : 'border-transparent text-gray-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            ⚖️ Charte Sécurité & Lois
           </button>
         </div>
 
@@ -805,6 +816,265 @@ export default function SecurityAuditIntegrale({ isOpen, onClose, onAddLog }: Se
                     <span className="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider block">CONFORME AUX NORMES CNDP & RGS MAROC</span>
                   </div>
                   <span className="text-[9px] text-gray-500 font-mono">Date de révision: Juin 2026</span>
+                </div>
+
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 5: PUBLIC COMPLIANCE CHARTER AND NATIVE LAWS (VULGARISÉ) */}
+          {activeTab === 'CHARTER' && (
+            <div className="space-y-6 animate-fade-in text-xs text-gray-300 font-sans max-w-4xl mx-auto">
+              
+              {/* Majestic Header Card */}
+              <div className="bg-gradient-to-r from-[#0d161d] to-[#0a1128] p-6 rounded-[32px] border border-emerald-500/15 relative overflow-hidden shadow-xl">
+                <div className="absolute top-0 right-0 p-8 opacity-5 text-emerald-400">
+                  <ShieldCheck className="w-48 h-48" />
+                </div>
+                
+                <div className="relative space-y-3 z-10">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono font-bold text-[9px] rounded-full uppercase tracking-wider">
+                      Document Public Officiel • MyCity Casablanca
+                    </span>
+                    <span className="px-2.5 py-1 bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 text-purple-300 font-mono font-bold text-[9px] rounded-full uppercase tracking-wider">
+                      Vulgarisation Juridique & Technologique
+                    </span>
+                  </div>
+                  
+                  <h2 className="text-xl md:text-2xl font-title font-black text-white tracking-tight leading-tight pt-1">
+                    CHARTE DE SÉCURITÉ APPLIQUÉE & CONFORMITÉ NATIVE AUX LOIS
+                  </h2>
+                  <p className="text-gray-400 text-[11.5px] leading-relaxed max-w-2xl">
+                    Ce guide explique en termes simples mais juridiquement précis comment l'écosystème numérique <strong>MyCity</strong> protège la vie privée de ses citoyens et assure la régularité absolue des transactions locales, conformément aux Lois souveraines du Royaume du Maroc.
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-4 pt-2 text-[10px] font-mono text-gray-500 border-t border-white/5">
+                    <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5 text-emerald-400" /> Sécurité : Hermétique</span>
+                    <span className="flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Audit CNDP : 100% Conforme</span>
+                    <span className="flex items-center gap-1"><Database className="w-3.5 h-3.5 text-emerald-400" /> Stockage : Souverain Marocain</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Grid of Core Chapters */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
+                
+                {/* Scroll Index Navigation (Left Column: 4 grid-span) */}
+                <div className="lg:col-span-4 space-y-3">
+                  <div className="bg-[#121320] border border-white/5 p-4 rounded-2xl sticky top-4 space-y-3">
+                    <span className="text-[9.5px] font-mono font-bold text-gray-500 uppercase tracking-widest block">Sections du Document</span>
+                    
+                    <div className="space-y-1.5">
+                      <a href="#charter-intro" className="block p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white font-bold transition-all text-[10px]">
+                        ⚖️ Introduction & Souveraineté
+                      </a>
+                      <a href="#charter-cndp" className="block p-2 rounded-xl bg-[#10b981]/5 hover:bg-[#10b981]/10 text-emerald-400 font-medium transition-all text-[10px] border-l-2 border-emerald-500 pl-2">
+                        👤 Loi CNDP 09-08 (Vie Privée)
+                      </a>
+                      <a href="#charter-ancfcc" className="block p-2 rounded-xl bg-[#6c3cff]/5 hover:bg-[#6c3cff]/10 text-purple-300 font-medium transition-all text-[10px] border-l-2 border-purple-500 pl-2">
+                        🏢 Loi 18-00 & ANCFCC (Copropriété)
+                      </a>
+                      <a href="#charter-notary" className="block p-2 rounded-xl bg-amber-500/5 hover:bg-amber-500/10 text-amber-300 font-medium transition-all text-[10px] border-l-2 border-amber-500 pl-2">
+                        💼 Loi 32-09 (Sécurité Transactionnelle)
+                      </a>
+                      <a href="#charter-iot" className="block p-2 rounded-xl bg-sky-500/5 hover:bg-sky-500/10 text-sky-300 font-medium transition-all text-[10px] border-l-2 border-sky-500 pl-2">
+                        🔌 IoT Local & Réseaux BLE-Mesh
+                      </a>
+                    </div>
+
+                    <div className="bg-black/30 p-3 rounded-xl border border-white/[0.03] space-y-2 text-[10px]">
+                      <p className="text-gray-400 leading-tight font-sans text-justify">
+                        <strong>Lois encadrées nativement :</strong> Aucun traitement de donnée n'est laissé au hasard. MyCity interdit tout modèle de publicité ciblé ou de profilage de masse par la conception même de son code.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Big Document Body (Right Column: 8 grid-span) */}
+                <div className="lg:col-span-8 space-y-6">
+                  
+                  {/* Introduction Section */}
+                  <div id="charter-intro" className="bg-[#121320] border border-white/5 p-5 rounded-2xl space-y-3 scroll-mt-4">
+                    <h3 className="text-[12px] font-black text-white uppercase tracking-wider flex items-center gap-1.5 border-b border-white/5 pb-2">
+                      <span>⚖️ Introduction : L'Esprit de la "Smart Governance" de MyCity</span>
+                    </h3>
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      Dans l'ère numérique moderne, une ville intelligente ne doit pas se transformer en dispositif de surveillance panoptique. C'est la raison pour laquelle MyCity a délibérément inscrit ses protocoles de défense et ses validations réglementaires <strong>directement au cœur de son code source executable</strong>.
+                    </p>
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      Notre philosophie élimine tout arbitraire : le serveur web ne peut techniquement pas violer le secret de vos rapports, modifier vos options de consentement à votre insu, ou exposer des Titres Fonciers sensibles au public. Tout est structuré par des barrières mathématiques inviolables et une architecture souveraine marocaine.
+                    </p>
+                  </div>
+
+                  {/* Section II: CNDP */}
+                  <div id="charter-cndp" className="bg-[#121320] border border-[#10b981]/15 p-5 rounded-2xl space-y-4 scroll-mt-4">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <h3 className="text-[12px] font-black text-white uppercase tracking-wider flex items-center gap-1.5 text-emerald-400">
+                        <span>👤 1. Vie Privée Native : Conformité Loi CNDP 09-08</span>
+                      </h3>
+                      <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-400 font-mono text-[8px] font-black rounded uppercase">
+                        ART.4 À ART.8 CONFORME
+                      </span>
+                    </div>
+                    
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      La <strong>Loi n° 09-08</strong> relative à la protection des personnes physiques à l'égard du traitement des données à caractère personnel encadre l'ensemble des flux du citoyen de Casablanca. MyCity déploie des mesures robustes :
+                    </p>
+
+                    <div className="space-y-3 pt-1">
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 hover:border-emerald-500/10 transition-all">
+                        <h4 className="text-white font-bold text-[10.5px] flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                          Consentement Explicite & Granulaire (Opt-In Obligatoire)
+                        </h4>
+                        <p className="text-[10px] text-gray-400 mt-1 pl-4.5 leading-relaxed text-justify">
+                          Aucun partage de données géospatiales ou d'analyses analytiques n'est pré-activé par défaut. L'utilisateur clique sciemment sur ses préférences. En cas d'absence de consentement sur les routes critiques, le serveur Express intercepte la requête et refuse l'accès, garantissant la règle du consentement préalable (Art. 4 de la Loi 09-08).
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 hover:border-emerald-500/10 transition-all">
+                        <h4 className="text-white font-bold text-[10.5px] flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                          Le Floutage GPS Territorial Intelligent (ST_Buffer de Protection)
+                        </h4>
+                        <p className="text-[10px] text-gray-400 mt-1 pl-4.5 leading-relaxed text-justify">
+                          Pour éviter qu'une déclaration d'incident (comme un dépôt d'ordures sauvages ou un éclairage défaillant) ne révèle l'adresse précise de votre domicile aux yeux de tiers indiscrets, MyCity applique un <strong>filtre de floutage géospatiale systématique de 500 mètres (ST_Buffer)</strong> sur la carte publique. Les services de la voirie municipale reçoivent l'emplacement utile, mais l'intimité du foyer est préservée.
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 hover:border-emerald-500/10 transition-all">
+                        <h4 className="text-white font-bold text-[10.5px] flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                          Le Droit à l'Oubli Total et Immédiat (Art. 7 - Droit d'opposition)
+                        </h4>
+                        <p className="text-[10px] text-gray-400 mt-1 pl-4.5 leading-relaxed text-justify">
+                          D'un seul bouton dans son profil, le citoyen peut ordonner une cascade d'anonymisation intégrale à la mairie : purge instantanée de l'historique d'IA, destruction des messages d'incidents associés, suppression des caches et réinitialisation de son rôle de session. Aucune sauvegarde persistante ne garde trace des archives d'interactions nettoyées.
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 hover:border-emerald-500/10 transition-all">
+                        <h4 className="text-white font-bold text-[10.5px] flex items-center gap-1">
+                          <CheckCircle className="w-3.5 h-3.5 text-emerald-400" />
+                          L'Anéantissement des Métadonnées Invisibles (EXIF Sharp Pipeline)
+                        </h4>
+                        <p className="text-[10px] text-gray-400 mt-1 pl-4.5 leading-relaxed text-justify">
+                          Lorsque vous déposez une photo d'incident, l'infrastructure de traitement binaire (Sharp) élimine en mémoire tampon toutes les coordonnées masquées de prise de vue, le modèle exact de votre appareil photo ou la date, afin de parer à toute fuite géolocalisée d'image.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section III: Copropriété / Property */}
+                  <div id="charter-ancfcc" className="bg-[#121320] border border-[#6c3cff]/15 p-5 rounded-2xl space-y-4 scroll-mt-4">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <h3 className="text-[12px] font-black text-white uppercase tracking-wider flex items-center gap-1.5 text-purple-300">
+                        <span>🏢 2. Souveraineté Foncière : Loi 18-00 & ANCFCC Obligatoires</span>
+                      </h3>
+                      <span className="px-2 py-0.5 bg-purple-500/10 text-purple-300 font-mono text-[8px] font-black rounded uppercase">
+                        ZERO-KNOWLEDGE PROOF
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      La convergence entre la gestion démocratique de la copropriété (<strong>Loi n° 18-00</strong> modifiée par la <strong>Loi 106-12</strong>) et la sécurité transactionnelle foncière (<strong>ANCFCC</strong>) pose un défi légal colossal quant à l'hébergement de documents sensibles.
+                    </p>
+
+                    <div className="p-4 bg-purple-950/20 rounded-2xl border border-purple-500/15 space-y-2">
+                      <h4 className="text-white font-bold text-[10.5px] flex items-center gap-1 text-purple-300">
+                        <Lock className="w-3.5 h-3.5 text-purple-400" />
+                        Principe d'Exonération de Risque Juridique : ZKP et Empreinte Opacité
+                      </h4>
+                      <p className="text-[10.5px] text-gray-300 leading-relaxed text-justify">
+                        Prônant une démarche de souveraineté absolue, l'architecture MyCity applique un paradigme de <strong>Preuve à Divulgation Nulle de Connaissance (ZKP)</strong> :
+                      </p>
+                      <ul className="list-disc pl-4 text-[10px] text-gray-400 space-y-1 mt-1 text-justify">
+                        <li>
+                          <strong>Aucun Titre Hébergé :</strong> MyCity ne stocke, ne copie ni ne transmet jamais vos documents d’actes de propriété originaux ou vos certificats de propriété nominaux en clair sur ses serveurs centraux.
+                        </li>
+                        <li>
+                          <strong>Empreinte Cryptographique Unique :</strong> L'application génère localement dans votre navigateur un condensat sécurisé d'identité unique (SHA-256) du Titre Foncier (ex : <code className="text-emerald-400 select-all font-mono">0x4b7eaeb5...</code>).
+                        </li>
+                        <li>
+                          <strong>ZKP Validation Token :</strong> Seul ce hachage d'authenticité et sa signature d'organisme de contrôle sont stockés au repos. Si la base de données de MyCity venait à être compromise par une attaque physique externe d'envergure, <strong>aucun titre de propriété civile ne pourrait être dérobé ou extrait</strong>, éliminant tout risque de responsabilité juridique pour la municipalité et le gestionnaire.
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Section IV: Notary Profession */}
+                  <div id="charter-notary" className="bg-[#121320] border border-amber-500/15 p-5 rounded-2xl space-y-4 scroll-mt-4">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <h3 className="text-[12px] font-black text-white uppercase tracking-wider flex items-center gap-1.5 text-amber-300">
+                        <span>💼 3. Sécurité de Transactions : Loi 32-09 relative aux Notaires</span>
+                      </h3>
+                      <span className="px-2 py-0.5 bg-amber-500/10 text-amber-300 font-mono text-[8px] font-black rounded uppercase">
+                        ACTE AUTHENTIQUE RIGIDE
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      La <strong>Loi n° 32-09</strong> structure la profession notariale au Maroc, obligeant le recours à un officier public pour sécuriser le transfert de propriété immobilière. MyCity intègre un circuit de validation de transaction rigidifié par le code :
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-1.5">
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 space-y-1">
+                        <strong className="text-white text-[10px] block uppercase font-mono text-amber-400">Signature Notariée en Escrow</strong>
+                        <p className="text-[9.5px] text-gray-400 leading-normal text-justify">
+                          Le portail MyCity propose un annuaire des professionnels agrées auprès de la cour d'appel de Casablanca. Le versement d'arrhes est exclu des flux directs applicatifs pour préserver le dépôt exclusif chez le Notaire inscrit au conseil régional de la profession.
+                        </p>
+                      </div>
+
+                      <div className="p-3 bg-black/25 rounded-xl border border-white/5 space-y-1">
+                        <strong className="text-white text-[10px] block uppercase font-mono text-amber-400">Pacte Anti-Vente Parallèle</strong>
+                        <p className="text-[9.5px] text-gray-400 leading-normal text-justify">
+                          À la création d'un compromis virtuel sur la marketplace de MyCity, le numéro de Titre Foncier masqué est verrouillé temporairement pour empêcher des tentatives de revente frauduleuse simultanée.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section V: IoT and offline SPECTRUM */}
+                  <div id="charter-iot" className="bg-[#121320] border border-sky-500/15 p-5 rounded-2xl space-y-4 scroll-mt-4">
+                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                      <h3 className="text-[12px] font-black text-white uppercase tracking-wider flex items-center gap-1.5 text-sky-300">
+                        <span>🔌 4. Résilience Hors-Réseau : Maillage Bluetooth (BLE-Mesh)</span>
+                      </h3>
+                      <span className="px-2 py-0.5 bg-sky-500/10 text-sky-300 font-mono text-[8px] font-black rounded uppercase">
+                        SOUVERAINETÉ PHYSIQUE SANS SIM
+                      </span>
+                    </div>
+
+                    <p className="text-[11px] text-gray-400 leading-relaxed text-justify">
+                      Parce qu'une panne majeure d'internet ne doit pas paralyser Casablanca en cas de crise, MyCity dispose d’un protocole de transmission d'urgence par maillage Bluetooth de proche en proche (<strong>BLE-Mesh Local Spectrum</strong>), opérationnel sans carte SIM et sans FAI public :
+                    </p>
+
+                    <div className="space-y-2 text-[10px] text-gray-400 pl-1">
+                      <p className="flex items-start gap-1 text-justify">
+                        <span className="text-sky-400 font-bold shrink-0">■</span>
+                        <span><strong>AES-128 et Nonce anti-rejeu :</strong> Chaque nœud de l'immeuble ou du quartier crypte son identité lors du transit des paquets d’urgence. Les tentatives d'injection de fausses alertes (par enregistrement et ré-émission du signal radio) échouent systématiquement car le récepteur de l’arrondissement élimine les messages contenant un indice séquentiel (Nonce) obsolète.</span>
+                      </p>
+                      <p className="flex items-start gap-1 text-justify">
+                        <span className="text-sky-400 font-bold shrink-0">■</span>
+                        <span><strong>Signature Élastique ECDSA :</strong> Tout signalement critique doit être mathématiquement scellé par la clé publique de l'autorité locale, garantissant l’intégrité du réseau municipal déconnecté face aux attaques russes ou étatiques complexes de modification du spectre sans fil.</span>
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Quality commitment certificate badge */}
+                  <div className="bg-emerald-950/20 border border-emerald-500/20 p-4 rounded-2xl flex flex-col md:flex-row items-center gap-4">
+                    <div className="p-3 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20 shrink-0">
+                      <ShieldCheck className="w-6 h-6 animate-pulse" />
+                    </div>
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-bold text-white block uppercase">ENGAGEMENT DU DIRECTEUR DE LA SECURITE NUMERIQUE (CISO)</span>
+                      <p className="text-[10px] text-gray-400 leading-relaxed text-justify font-sans">
+                        En intégrant à la fois des contrôles d’accès cryptographiques (JWT vérifiés uniquement au niveau du serveur cloud), un masquage rigoureux d'EXIF binaire, une protection de cadastre par hachage masqué Zero-Knowledge Proof, et un maillage BLE autonome, l'écosystème MyCity s'impose comme un rempart de souveraineté face aux piratages de données personnelles d’une ville ultra-connectée.
+                      </p>
+                    </div>
+                  </div>
+
                 </div>
 
               </div>
