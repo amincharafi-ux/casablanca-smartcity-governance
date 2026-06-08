@@ -53,8 +53,7 @@ export default function UserProfileDashboard({
 
   // Derive relevant info based on role
   const userEmail = currentUserRole === 'PUBLIC' ? 'sara.belghiti@gmail.com' :
-                    currentUserRole === 'BUSINESS_CAT1' ? 'omar.kabbaj@casablancashop.ma' :
-                    currentUserRole === 'BUSINESS_CAT2' ? 'ilyas.omari@anfa-plaza.com' :
+                    currentUserRole === 'PARTENAIRES' ? 'ilyas.omari@anfa-plaza.com' :
                     'fatim.zahra@mairie-casablanca.ma';
 
   // Filter logs for this user's role or general interactions
