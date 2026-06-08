@@ -115,12 +115,12 @@ export default function DatabaseSpecExplorer({
 
       onAddLog?.("SCHEMA_ACCESS_ATTEMPT", `Tentative d'inspection de la structure de base de données (rôle d'accès: ${currentUserRole}).`);
 
-      // Retrieve real cryptographically signed JWT token from cookie
+      // Retrieve real cryptographically signed JWT token from cookie with localStorage fallback
       const getCookieValue = (name: string) => {
         const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
         return match ? match[2] : null;
       };
-      const rawSessionJwt = getCookieValue("session_jwt") || "";
+      const rawSessionJwt = getCookieValue("session_jwt") || localStorage.getItem("session_jwt") || "";
       // Sanitize the cookie value to filter out any non-ASCII characters, conforming to ByteString standard
       const sessionJwt = rawSessionJwt.split('').filter(c => c.charCodeAt(0) <= 255).join('');
 
@@ -183,7 +183,7 @@ export default function DatabaseSpecExplorer({
           
           <div id="db-spec-error-details" className="bg-black/40 p-3 rounded-xl border border-white/5 font-mono text-[9px] text-gray-400 space-y-1">
             <p id="db-spec-detail-role">• Rôle Utilisateur : {currentUserRole}</p>
-            <p id="db-spec-detail-jwt">• Validation JWT : Échouée (Signature Invalide)</p>
+            <p id="db-spec-detail-jwt">• Validation JWT : {error?.toLowerCase().includes("forbidden") || error?.toLowerCase().includes("interdit") || error?.toLowerCase().includes("suffis") || error?.toLowerCase().includes("autoris") || error?.toLowerCase().includes("403") ? "Succès de la Signature (Droits insuffisants pour ce rôle)" : "Échouée ou Manquante"}</p>
             <p id="db-spec-detail-id">• Audit Log ID : aut-{Date.now().toString(16)}</p>
             <p id="db-spec-detail-warn" className="text-red-400 font-bold">• Résultat : Tentative de scan inscrite sur l'historique d'audit de la ville.</p>
           </div>
