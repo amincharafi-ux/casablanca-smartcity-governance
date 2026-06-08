@@ -48,9 +48,10 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity 
     'workflows': true
   });
   const [copied, setCopied] = useState(false);
-  const [pipelineState, setPipelineState] = useState<'IDLE' | 'RUNNING' | 'SUCCESS'>('IDLE');
+  const [pipelineState, setPipelineState] = useState<'IDLE' | 'RUNNING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [pipelineLogs, setPipelineStateLogs] = useState<string[]>([]);
   const [progress, setProgress] = useState(0);
+  const [pipelineMode, setPipelineMode] = useState<'SUCCESS' | 'FAILING'>('FAILING');
 
   // GitHub Live Export Integration State
   const [githubToken, setGithubToken] = useState<string>('');
@@ -1053,7 +1054,11 @@ jobs:
   const runWorkflowSimulation = () => {
     setPipelineState('RUNNING');
     setProgress(0);
-    setPipelineStateLogs(['🚀 Starting runner ubuntu-latest...', '🔑 Configuring credentials for Doppler/Secrets...', '📥 Checking out repository code...']);
+    setPipelineStateLogs([
+      '🚀 Starting GitHub Runner on ubuntu-latest...',
+      '🔑 Configuring secure keys from Doppler vaults...',
+      '📥 Checking out repository sovereign source code Casablanca...'
+    ]);
     
     let currentProgress = 5;
     const interval = setInterval(() => {
@@ -1061,31 +1066,59 @@ jobs:
       if (currentProgress >= 100) {
         currentProgress = 100;
         clearInterval(interval);
-        setPipelineStateLogs(prev => [
-          ...prev,
-          '✓ Node.js loaded: v20.11.0',
-          '✓ npm ci index success: Installed 482 dependencies in 1.4s',
-          '⚙ Running custom type check: npm run lint',
-          '✓ Linter output: tsc --noEmit executed successfully',
-          '⚙ Compiling full-stack bundle: npm run build',
-          '✓ esbuild compiled server.ts with Sourcemaps and Node CJS output',
-          '⚙ Running security auditing: npm audit',
-          '✓ Zero High/Critical Vulnerabilities detected! Package registry safe.',
-          '🎉 WORKFLOW COMPLETED SUCCESSFULLY - POSTURE post-integration 100% green!'
-        ]);
-        setPipelineState('SUCCESS');
-        onAddLog?.("CI Pipeline Run", "Simulation du pipeline CI/CD GitHub exécutée avec succès.");
+        if (pipelineMode === 'FAILING') {
+          setPipelineStateLogs(prev => [
+            ...prev,
+            '⚙ VERIFYING SECURITY ALIGNMENT...',
+            '❌ [JOB 1: setup_runner] Doppler Token Check: FAILED',
+            '   └─ FATAL: DOPPLER_TOKEN under non-authorized public scoping. Code 403.',
+            '❌ [JOB 2: security_gate_jwt] Cryptographic Validation: FAILED',
+            '   └─ FATAL: CNDP 09-08 backend isolation prevents anonymous Database Schema scanning! Server.ts blocked.',
+            '❌ [JOB 3: build_sandbox] Production build test: FAILED',
+            '   └─ FATAL: Type \'PUBLIC\' role has insufficient permissions to write catalog cache.',
+            '⚙ COMPILATION ABORTED INSECURE SCOPING DETECTED',
+            ' ',
+            '🛑 ERROR: MyCity Casablanca CI Pipeline failed! 6/6 jobs exited with status: FAILED.',
+            '🛡️ REASON: CNDP 09-08 security restrictions triggered. Database schema scanning from PUBLIC roles is prohibited.',
+            '💡 REMEDY: Use the CNDP Sovereign Hotfix override button beside the terminal to configure authenticated credentials.'
+          ]);
+          setPipelineState('FAILED');
+          onAddLog?.("CI Pipeline Run FAILED", "Simulation du pipeline CI/CD GitHub - Échec détecté (Blocage CNDP 09-08).");
+        } else {
+          setPipelineStateLogs(prev => [
+            ...prev,
+            '✓ Node.js loaded: v20.11.0 (LTS)',
+            '✓ npm ci index success: Installed 482 dependencies in 1.2s',
+            '⚙ Running type checks: npm run lint',
+            '✓ Linter output: tsc --noEmit executed successfully. Code is 100% compliant!',
+            '⚙ Compiling sovereign backend: esbuild server.ts',
+            '✓ Bundler success: dist/server.cjs compiled with cryptographic signature',
+            '⚙ Running security auditing: npm audit --audit-level=high',
+            '✓ CNDP 09-08 Compliance Audit: SUCCESS. No data leak vectors detected.',
+            '🎉 ALL WORKFLOW JOBS COMPLETED SUCCESSFULLY - CI POSTURE 100% GREEN & SECURED!'
+          ]);
+          setPipelineState('SUCCESS');
+          onAddLog?.("CI Pipeline Run SUCCESS", "Simulation du pipeline CI/CD GitHub exécutée de bout en bout avec succès.");
+        }
       } else {
         setProgress(currentProgress);
-        if (currentProgress > 20 && currentProgress < 40) {
-          setPipelineStateLogs(prev => prev.includes('✓ Node.js loaded: v20.11.0') ? prev : [...prev, '✓ Node.js loaded: v20.11.0', '⚙ Running dependency install...']);
-        } else if (currentProgress > 40 && currentProgress < 65) {
-          setPipelineStateLogs(prev => prev.includes('✓ npm ci index success: Installed 482 dependencies in 1.4s') ? prev : [...prev, '✓ npm ci index success: Installed 482 dependencies in 1.4s', '⚙ Running linter checks...']);
-        } else if (currentProgress > 65 && currentProgress < 85) {
-          setPipelineStateLogs(prev => prev.includes('✓ Linter output: tsc --noEmit executed successfully') ? prev : [...prev, '✓ Linter output: tsc --noEmit executed successfully', '⚙ Building production code bundles...']);
+        if (pipelineMode === 'FAILING') {
+          if (currentProgress > 25 && currentProgress < 50) {
+            setPipelineStateLogs(prev => prev.includes('⚙ Connecting to Casablanca data stores...') ? prev : [...prev, '⚙ Connecting to Casablanca data stores...', '⚠️ Connecting anonymously...']);
+          } else if (currentProgress > 50 && currentProgress < 80) {
+            setPipelineStateLogs(prev => prev.includes('🚨 Securing backend telemetry scans...') ? prev : [...prev, '🚨 Securing backend telemetry scans...', '🚨 WARNING: DatabaseSpecExplorer requested sensitive schema catalog...']);
+          }
+        } else {
+          if (currentProgress > 20 && currentProgress < 40) {
+            setPipelineStateLogs(prev => prev.includes('✓ Node.js loaded: v20.11.0 (LTS)') ? prev : [...prev, '✓ Node.js loaded: v20.11.0 (LTS)', '⚙ Running dependency install...']);
+          } else if (currentProgress > 40 && currentProgress < 65) {
+            setPipelineStateLogs(prev => prev.includes('✓ npm ci index success: Installed 482 dependencies in 1.2s') ? prev : [...prev, '✓ npm ci index success: Installed 482 dependencies in 1.2s', '⚙ Running linter checks...']);
+          } else if (currentProgress > 65 && currentProgress < 85) {
+            setPipelineStateLogs(prev => prev.includes('✓ Linter output: tsc --noEmit executed successfully. Code is 100% compliant!') ? prev : [...prev, '✓ Linter output: tsc --noEmit executed successfully. Code is 100% compliant!', '⚙ Building production code bundles...']);
+          }
         }
       }
-    }, 300);
+    }, 150);
   };
 
   if (!isOpen) return null;
@@ -1480,60 +1513,248 @@ jobs:
           {/* TAB 3: PIPELINE ACTIONS RUNNER */}
           {activeSubTab === 'ACTIONS' && (
             <div className="flex-1 p-6 overflow-hidden flex flex-col gap-4 bg-[#0d1117] font-mono">
-              <div className="flex items-center justify-between shrink-0 mb-2">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 shrink-0 border-b border-[#30363d]/50 pb-4">
                 <div>
-                  <h3 className="text-white font-semibold text-xs font-mono flex items-center gap-1.5">
+                  <h3 className="text-white font-semibold text-xs font-mono flex items-center gap-1.5 animate-fade-in">
                     <Terminal className="w-4 h-4 text-emerald-400" />
-                    <span>GitHub Actions Workflow Sandbox</span>
+                    <span>MyCity Casablanca CI / CD Workflow Pipeline</span>
                   </h3>
-                  <p className="text-[10.5px] text-[#8b949e]">Exécutez et validez de manière interactive le pipeline lint et de conformité du code d'écosystème territorial</p>
+                  <p className="text-[10.5px] text-[#8b949e]">Exécutez, auditez et configurez l'intégration continue de la souveraineté territoriale.</p>
                 </div>
 
-                <button
-                  onClick={runWorkflowSimulation}
-                  disabled={pipelineState === 'RUNNING'}
-                  className={`px-4 py-2 bg-[#238636] hover:bg-[#2ea043] disabled:bg-[#238636]/40 disabled:text-[#8b949e] text-white rounded-lg font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shrink-0`}
-                >
-                  <Play className="w-4 h-4" />
-                  <span>{pipelineState === 'RUNNING' ? 'Running Build Pipeline...' : 'Run CI Pipeline'}</span>
-                </button>
+                <div className="flex items-center gap-3">
+                  {/* Selector for Pipeline Configuration profile */}
+                  <div className="flex items-center gap-2 bg-[#161b22] border border-[#30363d] px-2.5 py-1 rounded-xl">
+                    <span className="text-[9px] text-[#8b949e] font-bold uppercase">PROFIL DE RUN :</span>
+                    <select
+                      value={pipelineMode}
+                      onChange={(e) => {
+                        setPipelineMode(e.target.value as 'SUCCESS' | 'FAILING');
+                        setPipelineState('IDLE');
+                        setPipelineStateLogs([]);
+                      }}
+                      disabled={pipelineState === 'RUNNING'}
+                      className="bg-transparent border-none text-xs font-bold text-white focus:outline-none cursor-pointer outline-none"
+                    >
+                      <option value="FAILING" className="bg-[#161b22] text-red-400">🚨 Chaos Mode (All Jobs Failed)</option>
+                      <option value="SUCCESS" className="bg-[#161b22] text-emerald-400">💚 Sovereign Success (All Jobs OK)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    onClick={runWorkflowSimulation}
+                    disabled={pipelineState === 'RUNNING'}
+                    className={`px-4 py-2 bg-[#238636] hover:bg-[#2ea043] disabled:bg-[#238636]/40 disabled:text-[#8b949e] text-white rounded-lg font-bold text-xs flex items-center gap-2 transition-all cursor-pointer shrink-0 shadow-lg`}
+                  >
+                    <Play className="w-4 h-4" />
+                    <span>{pipelineState === 'RUNNING' ? 'Running Build...' : 'Run CI Pipeline'}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Progress Bar */}
               {pipelineState === 'RUNNING' && (
-                <div className="w-full bg-[#21262d] rounded-full h-1 relative shrink-0">
+                <div className="w-full bg-[#21262d] rounded-full h-1.5 relative shrink-0">
                   <div 
-                    className="bg-[#2f81f7] h-1 rounded-full transition-all duration-300"
+                    className="bg-blue-500 h-1.5 rounded-full transition-all duration-300"
                     style={{ width: `${progress}%` }}
                   />
                 </div>
               )}
 
-              {/* Terminal Logs View */}
-              <div className="flex-1 bg-black rounded-lg border border-[#30363d] p-4 font-mono text-xs text-emerald-500 overflow-y-auto space-y-2 select-text">
-                <div className="flex items-center justify-between border-b border-[#30363d]/50 pb-2 mb-2">
-                  <span className="text-gray-500">github-runner-ubuntu-20-node-20.log</span>
-                  <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full animate-pulse" />
-                    <span className="text-[10px] text-gray-500 font-bold">ONLINE</span>
+              {/* TWO PANEL RESPONSIVE VIEW: JOBS SIDEBAR + TERMINAL VIEW */}
+              <div className="flex-1 flex flex-col md:flex-row gap-4 overflow-hidden">
+                
+                {/* JOBS SUMMARY SIDEBAR */}
+                <div className="w-full md:w-64 bg-[#161b22] border border-[#30363d] rounded-xl p-3 flex flex-col gap-2 shrink-0 overflow-y-auto">
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mb-1 block">Workflow Jobs Status</span>
+                  
+                  {/* Job 1 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px] ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 18 ? 'border-blue-500/20 bg-blue-500/5 text-blue-400' :
+                    pipelineState === 'RUNNING' && progress >= 18 ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400' :
+                    pipelineState === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">1. setup_runner</span>
+                    <span>
+                      {pipelineState === 'IDLE' && '⚪'}
+                      {pipelineState === 'RUNNING' && progress < 18 && '⏳'}
+                      {(pipelineState === 'SUCCESS' || (pipelineState === 'RUNNING' && progress >= 18 && pipelineMode === 'SUCCESS')) && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
+                  </div>
+
+                  {/* Job 2 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px] ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 35 ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress >= 35 && progress < 50 ? 'border-blue-500/20 bg-blue-500/5 text-blue-400' :
+                    pipelineState === 'RUNNING' && progress >= 50 && pipelineMode === 'SUCCESS' ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400' :
+                    pipelineState === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">2. verify_lockfiles</span>
+                    <span>
+                      {(pipelineState === 'IDLE' || (pipelineState === 'RUNNING' && progress < 35)) && '⚪'}
+                      {pipelineState === 'RUNNING' && progress >= 35 && progress < 50 && '⏳'}
+                      {(pipelineState === 'SUCCESS' || (pipelineState === 'RUNNING' && progress >= 50 && pipelineMode === 'SUCCESS')) && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
+                  </div>
+
+                  {/* Job 3 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px]  ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 50 ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress >= 50 && progress < 70 ? 'border-blue-500/20 bg-blue-500/5 text-blue-400' :
+                    pipelineState === 'RUNNING' && progress >= 70 && pipelineMode === 'SUCCESS' ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400' :
+                    pipelineState === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">3. npm_install</span>
+                    <span>
+                      {(pipelineState === 'IDLE' || (pipelineState === 'RUNNING' && progress < 50)) && '⚪'}
+                      {pipelineState === 'RUNNING' && progress >= 50 && progress < 70 && '⏳'}
+                      {(pipelineState === 'SUCCESS' || (pipelineState === 'RUNNING' && progress >= 70 && pipelineMode === 'SUCCESS')) && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
+                  </div>
+
+                  {/* Job 4 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px]  ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 70 ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress >= 70 && progress < 85 ? 'border-blue-500/20 bg-blue-500/5 text-blue-400' :
+                    pipelineState === 'RUNNING' && progress >= 85 && pipelineMode === 'SUCCESS' ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-400' :
+                    pipelineState === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">4. type_lint_check</span>
+                    <span>
+                      {(pipelineState === 'IDLE' || (pipelineState === 'RUNNING' && progress < 70)) && '⚪'}
+                      {pipelineState === 'RUNNING' && progress >= 70 && progress < 85 && '⏳'}
+                      {(pipelineState === 'SUCCESS' || (pipelineState === 'RUNNING' && progress >= 85 && pipelineMode === 'SUCCESS')) && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
+                  </div>
+
+                  {/* Job 5 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px]  ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 85 ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress >= 85 && progress < 100 ? 'border-blue-500/20 bg-blue-500/5 text-blue-400' :
+                    pipelineState === 'SUCCESS' && pipelineMode === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">5. esbuild_bundle</span>
+                    <span>
+                      {(pipelineState === 'IDLE' || (pipelineState === 'RUNNING' && progress < 85)) && '⚪'}
+                      {pipelineState === 'RUNNING' && progress >= 85 && progress < 100 && '⏳'}
+                      {pipelineState === 'SUCCESS' && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
+                  </div>
+
+                  {/* Job 6 */}
+                  <div className={`p-2 rounded-lg flex items-center justify-between border text-[11px]  ${
+                    pipelineState === 'IDLE' ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'RUNNING' && progress < 95 ? 'border-transparent bg-transparent text-[#8b949e]' :
+                    pipelineState === 'SUCCESS' && pipelineMode === 'SUCCESS' ? 'border-[#238636]/30 bg-[#162118] text-[#3fb950] font-bold' :
+                    'border-red-500/25 bg-red-950/20 text-red-400 font-bold'
+                  }`}>
+                    <span className="truncate">6. cndp_leak_audit</span>
+                    <span>
+                      {(pipelineState === 'IDLE' || (pipelineState === 'RUNNING' && progress < 95)) && '⚪'}
+                      {pipelineState === 'SUCCESS' && '✓'}
+                      {pipelineState === 'FAILED' && '❌'}
+                    </span>
                   </div>
                 </div>
 
-                {pipelineLogs.length === 0 ? (
-                  <p className="text-gray-500 italic text-center py-12">Le terminal CI/CD est au repos. Cliquez sur &quot;Run CI Pipeline&quot; pour évaluer la base de code municipale de {currentCity} ({currentCity} SmartCity).</p>
-                ) : (
-                  pipelineLogs.map((log, index) => {
-                    const isSuccess = log.startsWith('✓') || log.includes('SUCCESSFULLY');
-                    return (
-                      <p 
-                        key={index} 
-                        className={`${isSuccess ? 'text-emerald-400 font-bold' : log.startsWith('⚙') ? 'text-blue-400' : 'text-[#c9d1d9]'} animate-fade-in`}
+                {/* TERMINAL PANEL / CONSOLE MONOSPACE LOGS */}
+                <div className="flex-1 bg-black rounded-xl border border-[#30363d] p-4 flex flex-col overflow-hidden text-xs text-[#c9d1d9] relative select-text">
+                  <div className="flex items-center justify-between border-b border-[#30363d]/50 pb-2 mb-2 shrink-0">
+                    <span className="text-gray-500 tracking-wider">github-runner-ubuntu-20-node-20.log</span>
+                    <div className="flex items-center gap-2">
+                      <span className={`w-2 h-2 rounded-full ${pipelineState === 'RUNNING' ? 'bg-blue-400 animate-pulse' : pipelineState === 'FAILED' ? 'bg-red-500' : pipelineState === 'SUCCESS' ? 'bg-emerald-500' : 'bg-gray-500'}`} />
+                      <span className="text-[10px] text-gray-500 font-bold tracking-widest uppercase">
+                        {pipelineState === 'RUNNING' ? 'Running' : pipelineState === 'FAILED' ? 'Failed' : pipelineState === 'SUCCESS' ? 'Success' : 'Ready'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto space-y-1.5 font-mono pr-2 pb-16">
+                    {pipelineLogs.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12 text-[#8b949e] font-sans">
+                        <Terminal className="w-8 h-8 opacity-20 mb-2" />
+                        <p className="italic text-center text-[11px]">Le terminal CI/CD est au repos. Sélectionnez un profil à gauche et cliquez sur &quot;Run CI Pipeline&quot;.</p>
+                      </div>
+                    ) : (
+                      pipelineLogs.map((log, idx) => {
+                        const isSuccess = log.startsWith('✓') || log.includes('SUCCESSFULLY') || log.includes('GREEN') || log.includes('OK');
+                        const isError = log.startsWith('❌') || log.includes('FAILED') || log.startsWith('🛑') || log.includes('FATAL');
+                        const isWarning = log.includes('🚨') || log.includes('WARNING');
+                        let colorClass = 'text-[#c9d1d9]';
+                        if (isSuccess) colorClass = 'text-emerald-400 font-semibold';
+                        else if (isError) colorClass = 'text-red-400';
+                        else if (isWarning) colorClass = 'text-amber-400';
+                        else if (log.startsWith('⚙')) colorClass = 'text-blue-400';
+                        
+                        return (
+                          <div 
+                            key={idx} 
+                            className={`${colorClass} animate-fade-in pl-1 border-l-2 ${isError ? 'border-red-500/40' : isSuccess ? 'border-emerald-500/40' : 'border-transparent'}`}
+                          >
+                            {log}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+
+                  {/* AUTO REPAIR BLOCK FOR CNDP COMPLIANCE CRISIS */}
+                  {pipelineState === 'FAILED' && (
+                    <div className="absolute inset-x-4 bottom-4 bg-[#1f1515] border border-red-500/30 p-3 rounded-xl flex flex-col sm:flex-row items-center sm:justify-between gap-3 shadow-2xl">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle className="w-5 h-5 text-red-500 shrink-0" />
+                        <div>
+                          <p className="text-white font-bold text-[11px]">Échec Critique Détecté : Conflit d'Isolation CNDP 09-08</p>
+                          <p className="text-gray-400 text-[10px]">La consultation anonyme n'est pas autorisée sur le schéma PostGIS.</p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setPipelineMode('SUCCESS');
+                          setPipelineState('IDLE');
+                          setPipelineStateLogs([
+                            '⚡ APPEL DU CORRECTIF SOVEREIGN SOUVERAIN SUCCESS...',
+                            '✓ Doppler Vault Secrets re-scoped to authenticated levels.',
+                            '✓ JWT secret key validation injected safely.',
+                            '✓ Public Database Schema scans routed through secure middleware proxies.',
+                            '👉 Prêt pour un nouveau run ! Cliquez sur "Run CI Pipeline" pour repasser tous les jobs au vert.'
+                          ]);
+                        }}
+                        className="px-3 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg font-bold text-[10.5px] cursor-pointer shrink-0 transition-colors shadow"
                       >
-                        {log}
-                      </p>
-                    );
-                  })
-                )}
+                        ⚡ Appliquer Sovereign Hotfix
+                      </button>
+                    </div>
+                  )}
+
+                  {/* HIGH-FIVE COMPLETED CELEBRATION */}
+                  {pipelineState === 'SUCCESS' && (
+                    <div className="absolute inset-x-4 bottom-4 bg-[#162118] border border-[#3fb950]/30 p-2.5 rounded-xl flex items-center gap-2.5 shadow-2xl">
+                      <CheckCircle className="w-5 h-5 text-emerald-400 shrink-0" />
+                      <div>
+                        <p className="text-white font-bold text-[11px]">Sovereign Pipeline Certifié Vert 100% stable !</p>
+                        <p className="text-gray-400 text-[9.5px]">Toutes les contraintes réglementaires de la loi CNDP 09-08 sont impeccablement validées.</p>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
               </div>
             </div>
           )}
