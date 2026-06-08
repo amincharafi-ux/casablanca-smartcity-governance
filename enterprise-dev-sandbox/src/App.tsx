@@ -12,6 +12,7 @@ import BLEMeshSim from './components/BLEMeshSim';
 import CitizenPortal from './components/CitizenPortal';
 import BusinessPortal from './components/BusinessPortal';
 import MairiePortal from './components/MairiePortal';
+import DataTeamDashboard from './components/DataTeamDashboard';
 import DatabaseSpecExplorer from './components/DatabaseSpecExplorer';
 import SouverainBlueprint from './components/SouverainBlueprint';
 import SecurityAuditIntegrale from './components/SecurityAuditIntegrale';
@@ -276,12 +277,12 @@ export default function App() {
     switch (role) {
       case 'PUBLIC':
         return { name: 'Sara Belghiti', roleLabel: 'Citoyen Souverain', initials: 'SB', color: 'text-emerald-400' };
-      case 'BUSINESS_CAT1':
-        return { name: 'Omar Kabbaj', roleLabel: 'Partenaire Basique', initials: 'OK', color: 'text-gray-400' };
-      case 'BUSINESS_CAT2':
-        return { name: 'Ilyas El Omari', roleLabel: 'Business Partner Cat. 2', initials: 'IE', color: 'text-[#3ccfff]' };
+      case 'PARTENAIRES':
+        return { name: 'Ilyas El Omari', roleLabel: 'Partenaire Affilié (SaaS)', initials: 'IO', color: 'text-[#00ffcc]' };
       case 'MAIRIE':
         return { name: 'Mme. Fatim-Zahra', roleLabel: 'Conseil Municipal', initials: 'FZ', color: 'text-[#ff3c83]' };
+      case 'DATA_TEAM':
+        return { name: 'Yassine Alami', roleLabel: 'Directeur Data & BI', initials: 'YA', color: 'text-indigo-400' };
       default:
         return { name: 'Sara Belghiti', roleLabel: 'Citoyen', initials: 'SB', color: 'text-gray-400' };
     }
@@ -528,7 +529,7 @@ export default function App() {
           </div>
 
           <div className="flex bg-[#0b0d14] p-1 rounded-2xl border border-white/5 gap-1 text-[10px] font-mono font-bold w-full xl:w-auto overflow-x-auto">
-            {(['PUBLIC', 'BUSINESS_CAT1', 'BUSINESS_CAT2', 'MAIRIE'] as UserRole[]).map((role) => (
+            {(['PUBLIC', 'PARTENAIRES', 'MAIRIE', 'DATA_TEAM'] as UserRole[]).map((role) => (
               <button
                 key={role}
                 id={`global-role-switch-${role}`}
@@ -543,14 +544,14 @@ export default function App() {
                 }`}
               >
                 {role === 'PUBLIC' && <User className="w-3.5 h-3.5" />}
-                {role === 'BUSINESS_CAT1' && <Building className="w-3.5 h-3.5" />}
-                {role === 'BUSINESS_CAT2' && <Building className="w-3.5 h-3.5 text-yellow-400" />}
+                {role === 'PARTENAIRES' && <Building className="w-3.5 h-3.5 text-[#00ffcc]" />}
                 {role === 'MAIRIE' && <Landmark className="w-3.5 h-3.5" />}
+                {role === 'DATA_TEAM' && <Database className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />}
                 
                 {role === 'PUBLIC' && t.publicCitoyen}
-                {role === 'BUSINESS_CAT1' && t.businessBasic}
-                {role === 'BUSINESS_CAT2' && t.businessPremium}
+                {role === 'PARTENAIRES' && (currentLang === 'FR' ? "PARTENAIRES (SaaS)" : currentLang === 'AR' ? "شركاء الأعمال" : "PARTNERS (SaaS)")}
                 {role === 'MAIRIE' && t.mairieLabel}
+                {role === 'DATA_TEAM' && (currentLang === 'FR' ? "Équipe Data" : currentLang === 'AR' ? "تحليل البيانات" : "Data Team")}
               </button>
             ))}
           </div>
@@ -639,9 +640,9 @@ export default function App() {
                 <div className="flex items-center justify-between border-b border-white/5 pb-3">
                   <h3 className="font-title font-bold text-sm text-white flex items-center gap-1.5 uppercase tracking-wide">
                     {userRole === 'PUBLIC' && "👤 COMPAGNON PUBLIC (CITOYEN GRATUIT)"}
-                    {userRole === 'BUSINESS_CAT1' && "🏢 COMPAGNON COMMERCE (BASIC formule 299 MAD)"}
-                    {userRole === 'BUSINESS_CAT2' && "✨ PORTAIL COMMERCE PREMIUM ( formule 799 MAD)"}
+                    {userRole === 'PARTENAIRES' && "💼 PORTAIL PARTENAIRES COMMERÇANTS & PME (SaaS)"}
                     {userRole === 'MAIRIE' && "🏛️ PORTAIL CONSEIL DE LA MAIRIE DE CASABLANCA"}
+                    {userRole === 'DATA_TEAM' && "📊 PORTAIL BI ET ÉQUIPE DATA (MYCITY SOVEREIGN DATA CELL)"}
                   </h3>
                   <span className="font-mono text-[9px] text-[#6C3CFF] uppercase font-bold tracking-widest">Console Intégrée</span>
                 </div>
@@ -657,7 +658,7 @@ export default function App() {
                   />
                 )}
 
-                {(userRole === 'BUSINESS_CAT1' || userRole === 'BUSINESS_CAT2') && (
+                {userRole === 'PARTENAIRES' && (
                   <BusinessPortal
                     events={events}
                     onAddEvent={handleAddevent}
@@ -679,6 +680,14 @@ export default function App() {
                     onChangeActiveModule={setActiveMainModule}
                     onOpenSqlSpec={() => setIsSqlSpecOpen(true)}
                     currentUserRole={userRole}
+                  />
+                )}
+
+                {userRole === 'DATA_TEAM' && (
+                  <DataTeamDashboard
+                    events={events}
+                    onAddLog={handleAddPrivacyLog}
+                    currentLang={currentLang}
                   />
                 )}
               </div>
