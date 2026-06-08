@@ -244,6 +244,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
   const [selectedBusinessCity, setSelectedBusinessCity] = useState<string>('ALL');
   const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
+  const [showNotaireModal, setShowNotaireModal] = useState(false);
 
   // Account Roles for Simulation
   // UserGroup1: Promoteurs immobilliers professionnels (ImmoPro Account)
@@ -1257,15 +1258,133 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             </div>
 
             {/* Institution representative banner for Notaires - FIXED and non-scrollable */}
-            <div className="p-3 bg-amber-950/20 border border-amber-500/15 rounded-2xl space-y-1 font-sans select-none">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold">🏛️</span>
-                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono text-amber-400">Conseil Régional des Notaires de Casablanca</span>
+            <div 
+              onClick={() => setShowNotaireModal(true)}
+              className="p-3 bg-amber-950/20 border border-amber-500/25 rounded-2xl space-y-2 font-sans cursor-pointer hover:border-amber-500/60 hover:bg-amber-500/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+              title="Cliquez pour consulter le rôle, les recours en cas de malpratique et les coordonnées"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">🏛️</span>
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono text-amber-400">Conseil Régional des Notaires de Casablanca</span>
+                </div>
+                <span className="text-[9px] bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  📖 Guide des Droits & Recours
+                </span>
               </div>
               <p className="text-[9.5px] text-amber-200/90 leading-normal">
-                Ordre National des Notaires du Maroc — Organe représentatif légal et de contrôle déontologique régissant l'authenticité et la sécurité juridique des actes notariés à Casablanca.
+                Ordre National des Notaires du Maroc — Organe représentatif légal régissant l'authenticité et la sécurité juridique des actes à Casablanca. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal complet</span>.
               </p>
             </div>
+
+            {/* Notaire Detailed Malpractice & Rights Modal */}
+            {showNotaireModal && (
+              <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+                <div className="bg-[#11131e] border border-amber-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                  {/* Header */}
+                  <div className="p-6 border-b border-amber-500/15 flex items-start justify-between bg-amber-950/20">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🏛️</span>
+                      <div>
+                        <h3 className="font-title font-bold text-base text-white">Conseil Régional des Notaires de Casablanca</h3>
+                        <p className="text-xs text-amber-300 font-mono">Ordre National des Notaires du Maroc — Sécurité de la Propriété</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowNotaireModal(false)}
+                      className="p-1 px-2.5 bg-amber-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                    >
+                      ✕ Fermer
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                    {/* Section 1: Rôle Légal */}
+                    <div className="space-y-2">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>📄</span> Rôle Légal du Notaire & Mission Public-Privé
+                      </h4>
+                      <p>
+                        Régit par la <b>Loi n° 32-09</b> relative à l'organisation de la profession de notaire au Maroc, le notaire est un officier public nommé par l'État pour conférer le caractère d'authenticité aux actes (actes authentiques). Le notaire apporte une sécurité juridique absolue aux transactions immobilières en Casablanca en certifiant l'identité des parties, la régularité foncière des titres, et en prélevant pour le compte de l'État les taxes de mutation indispensables avant toute inscription cadastrale définitive.
+                      </p>
+                    </div>
+
+                    {/* Section 2: Protection face aux maladresses / malpratiques */}
+                    <div className="space-y-2">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>🛡️</span> Protection face aux Malpratiques des Notaires (Négligences & Détournements)
+                      </h4>
+                      <p className="mb-2">
+                        Les notaires marocains sont soumis à des contrôles d'une extrême rigueur par le Ministère de la Justice d'une part, et par leur ordre professionnel d'autre part :
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-amber-950/20 p-3.5 rounded-xl border border-amber-500/10">
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white">🔐 Caisse de Garantie Obligatoire</h5>
+                          <p className="text-gray-400 text-[10.5px]">En cas d'insolvabilité foncière ou de faute civile grave du notaire causant un dommage financier, la Caisse nationale de Garantie des Actes Notariés indemnise les acquéreurs lésés de leurs débours perdus.</p>
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white">💰 Consignation Sécurisée à la CDG</h5>
+                          <p className="text-gray-400 text-[10.5px]">Tout versement de fonds d'un bien immobilier (prix de vente, frais d'acte) doit être obligatoirement consigné sur un compte spécial ouvert à la Caisse de Dépôt et de Gestion (CDG). La conservation directe sur un compte personnel du notaire est interdite.</p>
+                        </div>
+                        <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                          <h5 className="font-bold text-white">⏳ Action contre les retards de publication</h5>
+                          <p className="text-gray-400 text-[10.5px]">Tout retard inconsidéré dans l'enregistrement de l'acte de vente auprès de l'ANCFCC (Conservation Foncière) fait courir le risque de vente parallèle. L'Ordre intervient pour forcer l'enregistrement ou saisir le Procureur du Roi.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Vos Droits & Comment les obtenir */}
+                    <div className="space-y-3">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>📋</span> Droits de l'Acquéreur & Démarche de Contrôle et Plaintes
+                      </h4>
+                      <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                        <li>
+                          <b className="text-white">Le droit de vérifier le Certificat de Propriété :</b> Avant de verser le moindre centime au vendeur, exigez du notaire un certificat de propriété daté du jour de l'ANCFCC confirmant l'absence de saisies judiciaires, d'hypothèques ou d'interdictions de vente sur le titre.
+                        </li>
+                        <li>
+                          <b className="text-white">Le droit aux reçus officiels (Quittances CDG) :</b> Chaque versement effectué auprès d'une étude de notaire doit faire l'objet d'une quittance officielle numérotée mentionnant le numéro d'ordre CDG. Ne versez jamais de frais en espèces sans un reçu scrupuleusement rédigé.
+                        </li>
+                        <li>
+                          <b className="text-white">Dépôt de plainte formelle :</b> En cas de rétention prolongée de fonds, d'inactivité injustifiée ou de fautes avérées, déposez un dossier de plainte écrite auprès du Président du Conseil Régional des Notaires de Casablanca, étayé par une copie du contrat de compromis de vente ou d'acte authentique non publié.
+                        </li>
+                        <li>
+                          <b className="text-white">Saisine du Procureur du Roi :</b> Pour les cas critiques d'escroquerie, d'abus de blanc-seing ou d'appropriation frauduleuse de fonds dépositaires, déposez immédiatement plainte directement auprès du Procureur du Roi près de la Cour d'Appel de Casablanca, qui détient la compétence de suspendre l'officier public par intérim.
+                        </li>
+                      </ol>
+                    </div>
+
+                    {/* Section 4: Contact Officiel */}
+                    <div className="space-y-3 bg-[#11131e] border border-amber-500/15 p-4 rounded-2xl">
+                      <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                        <div>
+                          <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">Angle Boulevard d'Anfa et Rue de Rome, Résidence d'Anfa, Casablanca, Maroc</span></p>
+                          <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-amber-400">regional.casablanca@notariat.ma</span></p>
+                        </div>
+                        <div>
+                          <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-39 51 52</span></p>
+                          <p><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 09:00 - 17:00</span></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 bg-amber-950/20 border-t border-amber-500/15 flex justify-end">
+                    <button 
+                      onClick={() => setShowNotaireModal(false)}
+                      className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-amber-500/10"
+                    >
+                      J'ai bien compris mes droits d'acquéreur
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3">
               {defaultNotaries.map(not => (
