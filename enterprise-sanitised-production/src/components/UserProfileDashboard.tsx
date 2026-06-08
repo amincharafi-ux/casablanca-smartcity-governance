@@ -84,8 +84,11 @@ export default function UserProfileDashboard({
         {/* Banner header with Close lock icon */}
         <div className="px-6 py-4 bg-[#0f111a] border-b border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className={`w-9 h-9 rounded-xl bg-[#6C3CFF]/10 flex items-center justify-center border border-[#6C3CFF]/20`}>
-              <User className="w-5 h-5 text-[#6C3CFF]" />
+            <div 
+              className="w-9 h-9 rounded-xl flex items-center justify-center border"
+              style={{ backgroundColor: 'rgb(var(--portal-color-rgb) / 0.1)', borderColor: 'rgb(var(--portal-color-rgb) / 0.2)' }}
+            >
+              <User className="w-5 h-5" style={{ color: 'var(--portal-color)' }} />
             </div>
             <div>
               <h2 className="font-title font-bold text-sm text-white flex items-center gap-2">
@@ -111,20 +114,29 @@ export default function UserProfileDashboard({
         <div className="p-6 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
           
           {/* PROFILE SUMMARY HERO */}
-          <div className="p-4 bg-gradient-to-r from-indigo-950/20 to-purple-950/10 border border-[#6C3CFF]/20 rounded-xl flex items-center gap-4">
-            <div className="w-14 h-14 rounded-full bg-[#12111d] border border-dashed border-[#6C3CFF]/40 flex items-center justify-center text-lg font-bold text-white shrink-0">
+          <div 
+            className="p-4 bg-gradient-to-r from-slate-900 to-[#12141c] border rounded-xl flex items-center gap-4"
+            style={{ borderColor: 'rgb(var(--portal-color-rgb) / 0.2)' }}
+          >
+            <div 
+              className="w-14 h-14 rounded-full bg-[#12111d] border border-dashed flex items-center justify-center text-lg font-bold text-white shrink-0"
+              style={{ borderColor: 'rgb(var(--portal-color-rgb) / 0.4)' }}
+            >
               {currentUser.initials}
             </div>
             <div className="space-y-1 flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <h3 className="font-title font-bold text-sm text-white truncate">{currentUser.name}</h3>
-                <span className={`px-2 py-0.5 rounded font-mono text-[8.5px] font-bold bg-[#6C3CFF]/20 ${currentUser.color}`}>
+                <span 
+                  className={`px-2 py-0.5 rounded font-mono text-[8.5px] font-bold ${currentUser.color}`}
+                  style={{ backgroundColor: 'rgb(var(--portal-color-rgb) / 0.2)' }}
+                >
                   {currentUser.roleLabel}
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 text-gray-400 text-[10px] font-mono">
                 <span className="flex items-center gap-1">
-                  <Mail className="w-3 h-3 text-[#6C3CFF]/60" /> {userEmail}
+                  <Mail className="w-3 h-3" style={{ color: 'rgb(var(--portal-color-rgb) / 0.6)' }} /> {userEmail}
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <span className="text-[#00ff66] font-bold">Statut CNDP: Conforme (Loi 09-08)</span>
