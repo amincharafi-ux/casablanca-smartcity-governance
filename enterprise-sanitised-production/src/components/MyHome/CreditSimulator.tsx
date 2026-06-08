@@ -232,7 +232,7 @@ export default function CreditSimulator({
                   setDownpayment(0);
                 }
               }}
-              className="w-full accent-[#6C3CFF] cursor-pointer bg-black/40 h-1 rounded"
+              className="w-full accent-[#a16eff] cursor-pointer bg-black/40 h-1 rounded"
             />
             <div className="flex gap-1">
               {[500000, 1500000, 3000000, 6000000].map(p => (
@@ -468,7 +468,7 @@ export default function CreditSimulator({
           onClick={() => setIsLetterOpen(true)}
           className={`w-full py-2.5 rounded-xl font-title font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer ${
             calculations.isApproved 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#6C3CFF] hover:from-indigo-700 hover:to-[#572eee] text-white shadow-lg shadow-indigo-600/15'
+              ? 'bg-gradient-to-r from-indigo-600 to-[#a16eff] hover:from-indigo-700 hover:to-[#7c3aed] text-white shadow-lg shadow-indigo-600/15'
               : 'bg-neutral-800 text-gray-500 border border-white/5 cursor-not-allowed opacity-50'
           }`}
         >
