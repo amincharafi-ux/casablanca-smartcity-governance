@@ -115,7 +115,7 @@ export default function MapSimulation({
       <div className="absolute inset-0 bg-[#0f111a] opacity-85"></div>
       
       {/* Glowing radial grid from Elegant Dark template */}
-      <div className="absolute inset-0 opacity-25 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6C3CFF 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      <div className="absolute inset-0 opacity-25 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#7dd3fc 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
       
       {/* Grid line grid */}
       <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" width="100%" height="100%">
@@ -159,7 +159,7 @@ export default function MapSimulation({
                 backgroundColor: 
                   zone.heat === 'critical' ? '#ff4747' :
                   zone.heat === 'high' ? '#ffb800' :
-                  zone.heat === 'medium' ? '#6c3cff' : '#00f0ff',
+                  zone.heat === 'medium' ? '#7dd3fc' : '#00f0ff',
               }}
             />
           ))}
@@ -200,7 +200,7 @@ export default function MapSimulation({
               if (onSelectClaim) onSelectClaim(claim);
             }}
             className={`absolute z-20 group transform -translate-x-1/2 -translate-y-1/2 p-1.5 rounded-full border bg-neutral-900 transition-all duration-300 hover:scale-125 focus:outline-none ${
-              selectedPinId === claim.id ? 'scale-125 ring-2 ring-[#6c3cff]' : ''
+              selectedPinId === claim.id ? 'scale-125 ring-2 ring-[#7dd3fc]' : ''
             }`}
             style={{ left: `${cx}%`, top: `${cy}%` }}
           >
@@ -294,7 +294,7 @@ export default function MapSimulation({
             }}
             className={`absolute z-30 group transform -translate-x-1/2 -translate-y-1/2 p-2 rounded-xl transition-all duration-300 flex items-center justify-center cursor-pointer ${
               selectedPinId === evt.id 
-                ? 'bg-brand-surface scale-125 ring-2 ring-[#6c3cff] border border-white/10' 
+                ? 'bg-brand-surface scale-125 ring-2 ring-[#7dd3fc] border border-white/10' 
                 : 'hover:scale-110'
             }`}
             style={{ left: `${cx}%`, top: `${cy}%` }}
@@ -400,7 +400,7 @@ export default function MapSimulation({
                   onSelectMyHome();
                   setSelectedMyHomeOffer(null);
                 }}
-                className="px-3 py-1 bg-[#6C3CFF] hover:bg-[#5a30e0] text-white font-semibold font-title rounded-lg cursor-pointer transition-colors"
+                className="px-3 py-1 bg-[#7dd3fc] hover:bg-[#0284c7] text-white font-semibold font-title rounded-lg cursor-pointer transition-colors"
               >
                 Accéder Espace MyHome 🏠
               </button>
@@ -485,7 +485,7 @@ export default function MapSimulation({
           </div>
         </div>
         
-        <div className="text-[9px] text-[#6c3cff] font-bold">
+        <div className="text-[9px] text-[#7dd3fc] font-bold">
           {userRole === 'PARTENAIRES' && (currentLang === 'FR' ? "Portail Partenaires : Visualisation complète des animations locales" : currentLang === 'AR' ? "بوابة الشركاء: عرض شامل لجميع العروض الترويجية للأعمال" : "Partners Portal: Full visualization of local business promos")}
           {userRole === 'PUBLIC' && t.mapRolePublic}
           {userRole === 'MAIRIE' && t.mapRoleMairie}
