@@ -84,11 +84,14 @@ export default function MapSimulation({
 
   // Filter events based on role and criteria
   const visibleEvents = events.filter(evt => {
-    // Premium Cat 2 partners are always visible
-    // Cat 1 partners are visible on map ONLY on Jour-J (isToday === true)
-    if (userRole === 'BUSINESS_CAT1') {
-      return evt.partnerId === 'partner-cat1-1' || evt.partnerId === 'partner-cat1-2';
+    // Partners can view all promotion events on the map to oversee placements
+    if (userRole === 'PARTENAIRES') {
+      if (activeCategoryFilter !== 'ALL' && evt.category !== activeCategoryFilter) {
+        return false;
+      }
+      return true;
     }
+    // Cat 1 partners are visible on map ONLY on Jour-J (isToday === true) for general audience or others
     if (evt.partnerId.includes('cat1') && !evt.isToday) {
       return false;
     }
@@ -483,8 +486,7 @@ export default function MapSimulation({
         </div>
         
         <div className="text-[9px] text-[#6c3cff] font-bold">
-          {userRole === 'BUSINESS_CAT1' && t.mapRoleCat1}
-          {userRole === 'BUSINESS_CAT2' && t.mapRoleCat2}
+          {userRole === 'PARTENAIRES' && (currentLang === 'FR' ? "Portail Partenaires : Visualisation complète des animations locales" : currentLang === 'AR' ? "بوابة الشركاء: عرض شامل لجميع العروض الترويجية للأعمال" : "Partners Portal: Full visualization of local business promos")}
           {userRole === 'PUBLIC' && t.mapRolePublic}
           {userRole === 'MAIRIE' && t.mapRoleMairie}
         </div>
