@@ -98,6 +98,7 @@ export default function App() {
       if (data.token) {
         // Enregistrer dans le cookie pour être transmis automatiquement sur toutes les requêtes subséquentes
         document.cookie = `session_jwt=${data.token}; path=/; max-age=86400; SameSite=Strict; Secure`;
+        localStorage.setItem("session_jwt", data.token);
         console.log(`[SECURE SOUVERAIN] JWT cryptographique synchronisé pour le rôle : ${userRole}`);
       }
     })
@@ -290,8 +291,83 @@ export default function App() {
 
   const currentUser = getDynamicUser(userRole);
 
+  // Color configuration according to the 3 portals/universes
+  const getPortalTheme = () => {
+    switch (activeMainModule) {
+      case 'URBAN':
+        return {
+          textColor: 'text-[#7dd3fc]',                     // MyCity: RGB 125, 211, 252 (#7dd3fc)
+          borderColor: 'border-[#7dd3fc]',
+          borderAlpha: 'border-[#7dd3fc]/20',
+          hoverBorderColor: 'hover:border-[#7dd3fc]/50',
+          bgAccent: 'bg-[#7dd3fc]',
+          bgHover: 'hover:bg-[#7dd3fc]/90',
+          bgLight: 'bg-[#7dd3fc]/10',
+          textMuted: 'text-[#7dd3fc]/80',
+          glowShadow: 'shadow-[#7dd3fc]/35',
+          activeTabClass: 'bg-[#7dd3fc] text-slate-950 font-black shadow-lg shadow-[#7dd3fc]/35',
+          accentColor: '#7dd3fc',
+          bgGradient: 'from-[#7dd3fc]/15 to-transparent',
+        };
+      case 'MYLIFE':
+        return {
+          textColor: 'text-[#d4af7a]',                     // MyLife: RGB 212, 175, 122 (#d4af7a)
+          borderColor: 'border-[#d4af7a]',
+          borderAlpha: 'border-[#d4af7a]/20',
+          hoverBorderColor: 'hover:border-[#d4af7a]/50',
+          bgAccent: 'bg-[#d4af7a]',
+          bgHover: 'hover:bg-[#d4af7a]/90',
+          bgLight: 'bg-[#d4af7a]/15',
+          textMuted: 'text-[#d4af7a]/80',
+          glowShadow: 'shadow-[#d4af7a]/35',
+          activeTabClass: 'bg-[#d4af7a] text-[#1c140a] font-black shadow-lg shadow-[#d4af7a]/35',
+          accentColor: '#d4af7a',
+          bgGradient: 'from-[#d4af7a]/15 to-transparent',
+        };
+      case 'MYHOME':
+        return {
+          textColor: 'text-[#a16eff]',                     // MyHome: RGB 161, 110, 255 (#a16eff)
+          borderColor: 'border-[#a16eff]',
+          borderAlpha: 'border-[#a16eff]/20',
+          hoverBorderColor: 'hover:border-[#a16eff]/50',
+          bgAccent: 'bg-[#a16eff]',
+          bgHover: 'hover:bg-[#a16eff]/90',
+          bgLight: 'bg-[#a16eff]/15',
+          textMuted: 'text-[#a16eff]/80',
+          glowShadow: 'shadow-[#a16eff]/35',
+          activeTabClass: 'bg-[#a16eff] text-white font-black shadow-lg shadow-[#a16eff]/35',
+          accentColor: '#a16eff',
+          bgGradient: 'from-[#a16eff]/15 to-transparent',
+        };
+      default:
+        return {
+          textColor: 'text-[#7dd3fc]',
+          borderColor: 'border-[#7dd3fc]',
+          borderAlpha: 'border-[#7dd3fc]/20',
+          hoverBorderColor: 'hover:border-[#7dd3fc]/50',
+          bgAccent: 'bg-[#7dd3fc]',
+          bgHover: 'hover:bg-[#7dd3fc]/90',
+          bgLight: 'bg-[#7dd3fc]/10',
+          textMuted: 'text-[#7dd3fc]/80',
+          glowShadow: 'shadow-[#7dd3fc]/35',
+          activeTabClass: 'bg-[#7dd3fc] text-slate-950 font-black shadow-lg shadow-[#7dd3fc]/35',
+          accentColor: '#7dd3fc',
+          bgGradient: 'from-[#7dd3fc]/15 to-transparent',
+        };
+    }
+  };
+
+  const portalTheme = getPortalTheme();
+
   return (
-    <div id="main-application-shell" className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased">
+    <div 
+      id="main-application-shell" 
+      className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased transition-colors duration-500"
+      style={{
+        '--portal-color': portalTheme.accentColor,
+        '--portal-color-rgb': activeMainModule === 'URBAN' ? '125 211 252' : activeMainModule === 'MYLIFE' ? '212 175 122' : '161 110 255',
+      } as React.CSSProperties}
+    >
       
       {/* GLOBAL HEADER BLOCK (ELEGANT DARK PATTERN WITH RED PULSATING BANNER) */}
       <header className="sticky top-0 z-50 h-16 flex items-center justify-between px-6 lg:px-8 bg-[#161821]/80 backdrop-blur-md border-b border-white/5 shadow-lg shadow-black/20">
@@ -302,6 +378,7 @@ export default function App() {
               src={cityLogo}
               alt="MyCity Logo"
               className="w-full h-full object-contain pointer-events-none drop-shadow-[0_4px_12px_rgba(108,60,255,0.3)]"
+              style={{ filter: `drop-shadow(0 4px 12px ${portalTheme.accentColor}4D)` }}
               referrerPolicy="no-referrer"
             />
           </div>
@@ -316,8 +393,8 @@ export default function App() {
                 title="Changer de ville"
               >
                 <span className="text-gray-400 font-semibold">{currentCity}</span>
-                <span className="text-[#6C3CFF] font-black">{currentLang === 'AR' ? 'Companion' : 'Companion'}</span>
-                <svg className={`w-2.5 h-2.5 ml-0.5 text-[#6C3CFF] transition-transform duration-200 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className={`${portalTheme.textColor} font-black transition-colors duration-300`}>{currentLang === 'AR' ? 'Companion' : 'Companion'}</span>
+                <svg className={`w-2.5 h-2.5 ml-0.5 ${portalTheme.textColor} transition-all duration-300 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -539,7 +616,7 @@ export default function App() {
                 }}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   userRole === role
-                    ? 'bg-[#6C3CFF] text-white shadow shadow-[#6C3CFF]/35'
+                    ? portalTheme.activeTabClass
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -566,10 +643,10 @@ export default function App() {
               setActiveMainModule('MYLIFE');
               handleAddPrivacyLog("Navigate MyLife", "Navigation vers le Portail MyLife de Casablanca (Sport, Santé, Lifestyle).");
             }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeMainModule === 'MYLIFE'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#d4af7a] text-[#1c140a] font-extrabold shadow-lg shadow-[#d4af7a]/30 scale-[1.01]'
+                : 'text-gray-400 hover:text-white hover:bg-[#d4af7a]/5'
             }`}
           >
             🌱 {currentLang === 'AR' ? 'ماي لايف' : 'MyLife'}
@@ -579,10 +656,10 @@ export default function App() {
               setActiveMainModule('MYHOME');
               handleAddPrivacyLog("Navigate MyHome", "Navigation vers l'Espace Fusionné de Copropriété et Logement MyHome.");
             }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeMainModule === 'MYHOME'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#a16eff] text-white font-extrabold shadow-lg shadow-[#a16eff]/30 scale-[1.01]'
+                : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5'
             }`}
           >
             🏠 {currentLang === 'AR' ? 'ماي هوم' : 'MyHome'}
@@ -592,10 +669,10 @@ export default function App() {
               setActiveMainModule('URBAN');
               handleAddPrivacyLog("Navigate Urban", "Navigation vers le Portail Urbain, Carte de Casablanca.");
             }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            className={`flex-1 py-2.5 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
               activeMainModule === 'URBAN'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                ? 'bg-[#7dd3fc] text-slate-950 font-extrabold shadow-lg shadow-[#7dd3fc]/30 scale-[1.01]'
+                : 'text-gray-400 hover:text-white hover:bg-[#7dd3fc]/5'
             }`}
           >
             🏙️ {currentLang === 'AR' ? 'ماي سيتي' : 'Mycity'}
