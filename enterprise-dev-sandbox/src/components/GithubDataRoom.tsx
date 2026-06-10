@@ -16,6 +16,7 @@ import {
   Copy, 
   Check, 
   Download,
+  Archive,
   GitPullRequest,
   CheckCircle,
   Clock,
@@ -939,9 +940,13 @@ jobs:
           let errMsg = errBody.message || commitResp.statusText || "";
           
           if (commitResp.status === 401 || errMsg === "Bad credentials") {
-            errMsg += " (⚠️ Erreur d'authentification : Votre jeton d'accès GitHub (PAT) est incorrect, expiré ou révoqué. Assurez-vous de l'avoir copier-coller correctement sans espaces ni guillemets.)";
+            errMsg += " (⚠️ Erreur d'authentification : Votre jeton d'accès GitHub (PAT) est incorrect, expiré ou révoqué. Assurez-vous de l'avoir copié-collé correctement sans espaces ni guillemets.)";
           } else if (commitResp.status === 403 || errMsg.toLowerCase().includes("personal access token") || errMsg.toLowerCase().includes("not accessible")) {
-            errMsg += " (⚠️ Conseil d'autorisation : Votre Personal Access Token GitHub ne possède pas les permissions d'écriture indispensables. S'il s'agit d'un jeton classique (Classic), cochez la case 'repo'. S'il s'agit d'un jeton fin (Fine-grained), configurez 'Repository permissions -> Contents' en 'Read and Write' pour ce dépôt.)";
+            if (gitPath.includes(".github/workflows/")) {
+              errMsg += " (⚠️ Conseil d'autorisation : Vous essayez de pousser un workflow d'intégration continue (.github/workflows/ci.yml). Les serveurs de GitHub requièrent impérativement l'autorisation d'écriture des workflows. S'il s'agit d'un jeton classique (Classic PAT), cochez la case 'workflow' en plus de la case 'repo'. S'il s'agit d'un jeton fin (Fine-grained PAT), configurez 'Repository permissions -> Workflows' en 'Read and Write'. \n💡 CONSEIL DE CONTOURNEMENT RAPIDE : Pour exporter le reste de votre code et vos rapports sans encombre, désélectionnez simplement le fichier 'ci.yml' dans la liste des fichiers à exporter ci-dessous puis relancez l'exportation !)";
+            } else {
+              errMsg += " (⚠️ Conseil d'autorisation : Votre Personal Access Token GitHub ne possède pas les permissions d'écriture indispensables. S'il s'agit d'un jeton classique (Classic), cochez la case 'repo'. S'il s'agit d'un jeton fin (Fine-grained), configurez 'Repository permissions -> Contents' en 'Read and Write' pour ce dépôt.)";
+            }
           }
           throw new Error(`Échec de l'envoi de ${gitPath} : ${errMsg}`);
         }
@@ -1764,6 +1769,31 @@ jobs:
             <div className="flex-1 p-6 overflow-y-auto bg-[#0a0c10] flex flex-col xl:flex-row gap-6">
               {/* Credentials & Options Panel */}
               <div className="flex-1 space-y-4 max-w-2xl">
+                {/* 1-CLICK DIRECT ZIP DOWNLOAD BACKUP */}
+                <div className="p-5 bg-gradient-to-r from-blue-950/45 to-indigo-950/20 border border-blue-500/30 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shrink-0 mt-0.5">
+                      <Archive className="w-5 h-5 animate-pulse" />
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold text-xs font-mono">
+                        Téléchargement Direct du Projet (.ZIP)
+                      </h4>
+                      <p className="text-[10.5px] text-gray-400 leading-relaxed font-sans mt-1">
+                        Pas de token GitHub sous la main ? Téléchargez instantanément l'intégralité de la codebase de votre application <strong className="text-white font-mono">MyCity Casablanca</strong> au format <strong className="text-blue-300 font-mono">.ZIP</strong> sans aucune configuration requise.
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href="/api/export-zip"
+                    download
+                    className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 hover:scale-[1.01] active:scale-[0.99] text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer whitespace-nowrap shrink-0 shadow-lg shadow-blue-500/25 font-sans"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>Télécharger la Codebase</span>
+                  </a>
+                </div>
+
                 <div className="p-4 bg-[#161b22] border border-[#30363d] rounded-2xl space-y-4">
                   <div className="flex items-center gap-2 border-b border-[#30363d]/45 pb-2">
                     <Key className="w-4 h-4 text-orange-400" />
@@ -1826,7 +1856,9 @@ jobs:
                           {showToken ? <Unlock className="w-3.5 h-3.5" /> : <Lock className="w-3.5 h-3.5" />}
                         </button>
                       </div>
-                      <p className="text-[9.5px] text-gray-500 mt-1 font-sans">Le token requiert l'autorisation <span className="text-gray-350 font-bold font-mono">repo</span> pour pouvoir vérifier, créer des dépôts et committer les fichiers.</p>
+                      <p className="text-[9.5px] text-gray-500 mt-1 font-sans leading-relaxed">
+                        Le token requiert l'autorisation <span className="text-gray-300 font-bold font-mono">repo</span> (pour créer/modifier) et <span className="text-amber-400 font-bold font-mono">workflow</span> (requis par GitHub pour pousser <span className="font-mono bg-[#1c1f26] px-1 rounded text-gray-300">ci.yml</span>). S'il s'agit d'un token Fin (Fine-grained), réglez <span className="text-gray-300 font-mono">Contents</span> et <span className="text-amber-400 font-mono">Workflows</span> sur <span className="font-bold">Read & Write</span>.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -2020,10 +2052,20 @@ jobs:
                   <div className="pt-3 border-t border-[#30363d]/50 flex flex-wrap justify-between items-center gap-3">
                     <span className="text-[10px] text-gray-400 font-mono">Total : {exportType === 'FULL' ? ALL_PROJECT_FILES.length : selectedFilesToExport.length} fichier(s) sélectionné(s)</span>
                     <div className="flex items-center gap-2">
+                      <a
+                        href="/api/export-zip"
+                        download
+                        className="px-3.5 py-2 bg-blue-900/40 border border-blue-500/40 hover:bg-blue-600 hover:text-white hover:border-transparent text-blue-300 rounded-lg font-bold text-xs flex items-center gap-2 transition-all cursor-pointer font-sans"
+                        title="Téléchargez l'archive complète de la codebase locale immédiatement."
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Télécharger .ZIP local</span>
+                      </a>
+
                       <button
                         onClick={handleSimulatedGitHubExport}
                         disabled={exportState === 'LOADING'}
-                        className="px-3.5 py-2 bg-indigo-600/80 hover:bg-indigo-600 disabled:bg-indigo-600/30 text-white rounded-lg font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer font-sans"
+                        className="px-3.5 py-2 bg-[#21262d] border border-[#30363d] hover:bg-[#30363d] text-[#c9d1d9] disabled:opacity-50 rounded-lg font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer font-sans"
                         title="Simulez l'authentification et l'exportation complète de tous les fichiers du projet en mode bac à sable local."
                       >
                         <Play className="w-3.5 h-3.5" />
