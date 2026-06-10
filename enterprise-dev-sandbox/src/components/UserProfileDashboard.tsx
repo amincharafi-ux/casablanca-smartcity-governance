@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   X, 
   User, 
@@ -11,7 +11,11 @@ import {
   Activity, 
   Mail,
   ToggleLeft,
-  ToggleRight
+  ToggleRight,
+  Download,
+  Check,
+  Fingerprint,
+  Info
 } from 'lucide-react';
 import { UserRole, CitizenClaim, CitizenConsent, CNDPPrivacyLog } from '../types';
 import { LanguageCode, translations } from '../data/translations';
@@ -49,6 +53,11 @@ export default function UserProfileDashboard({
 }: UserProfileDashboardProps) {
   if (!isOpen) return null;
 
+  const [downloading, setDownloading] = useState(false);
+  const [anonymizing, setAnonymizing] = useState(false);
+  const [proof, setProof] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
+
   const t = translations[currentLang];
 
   // Derive relevant info based on role
@@ -62,16 +71,67 @@ export default function UserProfileDashboard({
   // Filter claims for this user's role or general
   const myClaims = claims; // Show active claims registered in the simulation
 
-  const handleEraseClick = () => {
-    const confirmationMsg = currentLang === 'AR' 
-      ? "هل تريد بالتأكيد حذف حسابك وجميع سجلاتك وأنشتطك بضغطة زر واحدة بموجب قانون CNDP؟" 
-      : currentLang === 'EN'
-      ? "Are you sure you want to permanently erase all your interactions, claims, and logs in 1-click under CNDP rights?"
-      : "Voulez-vous vraiment effacer définitivement vos réclamations, consentements et traces de navigation en 1-clic conformément aux droits de la CNDP ? (Cette action est immédiate et irréversible)";
+  // CNDP Article 7: Export complete citizen dossier in JSON format
+  const handleDownloadMyData = async () => {
+    try {
+      setDownloading(true);
+      const res = await fetch("/api/consent/export-my-data");
+      if (!res.ok) {
+        throw new Error("Impossible de récupérer votre dossier citoyen. Session expirée ou invalide.");
+      }
+      const data = await res.json();
+      
+      // Create actual file download
+      const jsonString = `data:text/json;charset=utf-8,${encodeURIComponent(JSON.stringify(data, null, 2))}`;
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", jsonString);
+      downloadAnchor.setAttribute("download", `Casablanca_CNDP_Dossier_Portabilite_${currentUser.name.replace(/\s+/g, '_')}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    } catch (err: any) {
+      alert("Erreur lors de l'exportation : " + err.message);
+    } finally {
+      setDownloading(false);
+    }
+  };
 
-    if (confirm(confirmationMsg)) {
+  // CNDP Article 8: Server-side irreversible anonymization with certificate log
+  const handleRightToBeForgotten = async () => {
+    const confirmationMsg = currentLang === 'AR' 
+      ? "هل تريد بالتأكيد تفعيل حقك النسيان وحذف حسابك وجميع سجلاتك وأنشتطك نهائياً بموجب القانون الـ CNDP؟" 
+      : "Voulez-vous vraiment invoquer votre 'Droit à l'Oubli' (Article 8 CNDP) ? Cette opération est irréversible, détruira l'ensemble de vos données nominatives sur le serveur de la Mairie, et générera un certificat d'anonymisation chiffré.";
+
+    if (!confirm(confirmationMsg)) return;
+
+    try {
+      setAnonymizing(true);
+      const res = await fetch("/api/consent/right-to-be-forgotten", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" }
+      });
+      
+      if (!res.ok) {
+        throw new Error("Échec de l'anonymisation serveur.");
+      }
+
+      const outcome = await res.json();
+      setProof(outcome.proof);
+      
+      // Clear client state
       onClearCitizenData();
-      onClose();
+    } catch (err: any) {
+      alert("Échec du droit à l'oubli : " + err.message);
+    } finally {
+      setAnonymizing(false);
+    }
+  };
+
+  const handleCopyProof = () => {
+    if (proof) {
+      navigator.clipboard.writeText(JSON.stringify(proof, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -297,25 +357,93 @@ export default function UserProfileDashboard({
             </div>
           </div>
 
-          {/* 1-CLICK PURGE ACTIONS */}
-          <div className="p-4 bg-rose-950/20 border border-rose-500/20 rounded-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="space-y-1">
-              <span className="font-bold text-white text-xs flex items-center gap-1.5">
-                <Trash2 className="w-4 h-4 text-rose-400" />
-                {currentLang === 'AR' ? "Droit à l'oubli • مسح البيانات" : "Droit à l'Oubli & Purge Immédiate (Art. 7)"}
-              </span>
-              <p className="text-[9.5px] text-gray-400 leading-normal max-w-md">
-                Supprimez instantanément l'ensemble de vos données, réclamations et traces stockées. Cette action est souveraine et irréversible.
-              </p>
-            </div>
+          {/* CNDP ARTICLE 7 & 8 REGULATORY COMPLIANCE ACTIONS */}
+          <div className="space-y-4 pt-2">
             
-            <button
-              onClick={handleEraseClick}
-              className="py-2.5 px-4 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold text-xs rounded-xl shadow-lg shadow-rose-950/40 cursor-pointer transition-all flex items-center gap-1.5 shrink-0"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>{currentLang === 'AR' ? "مسح البيانات في 1-Clic" : "Purger Tout en 1-Clic"}</span>
-            </button>
+            {/* Split actions panel */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              
+              {/* Data Portability (Art. 7) */}
+              <div className="p-4 bg-blue-950/10 border border-blue-500/15 rounded-xl space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-white text-xs flex items-center gap-1.5 font-sans">
+                    <Download className="w-4 h-4 text-blue-400" />
+                    Portabilité des Données (Art. 7)
+                  </span>
+                  <p className="text-[9px] text-gray-400 leading-normal mt-1">
+                    Téléchargez instantanément votre dossier citoyen complet au format JSON structuré structurant vos consentements granulaires, vos logs, et vos signalements enregistrés.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleDownloadMyData}
+                  disabled={downloading}
+                  className="py-2.5 px-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all w-full mt-2"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{downloading ? "Téléchargement..." : "Télécharger mes données"}</span>
+                </button>
+              </div>
+
+              {/* Erase Account & Anonymize (Art. 8) */}
+              <div className="p-4 bg-rose-950/10 border border-rose-500/15 rounded-xl space-y-3 flex flex-col justify-between">
+                <div>
+                  <span className="font-bold text-white text-xs flex items-center gap-1.5 font-sans">
+                    <Trash2 className="w-4 h-4 text-rose-400" />
+                    Droit à l'Oubli (Art. 8)
+                  </span>
+                  <p className="text-[9px] text-gray-400 leading-normal mt-1">
+                    Réclamez l'anonymisation chiffrée définitive et irréversible de l'intégralité de vos comptes, répertoires d'activité géo-spatiaux et transactions de la Mairie.
+                  </p>
+                </div>
+                
+                <button
+                  onClick={handleRightToBeForgotten}
+                  disabled={anonymizing || !!proof}
+                  className="py-2.5 px-3 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl flex items-center justify-center gap-1.5 cursor-pointer transition-all w-full mt-2"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>{anonymizing ? "Anonymisation..." : "Activer le Droit à l'oubli"}</span>
+                </button>
+              </div>
+
+            </div>
+
+            {/* Proof of Deletion Cryptographic Certificate Display */}
+            {proof && (
+              <div className="p-4 bg-emerald-950/20 border border-emerald-500/30 rounded-xl space-y-3 animate-slide-up">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-xs font-bold text-emerald-400 flex items-center gap-1.5 uppercase">
+                    <CheckCircle className="w-4 h-4" />
+                    Certificat Souverain d'Anonymisation Validé
+                  </span>
+                  <button 
+                    onClick={handleCopyProof}
+                    className="px-2 py-1 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded text-[9px] font-mono flex items-center gap-1 transition-all"
+                  >
+                    {copied ? <Check className="w-2.5 h-2.5" /> : <Fingerprint className="w-2.5 h-2.5" />}
+                    <span>{copied ? "Copié !" : "Copier le JSON"}</span>
+                  </button>
+                </div>
+
+                <div className="space-y-1.5 font-mono text-[9px] leading-relaxed text-gray-300">
+                  <p className="font-sans text-[10.5px] text-emerald-100/90 leading-normal">
+                    Conformément à la directive Marocaine <strong>CNDP 09-08 Article 8</strong>, vos identifiants nominatifs ont été complètement anonymisés ou détruits dans la base PostgreSQL de la Mairie.
+                  </p>
+                  <div className="p-2.5 bg-black/60 rounded-lg border border-emerald-500/10 space-y-1 mt-1 text-gray-400">
+                    <div><span className="text-emerald-300 font-bold">Certificate UUID:</span> {proof.certificateId}</div>
+                    <div><span className="text-emerald-300 font-bold">Timestamp:</span> {proof.timestamp}</div>
+                    <div><span className="text-emerald-300 font-bold">SHA-256 Ledger Witness:</span> <span className="text-gray-300 break-all">{proof.signature}</span></div>
+                    <div><span className="text-emerald-300 font-bold">Target Hash:</span> <span className="text-gray-300 break-all">{proof.certificate.targetEmailHash}</span></div>
+                    <div><span className="text-emerald-300 font-bold">Officer Sign-off:</span> DPO de la Mairie de Casablanca</div>
+                  </div>
+                  <p className="text-[8.5px] text-emerald-500/70 italic">
+                    * Ce certificat de tombstone immuable a été inséré dans le registre d'audit logs immuable et sert de preuve opposable devant l'autorité de protection.
+                  </p>
+                </div>
+              </div>
+            )}
+
           </div>
 
         </div>
