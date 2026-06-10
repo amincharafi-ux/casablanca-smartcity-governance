@@ -33,6 +33,7 @@ export interface CityEvent {
   ticketPrice: number; // in MAD
   reviews: Review[];
   featuredImage?: string;
+  tenantId?: string; // Multi-tenant SaaS isolation ID
 }
 
 export interface CitizenClaim {
@@ -50,6 +51,7 @@ export interface CitizenClaim {
     message: string;
     timestamp: string;
   }[];
+  tenantId?: string; // Multi-tenant SaaS isolation ID
 }
 
 export interface BLEMessage {
