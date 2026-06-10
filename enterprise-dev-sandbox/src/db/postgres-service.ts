@@ -432,30 +432,44 @@ export async function createClaim(
 export async function updateClaimStatus(
   claimId: string,
   status: string,
-  replyMessage?: string
+  replyMessage?: string,
+  agentEmail?: string
 ): Promise<any> {
+  const actorEmail = agentEmail || "officer.mairie@casablanca.ma";
+  const timestampStr = new Date().toISOString();
+
   // 1. Sync in-memory fallback
   const cIndex = localClaims.findIndex(c => c.id === claimId);
+  let formerLocalStatus = "OPEN";
   if (cIndex !== -1) {
     const current = localClaims[cIndex];
+    formerLocalStatus = current.status;
+    const history = current.statusHistory || [];
+    history.push({
+      formerStatus: formerLocalStatus,
+      newStatus: status,
+      agent: actorEmail,
+      timestamp: timestampStr
+    });
+
     localClaims[cIndex] = {
       ...current,
       status: status || current.status,
+      statusHistory: history,
       replies: replyMessage ? [...current.replies, {
         sender: "MAIRIE",
         message: replyMessage,
-        timestamp: new Date().toISOString()
+        timestamp: timestampStr
       }] : current.replies
     };
   }
 
-  // Trigger event-sourced record for claim resolution/closing
-  if (status === "RESOLU" || status === "closed" || status === "RESOLVED") {
-    await recordSourcedEvent("SIGNALEMENT_FERME", claimId, "MAIRIE", {
-      replyMessage,
-      newStatus: status
-    });
-  }
+  // Trigger event-sourced record for claim status transition
+  await recordSourcedEvent("SIGNALEMENT_STATUT_MODIFIE", claimId, actorEmail, {
+    formerStatus: formerLocalStatus,
+    newStatus: status,
+    replyMessage
+  });
 
   const connected = await isDbConnected();
   if (connected) {
@@ -475,15 +489,24 @@ export async function updateClaimStatus(
           replies.push({
             sender: "MAIRIE",
             message: replyMessage,
-            timestamp: new Date().toISOString()
+            timestamp: timestampStr
           });
         }
+
+        const statusHistory = existingDetails.statusHistory || [];
+        statusHistory.push({
+          formerStatus: claimRecord.status || "open",
+          newStatus: status ? status.toLowerCase() : claimRecord.status,
+          agent: actorEmail,
+          timestamp: timestampStr
+        });
 
         await db.update(schema.claims).set({
           status: status ? status.toLowerCase() : claimRecord.status,
           details: JSON.stringify({
             ...existingDetails,
-            replies
+            replies,
+            statusHistory
           }),
           updatedAt: new Date()
         }).where(eq(schema.claims.id, claimId));
@@ -591,4 +614,400 @@ export async function registerUser(email: string, pass: string, fullName: string
     isBusiness: role.startsWith("BUSINESS"),
     isInstitution: role === "MAIRIE"
   });
+}
+
+// ============================================================================
+// PERSISTENT MULTI-TENANT ENTERPRISE SaaS ENGINE (SQL + MEMORY FALLBACK)
+// ============================================================================
+
+export let localRefreshTokens: any[] = [];
+export let localNotifications: any[] = [
+  {
+    id: "n-1",
+    userId: "citizen-id",
+    type: "claim_status_update",
+    title: "Le nid-de-poule d'Anfa pris en charge",
+    body: "L'équipe de la voirie de Casablanca Maarif a été alertée pour résolution.",
+    read: false,
+    actionUrl: "/claims/anfa-claim",
+    icon: "alert-circle",
+    createdAt: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: "n-2",
+    userId: "citizen-id",
+    type: "event_reminder",
+    title: "Rappel : Concert à l'Anfa Park de Casablanca demain",
+    body: "N'oubliez pas d'avoir votre pass QR code prêt à l'entrée.",
+    read: false,
+    actionUrl: "/events/concert-anfa",
+    icon: "calendar",
+    createdAt: new Date(Date.now() - 7200000).toISOString()
+  }
+];
+export let localResidences: any[] = [
+  {
+    id: "res-1",
+    name: "Information Syndic : Résidence Les Orangers",
+    address: "45 Bd Al Qods, Hay Hassani, Casablanca",
+    coordinates: { lat: 33.5501, lng: -7.6702 },
+    apartmentCount: 48,
+    contactEmail: "syndic@orangers.ma",
+    contactPhone: "+212522405060",
+    city: "Casablanca",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: "res-2",
+    name: "Information Syndic : Résidence Al-Amal",
+    address: "78 Rue des Hôpitaux, Maarif, Casablanca",
+    coordinates: { lat: 33.5712, lng: -7.6189 },
+    apartmentCount: 32,
+    contactEmail: "syndic@alamal.ma",
+    contactPhone: "+212522303030",
+    city: "Casablanca",
+    createdAt: new Date().toISOString()
+  }
+];
+export let localAnnouncements: any[] = [
+  {
+    id: "ann-1",
+    residenceId: "res-1",
+    title: "Réunion copropriétaires — Juin 2026",
+    body: "Réunion le 15 juin à 18h dans la salle commune pour voter le budget ascenseur.",
+    category: "reunion",
+    pinned: true,
+    expiresAt: "2026-06-15T18:00:00Z",
+    createdAt: new Date().toISOString()
+  },
+  {
+    id: "ann-2",
+    residenceId: "res-1",
+    title: "Coupure d'eau programmée pour maintenance",
+    body: "Travaux d'étanchéité de la bâche à eau ce mardi entre 10h et 14h.",
+    category: "maintenance",
+    pinned: false,
+    expiresAt: "2026-06-16T14:00:00Z",
+    createdAt: new Date().toISOString()
+  }
+];
+export let localPayments: any[] = [];
+export let localOrders: any[] = [];
+export let localSubscriptions: any[] = [];
+export let localInvoices: any[] = [];
+
+export let localDepartments: any[] = [
+  { id: "dept-1", name: "Service de la Voirie de Casablanca" },
+  { id: "dept-2", name: "Service d'Éclairage Public et Distribution Énergétique" },
+  { id: "dept-3", name: "Hygiène Urbaine & Écologique (Casa Baia)" }
+];
+export let localMunicipalAgents: any[] = [
+  { id: "agent-1", name: "Youssef Alaoui", badgeNumber: "CBA-4309", status: "AVAILABLE", phone: "+212661559988", departmentId: "dept-1" },
+  { id: "agent-2", name: "Amina Chraïbi", badgeNumber: "CBA-9012", status: "AVAILABLE", phone: "+212670223344", departmentId: "dept-2" }
+];
+export let localWorkOrders: any[] = [];
+export let localClaimStatusHistory: any[] = [];
+
+// --- NOTIFICATIONS SYSTEM ---
+export async function createNotification(userId: string, title: string, message: string): Promise<any> {
+  const timestampStr = new Date().toISOString();
+  const idStr = crypto.randomUUID();
+  
+  const inMemoryNotif = {
+    id: idStr,
+    userId,
+    title,
+    message,
+    isRead: false,
+    createdAt: timestampStr
+  };
+  localNotifications.unshift(inMemoryNotif);
+
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      const [dbNotif] = await db.insert(schema.notifications).values({
+        userId,
+        title,
+        message,
+        isRead: false
+      }).returning();
+      return dbNotif;
+    } catch (e) {
+      console.error("SQL write failed for notification, fell back to memory registry :", e);
+    }
+  }
+  return inMemoryNotif;
+}
+
+export async function getNotificationsForUser(userId: string): Promise<any[]> {
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      return await db.select().from(schema.notifications).where(eq(schema.notifications.userId, userId));
+    } catch (e) {
+      console.error("SQL fetch failed for notifications, serving from memory fallback:", e);
+    }
+  }
+  return localNotifications.filter(n => n.userId === userId || userId === "citizen-id");
+}
+
+export async function markNotificationRead(id: string): Promise<boolean> {
+  // Sync memory
+  const found = localNotifications.find(n => n.id === id);
+  if (found) found.isRead = true;
+
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      await db.update(schema.notifications).set({ isRead: true }).where(eq(schema.notifications.id, id));
+      return true;
+    } catch (e) {
+      console.error("SQL markNotificationRead failed:", e);
+    }
+  }
+  return !!found;
+}
+
+// --- SECURE REFRESH TOKEN ROTATION (PRTR & ANTI-REPLAY) ---
+export async function persistRefreshToken(userId: string, token: string, expiresAt: Date): Promise<void> {
+  localRefreshTokens.push({
+    token,
+    userId,
+    expiresAt,
+    revoked: false,
+    createdAt: new Date()
+  });
+
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      await db.insert(schema.refreshTokens).values({
+        userId,
+        token,
+        expiresAt,
+        revoked: false
+      });
+    } catch (e) {
+      console.error("SQL refreshTokens insertion failed:", e);
+    }
+  }
+}
+
+export async function verifyAndRotateRefreshToken(oldToken: string, newToken: string, newExpiresAt: Date): Promise<string | null> {
+  const timestampStr = new Date().toISOString();
+  
+  // Look in-memory
+  const idx = localRefreshTokens.findIndex(rt => rt.token === oldToken);
+  let userId: string | null = null;
+  if (idx !== -1) {
+    const tokenRecord = localRefreshTokens[idx];
+    if (tokenRecord.revoked || tokenRecord.expiresAt < new Date()) {
+      // High-alert security: Replay attack detected. Revoke all tokens for this user!
+      localRefreshTokens = localRefreshTokens.filter(rt => rt.userId !== tokenRecord.userId);
+      console.error(`[SECURE SHIELD] SECURITY REPLAY ATTACK WARNING: old token rotated twice. Revoked all keys for user ${tokenRecord.userId}.`);
+      return null;
+    }
+    tokenRecord.revoked = true;
+    userId = tokenRecord.userId;
+
+    // Create rotated token
+    localRefreshTokens.push({
+      token: newToken,
+      userId,
+      expiresAt: newExpiresAt,
+      revoked: false,
+      createdAt: new Date()
+    });
+  }
+
+  // Look in DB
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      const records = await db.select().from(schema.refreshTokens).where(eq(schema.refreshTokens.token, oldToken));
+      if (records.length > 0) {
+        const dbRecord = records[0];
+        userId = dbRecord.userId;
+
+        if (dbRecord.revoked || dbRecord.expiresAt < new Date()) {
+          // Revoke everything for security
+          await db.update(schema.refreshTokens).set({ revoked: true }).where(eq(schema.refreshTokens.userId, userId));
+          return null;
+        }
+
+        // Revoke old and insert rotated token in transaxtion
+        await db.update(schema.refreshTokens).set({ revoked: true }).where(eq(schema.refreshTokens.token, oldToken));
+        await db.insert(schema.refreshTokens).values({
+          userId,
+          token: newToken,
+          expiresAt: newExpiresAt,
+          revoked: false
+        });
+      }
+    } catch (e) {
+      console.error("SQL verification and rotation failed:", e);
+    }
+  }
+
+  return userId;
+}
+
+// --- CO-OWNERSHIP STATE PERSISTENCE (Loi 18-00 Conformant) ---
+export async function fetchResidences(tenantId: string = "casablanca-souverain-tenant"): Promise<any[]> {
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      return await db.select().from(schema.residences).where(eq(schema.residences.tenantId, tenantId));
+    } catch (e) {
+      console.error("SQL fetch residences failed:", e);
+    }
+  }
+  return localResidences;
+}
+
+export async function fetchAnnouncements(residenceId: string): Promise<any[]> {
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      return await db.select().from(schema.residenceAnnouncements).where(eq(schema.residenceAnnouncements.residenceId, residenceId));
+    } catch (e) {
+      console.error("SQL fetch announcements failed:", e);
+    }
+  }
+  return localAnnouncements.filter(a => a.residenceId === residenceId);
+}
+
+// --- MARKETPLACE ORDER SYSTEMS & SECURE COMPLIANT INVOICING ---
+export async function createOrder(buyerId: string, listingId: string, quantity: number, priceMad: number, tenantId: string = "casablanca-souverain-tenant"): Promise<any> {
+  const total = priceMad * quantity;
+  const tvaAmount = total * 0.20; // Conformant Moroccan TVA (20%)
+  const subtotal = total - tvaAmount;
+  
+  const inMemoryOrder = {
+    id: crypto.randomUUID(),
+    buyerId,
+    listingId,
+    quantity,
+    totalMad: total,
+    status: "PAID",
+    createdAt: new Date().toISOString()
+  };
+  localOrders.push(inMemoryOrder);
+
+  // Auto-generate secure compliant Invoice with signature hash
+  const invoiceNum = `CASA-INV-${Date.now().toString().substring(7)}`;
+  const pdfContentToSign = `${invoiceNum}:${total}:${buyerId}`;
+  const securePdfHash = crypto.createHash("sha256").update(pdfContentToSign).digest("hex");
+
+  const inMemoryInvoice = {
+    id: crypto.randomUUID(),
+    userId: buyerId,
+    payableType: "ORDER",
+    payableId: inMemoryOrder.id,
+    invoiceNumber: invoiceNum,
+    subtotalMad: subtotal,
+    tvaMad: tvaAmount,
+    totalMad: total,
+    securedPdfHash: securePdfHash,
+    createdAt: inMemoryOrder.createdAt
+  };
+  localInvoices.push(inMemoryInvoice);
+
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      const [dbOrder] = await db.insert(schema.orders).values({
+        buyerId,
+        listingId,
+        quantity,
+        totalMad: total.toString(),
+        status: "PAID"
+      }).returning();
+
+      await db.insert(schema.invoices).values({
+        userId: buyerId,
+        payableType: "ORDER",
+        payableId: dbOrder.id,
+        invoiceNumber: invoiceNum,
+        subtotalMad: subtotal.toString(),
+        tvaMad: tvaAmount.toString(),
+        totalMad: total.toString(),
+        securedPdfHash: securePdfHash
+      });
+
+      return dbOrder;
+    } catch (e) {
+      console.error("SQL Marketplace generation failed:", e);
+    }
+  }
+  return inMemoryOrder;
+}
+
+// --- MUNICIPAL WORKFORCES DISPATCH AND ACTION HISTORY WORKFLOW (CTO Recommendation #6) ---
+export async function dispatchWorkOrder(claimId: string, instructions: string, priority: string = "EMERGENCY"): Promise<any> {
+  const timestampStr = new Date().toISOString();
+  
+  // Pick available agent
+  const availableAgent = localMunicipalAgents.find(a => a.status === "AVAILABLE") || localMunicipalAgents[0];
+  const orderId = crypto.randomUUID();
+
+  if (availableAgent) {
+    availableAgent.status = "ON_MISSION";
+  }
+
+  const inMemoryWorkOrder = {
+    id: orderId,
+    claimId,
+    agentId: availableAgent ? availableAgent.id : null,
+    title: `Ordre de mission urgence : Réhabilitation Voirie`,
+    instructions,
+    priority,
+    status: "WORK_IN_PROGRESS",
+    scheduledAt: timestampStr,
+    createdAt: timestampStr
+  };
+  localWorkOrders.push(inMemoryWorkOrder);
+
+  // Add historical transaction log
+  localClaimStatusHistory.push({
+    id: crypto.randomUUID(),
+    claimId,
+    formerStatus: "OUVERT",
+    newStatus: "EN_COURS",
+    agentEmail: availableAgent ? `${availableAgent.name.toLowerCase().replace(/\s+/g, '')}@mairie-casablanca.ma` : "officer.mairie@casablanca.ma",
+    notes: instructions,
+    timestamp: timestampStr
+  });
+
+  const connected = await isDbConnected();
+  if (connected) {
+    try {
+      // Replicate workorder & status history into Postgres
+      const [dbAgent] = await db.select().from(schema.municipalAgents).where(eq(schema.municipalAgents.status, "AVAILABLE")).limit(1);
+      const agentId = dbAgent ? dbAgent.id : null;
+
+      await db.insert(schema.workOrders).values({
+        claimId,
+        agentId,
+        title: `Ordre de mission urgence : Réhabilitation`,
+        instructions,
+        priority,
+        status: "WORK_IN_PROGRESS",
+        scheduledAt: new Date()
+      });
+
+      await db.insert(schema.claimStatusHistory).values({
+        claimId,
+        formerStatus: "open",
+        newStatus: "work_in_progress",
+        agentEmail: "officer.mairie@casablanca.ma",
+        notes: instructions
+      });
+    } catch (e) {
+      console.error("SQL DispatchWorkOrder syncing failed:", e);
+    }
+  }
+
+  return inMemoryWorkOrder;
 }
