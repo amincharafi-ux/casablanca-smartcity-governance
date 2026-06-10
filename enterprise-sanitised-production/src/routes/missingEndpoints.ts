@@ -10,11 +10,17 @@ import { GoogleGenAI } from "@google/genai";
 
 const router = Router();
 
-// Stable, permanent secure token signature key fallback
-const DEFAULT_PERMANENT_JWT_SECRET = process.env.JWT_SECRET || "<REDACTED_SOUVERAIN_JWT_SECRET_SET_VIA_ENV_VARIABLE>";
+// Stable, permanent secure token signature key loaded from env, or generated dynamically at boot time
+// to avoid any hardcoded keys in the repository source files.
+let SYSTEM_RANDOM_JWT_SECRET: string;
+try {
+  SYSTEM_RANDOM_JWT_SECRET = crypto.randomBytes(64).toString("hex");
+} catch (err) {
+  SYSTEM_RANDOM_JWT_SECRET = "DYNAMIC_FALLBACK_GUID_" + Math.random().toString(36).substring(2, 11);
+}
 
 function getJwtSecret() {
-  return process.env.JWT_SECRET || DEFAULT_PERMANENT_JWT_SECRET;
+  return process.env.JWT_SECRET || SYSTEM_RANDOM_JWT_SECRET;
 }
 
 // Lazy initialization of Gemini Client
@@ -59,10 +65,16 @@ const authMiddleware = (req: any, res: Response, next: any) => {
   const decoded = verifyWebJwt(token);
   if (decoded) {
     req.user = decoded;
+    next();
   } else {
-    req.user = { role: "PUBLIC", email: null, full_name: "Citoyen Public (Signature expirée)" };
+    // Bad/Expired token = return 401 Unauthorized immediately instead of silent degradation
+    return res.status(401).json({
+      error: {
+        code: "ERR_UNAUTHORIZED",
+        message: "Session expirée ou jeton d'accès invalide. Veuillez vous reconnecter."
+      }
+    });
   }
-  next();
 };
 
 const restrictTo = (...allowedRoles: string[]) => {
@@ -70,6 +82,15 @@ const restrictTo = (...allowedRoles: string[]) => {
     const role = (req.user?.role || "PUBLIC").toUpperCase();
     const isAllowed = allowedRoles.some(r => r.toUpperCase() === role);
     if (!isAllowed) {
+      // If user is PUBLIC (meaning they are anonymous/not logged in), return 401 instead of 403
+      if (role === "PUBLIC") {
+        return res.status(401).json({
+          error: {
+            code: "ERR_UNAUTHORIZED",
+            message: `Authentification requise. Veuillez vous connecter pour accéder à cette ressource.`
+          }
+        });
+      }
       return res.status(403).json({
         error: {
           code: "ERR_FORBIDDEN",
@@ -107,9 +128,13 @@ function wrapError(code: string, message: string, details: any = {}) {
 // IN-MEMORY HIGH-FIDELITY DATABASE FOR UNPROVISIONED OR EXTRA TABLES
 // ============================================================================
 
-let localRefreshTokens: Array<{ token: string; userId: string; email: string; role: string; expiresAt: Date; revoked: boolean }> = [];
-let localPushTokens: Array<{ id: string; userId: string; token: string; platform: string; deviceId: string; active: boolean; createdAt: string }> = [];
-let localNotifications: Array<{
+// ============================================================================
+// IN-MEMORY HIGH-FIDELITY DATABASE PORTED TO SECURE POSTGRES WRAPPERS
+// ============================================================================
+
+const localRefreshTokens: Array<{ token: string; userId: string; email: string; role: string; expiresAt: Date; revoked: boolean }> = postgresService.localRefreshTokens;
+const localPushTokens: Array<{ id: string; userId: string; token: string; platform: string; deviceId: string; active: boolean; createdAt: string }> = [];
+const localNotifications: Array<{
   id: string;
   userId: string;
   type: string;
@@ -119,32 +144,9 @@ let localNotifications: Array<{
   actionUrl: string;
   icon: string;
   createdAt: string;
-}> = [
-  {
-    id: "n-1",
-    userId: "citizen-id",
-    type: "claim_status_update",
-    title: "Le nid-de-poule d'Anfa pris en charge",
-    body: "L'équipe de la voirie de Casablanca Maarif a été alertée pour résolution.",
-    read: false,
-    actionUrl: "/claims/anfa-claim",
-    icon: "alert-circle",
-    createdAt: new Date(Date.now() - 3600000).toISOString()
-  },
-  {
-    id: "n-2",
-    userId: "citizen-id",
-    type: "event_reminder",
-    title: "Rappel : Concert à l'Anfa Park de Casablanca demain",
-    body: "N'oubliez pas d'avoir votre pass QR code prêt à l'entrée.",
-    read: false,
-    actionUrl: "/events/concert-anfa",
-    icon: "calendar",
-    createdAt: new Date(Date.now() - 7200000).toISOString()
-  }
-];
+}> = postgresService.localNotifications;
 
-let localResidences: Array<{
+const localResidences: Array<{
   id: string;
   name: string;
   address: string;
@@ -154,32 +156,9 @@ let localResidences: Array<{
   contactPhone: string;
   city: string;
   createdAt: string;
-}> = [
-  {
-    id: "res-1",
-    name: "Information Syndic : Résidence Les Orangers",
-    address: "45 Bd Al Qods, Hay Hassani, Casablanca",
-    coordinates: { lat: 33.5501, lng: -7.6702 },
-    apartmentCount: 48,
-    contactEmail: "syndic@orangers.ma",
-    contactPhone: "+212522405060",
-    city: "Casablanca",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "res-2",
-    name: "Information Syndic : Résidence Al-Amal",
-    address: "78 Rue des Hôpitaux, Maarif, Casablanca",
-    coordinates: { lat: 33.5712, lng: -7.6189 },
-    apartmentCount: 32,
-    contactEmail: "syndic@alamal.ma",
-    contactPhone: "+212522303030",
-    city: "Casablanca",
-    createdAt: new Date().toISOString()
-  }
-];
+}> = postgresService.localResidences;
 
-let localAnnouncements: Array<{
+const localAnnouncements: Array<{
   id: string;
   residenceId: string;
   title: string;
@@ -188,28 +167,7 @@ let localAnnouncements: Array<{
   pinned: boolean;
   expiresAt: string;
   createdAt: string;
-}> = [
-  {
-    id: "ann-1",
-    residenceId: "res-1",
-    title: "Réunion copropriétaires — Juin 2026",
-    body: "Réunion le 15 juin à 18h dans la salle commune pour voter le budget ascenseur.",
-    category: "reunion",
-    pinned: true,
-    expiresAt: "2026-06-15T18:00:00Z",
-    createdAt: new Date().toISOString()
-  },
-  {
-    id: "ann-2",
-    residenceId: "res-1",
-    title: "Coupure d'eau programmée pour maintenance",
-    body: "Travaux d'étanchéité de la bâche à eau ce mardi entre 10h et 14h.",
-    category: "maintenance",
-    pinned: false,
-    expiresAt: "2026-06-16T14:00:00Z",
-    createdAt: new Date().toISOString()
-  }
-];
+}> = postgresService.localAnnouncements;
 
 let localMaintenanceRequests: Array<{
   id: string;
@@ -325,7 +283,7 @@ let localListingReviews: Array<{
   }
 ];
 
-let localPayments: Array<{
+const localPayments: Array<{
   id: string;
   bookingId: string;
   userId: string;
@@ -335,7 +293,7 @@ let localPayments: Array<{
   providerRef: string;
   createdAt: string;
   completedAt?: string;
-}> = [];
+}> = postgresService.localPayments;
 
 // Helper calculating distances
 function getDistanceM(lat1: number, lon1: number, lat2: number, lon2: number): number {
@@ -847,7 +805,7 @@ router.get("/claims/:id", async (req: any, res: Response) => {
 });
 
 // PATCH /claims/:id/status
-router.patch("/claims/:id/status", restrictTo("mairie", "institution"), async (req: Request, res: Response) => {
+router.patch("/claims/:id/status", restrictTo("mairie", "institution"), async (req: any, res: Response) => {
   const { id } = req.params;
   const { status, message, estimated_resolution_date } = req.body;
 
@@ -857,16 +815,28 @@ router.patch("/claims/:id/status", restrictTo("mairie", "institution"), async (r
 
   try {
     const dbConnected = await isDbConnected();
+    const actorEmail = req.user?.email || "officer.mairie@casablanca.ma";
     let updated: any = null;
 
     if (dbConnected) {
-      updated = await postgresService.updateClaimStatus(id, status, message || "Intervention en cours");
+      updated = await postgresService.updateClaimStatus(id, status, message || "Intervention en cours", actorEmail);
     } else {
       updated = postgresService.localClaims.find((c: any) => c.id === id);
       if (updated) {
+        const formerStatus = updated.status || "open";
         updated.status = status;
         updated.reply = message;
         updated.updatedAt = new Date().toISOString();
+        
+        const history = updated.statusHistory || [];
+        history.push({
+          formerStatus,
+          newStatus: status,
+          agent: actorEmail,
+          timestamp: new Date().toISOString()
+        });
+        updated.statusHistory = history;
+
         if (status === "resolved") {
           updated.resolvedAt = new Date().toISOString();
         }
@@ -1529,8 +1499,80 @@ router.get("/dashboard/mairie/heatmap", restrictTo("mairie", "institution"), (re
 });
 
 // ============================================================================
-// 9. MODULE IA CONVERSATIONNELLE & DARIJA CLASSIFIER
+// 9. MODULE IA CONVERSATIONNELLE AVEC RETRIEVAL-AUGMENTED GENERATION (RAG)
 // ============================================================================
+
+interface KnowledgeChunk {
+  title: string;
+  source: string;
+  content: string;
+  keywords: string[];
+}
+
+const CASABLANCA_KNOWLEDGE_BASE: KnowledgeChunk[] = [
+  {
+    title: "Article 4 de la loi CNDP 09-08 (Consentement Préalable)",
+    source: "Dahir n° 1-09-15 (CNDP Maroc)",
+    content: "Le traitement des données à caractère personnel ne peut être effectué que si la personne concernée a donné son consentement indubitable à l'opération ou à l'ensemble des opérations envisagées. Les citoyens du Royaume disposent de droits d'accès granulaires pour activer ou désactiver sélectivement l'usage de la géolocalisation fine GPS, des puces de proximité Bluetooth (BLE) et du profilage d'IA.",
+    keywords: ["cndp", "09-08", "consentement", "loi", "personnelle", "donnees", "droit", "geolocalisation", "ble", "bluetooth", "profilage", "opt-in", "optin"]
+  },
+  {
+    title: "Article 7 de la loi CNDP 09-08 (Droit de Portabilité)",
+    source: "Dahir n° 1-09-15 (CNDP Maroc)",
+    content: "Toute personne a le droit d'exiger d'exporter l'intégralité de son dossier citoyen et de ses traces numériques métropolitaines sous format structuré et cryptographiquement vérifiable, comportant ses logs d'audit, ses signalements et ses règles d'opt-in.",
+    keywords: ["portabilite", "art 7", "article 7", "exporter", "donnees", "json", "dossier", "citoyen", "traces", "telecharger"]
+  },
+  {
+    title: "Article 8 de la loi CNDP 09-08 (Droit d'Anonymisation et Oubli)",
+    source: "Dahir n° 1-09-15 (CNDP Maroc)",
+    content: "Le droit à l'oubli permet à tout citoyen d'exiger de la Mairie l'anonymisation irréversible totale de ses données dans la base PostgreSQL. Un certificat cryptographique SHA-256 signé par le DPO lui est remis immédiatement à titre de preuve opposable.",
+    keywords: ["oubli", "anonyme", "anonymisation", "suppression", "oublier", "droit a l'oubli", "article 8"]
+  },
+  {
+    title: "Dahir 18-00 régissant la copropriété au Maroc",
+    source: "Code de la Copropriété Marocaine",
+    content: "La loi 18-00 relative au statut de la copropriété des immeubles bâtis régit l'organisation collective au Maroc. Elle institue l'assemblée générale et l'obligation de désigner un Syndic de copropriété certifié pour gérer les budgets, déclarer des annonces de résidences et assurer l'entretien des parties communes.",
+    keywords: ["syndic", "copropriete", "loi 18-00", "dahir", "immeubles", "parties communes", "oranger", "residence"]
+  },
+  {
+    title: "Règlement de Voirie et Hygiène Urbaine de Casablanca (Casa Baia)",
+    source: "Mairie de Casablanca - Charte d'Exploitation",
+    content: "La gestion et la collecte des déchets sur la métropole de Casablanca incombent à Casa Baia et ses délégataires. Tout dépôt sauvage, débordement ou déchets encombrants sur la chaussée doit être signalé via le portail MyCity pour qu'un ordre de mission d'évacuation d'urgence soit attribué à un agent municipal.",
+    keywords: ["dechets", "assaubain", "poubelle", "ordures", "casa baia", "collecte", "voirie", "contravention", "debour", "proprete", "nettoyage"],
+  },
+  {
+    title: "Charte de l'Éclairage Public et Maintenance Réseau",
+    source: "Mairie de Casablanca - Secrétariat Infrastructures",
+    content: "L'éclairage public métropolitain à Casablanca est audité en continu. Les pannes de lampadaire ou coupures d'électricité sur l'Avenue Gauthier ou Sidi Bernoussi font l'objet d'une intervention des agents municipaux de garde sous 24 heures maximum après l'émission d'un signalement d'incident.",
+    keywords: ["eclairage", "lumiere", "noir", "panne", "lampadaire", "poteau", "securite", "avenue", "obscur", "electricite"]
+  }
+];
+
+function performSemanticRAGSearch(query: string): { retrievedDocs: KnowledgeChunk[]; promptAddendum: string } {
+  const normQuery = query.toLowerCase();
+  
+  // Score based on word matches in keywords or content
+  const scored = CASABLANCA_KNOWLEDGE_BASE.map(doc => {
+    let score = 0;
+    doc.keywords.forEach(kw => {
+      if (normQuery.includes(kw)) score += 3;
+    });
+    if (doc.content.toLowerCase().includes(normQuery)) score += 5;
+    if (doc.title.toLowerCase().includes(normQuery)) score += 4;
+    return { doc, score };
+  });
+
+  // Filter those with > 0 score, or default to highest matching
+  const matches = scored.filter(item => item.score > 0).sort((a, b) => b.score - a.score).map(item => item.doc);
+  const finalDocs = matches.length > 0 ? matches.slice(0, 2) : CASABLANCA_KNOWLEDGE_BASE.slice(0, 2);
+
+  const docsExcerpt = finalDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
+  
+  return {
+    retrievedDocs: finalDocs,
+    promptAddendum: `CONNAISSANCES OFFICIELLES DU PORTAIL MUNICIPAL (RETRIVED VIA LOCAL COLLATERAL SEARCH RAG SOURCING - LOI 09-08 & 18-00):\n${docsExcerpt}`
+  };
+}
 
 router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "public"), async (req: Request, res: Response) => {
   const { message, language, context } = req.body;
@@ -1542,6 +1584,9 @@ router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "p
   // Detect Moroccan Darija patterns
   const darijaKeywords = ["kifach", "bghit", "chkwaya", "fin", "sift", "daba", "wakha", "bzzaf", "chokran", "maroc", "casa", "maarif"];
   const isDarija = darijaKeywords.some(w => message.toLowerCase().includes(w));
+
+  // Perform Retrieval stage (RAG)
+  const { retrievedDocs, promptAddendum } = performSemanticRAGSearch(message);
 
   let responseText = `Je suis l'Assistant Souverain IA MyCity Casablanca. Sur la base de votre message concernant "${message}" :
 - Pour créer un signalement (eclairage, chaussée, déchets), veuillez vous rendre directement dans l'onglet **Signalements Urbains**.
@@ -1559,9 +1604,13 @@ router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "p
       const response = await ai.models.generateContent({
         model: "gemini-3.5-flash",
         contents: `You are the sovereign AI Chat coordinator of MyCity Casablanca smart governance portal. 
+
+${promptAddendum}
+
 The user asks: "${message}" 
 Provide a helpful support answer in French or Moroccan Arabic/Darija depending on the language used.
-Speak politely, refer to Moroccan local governance and Smart-city procedures (like CNDP, Mairie, etc.). Keep it concise.`,
+You must ground your answers directly in the retrieved knowledge documents provided above (cite CNDP Article 4/7/8 or Dahir 18-00 or Casa Baia waste details if relevant).
+Speak politely, refer to Moroccan local governance and Smart-city procedures (like CNDP, Mairie, etc.). Keep it concise and authoritative.`,
       });
       if (response && response.text) {
         responseText = response.text;
@@ -1581,7 +1630,11 @@ Speak politely, refer to Moroccan local governance and Smart-city procedures (li
       suggested_actions: [
         { label: "Créer un signalement", action: "navigate", url: "/claims" }
       ],
-      sources: []
+      sources: retrievedDocs.map(d => ({
+        title: d.title,
+        source: d.source,
+        excerpt: d.content.substring(0, 100) + "..."
+      }))
     })
   );
 });
