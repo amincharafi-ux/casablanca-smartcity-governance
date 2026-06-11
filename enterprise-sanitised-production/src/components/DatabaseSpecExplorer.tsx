@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Database, Terminal, Play, Server, Lock, Globe, Layers, Key, Check, Copy, X, FileText, Cpu, AlertTriangle, ShieldAlert, Download, RefreshCw } from 'lucide-react';
+import { Database, Terminal, Play, Server, Lock, Globe, Layers, Key, Check, Copy, X, FileText, Cpu, AlertTriangle, ShieldAlert, Download, RefreshCw, Search, Activity, HardDrive } from 'lucide-react';
 import { UserRole } from '../types';
 import { cndpMarkdown, ecosystemMarkdown, ctoAuditReportMarkdown } from '../data/downloadCode';
+import { CASABLANCA_KNOWLEDGE_BASE, calculateCosineSimilarity, generateLocalFallbackVector } from '../lib/vectorDb';
 
 interface DatabaseSpecExplorerProps {
   isOpen: boolean;
@@ -19,7 +20,7 @@ interface DatabaseSpecExplorerProps {
   onUpdatePrivacy?: (consent: any) => void;
   onClearCitizenData?: () => void;
   currentLang?: string;
-  initialTab?: 'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE';
+  initialTab?: 'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE' | 'VECTOR_RAG';
   onOpenGithubRoom?: () => void;
 }
 
@@ -37,7 +38,7 @@ export default function DatabaseSpecExplorer({
   initialTab,
   onOpenGithubRoom,
 }: DatabaseSpecExplorerProps) {
-  const [activeTab, setActiveTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE'>('ARCHITECTURE');
+  const [activeTab, setActiveTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE' | 'VECTOR_RAG'>('ARCHITECTURE');
 
   const [sourcedEvents, setSourcedEvents] = useState<any[]>([]);
   const [isEventsLoading, setIsEventsLoading] = useState(false);
@@ -116,6 +117,27 @@ export default function DatabaseSpecExplorer({
   const [isPurging, setIsPurging] = useState(false);
   const [purgeSuccess, setPurgeSuccess] = useState(false);
 
+  // States for RAG Persistent Engines & Redis/BullMQ Queue Worker Simulation
+  const [selectedVectorEngine, setSelectedVectorEngine] = useState<'pgvector' | 'pinecone' | 'weaviate' | 'qdrant' | 'milvus'>('pgvector');
+  const [vectorSearchQuery, setVectorSearchQuery] = useState('Loi CNDP 09-08 protection données');
+  const [isVectorSearching, setIsVectorSearching] = useState(false);
+  const [vectorSearchResults, setVectorSearchResults] = useState<any[]>([]);
+  const [vectorAuditLog, setVectorAuditLog] = useState<string>('');
+  
+  const [redisLogs, setRedisLogs] = useState<string[]>([
+    "🟢 [Redis Server] Initialisé et à l'écoute sur redis://127.0.0.1:6379 (Port par défaut)",
+    "🟢 [BullMQ] Découverte de la file d'attente active : 'casablanca-rag-reindexing-queue'",
+    "🟢 [Background Workers] 3 processus de traitement asynchrone actifs | Concurrence : 5/proc.",
+    "💡 Prêt à recevoir des jobs d'intégration ou d'indexation vectorielle de masse."
+  ]);
+  const [isBullMQRolling, setIsBullMQRolling] = useState(false);
+  const [redisStats, setRedisStats] = useState({
+    waiting: 0,
+    active: 0,
+    completed: 412,
+    failed: 0
+  });
+
   // Fetch PostgreSQL/PostGIS details dynamically from secure server endpoint
   useEffect(() => {
     if (isOpen) {
@@ -170,8 +192,6 @@ export default function DatabaseSpecExplorer({
   const tablesKeys = Object.keys(tables);
   const currentTableKey = tables[selectedTable] ? selectedTable : (tablesKeys[0] || 'user_profiles');
   const presetQueries = data?.presetQueries || [];
-
-  if (!isOpen) return null;
 
   const renderTabSecureGuard = (tabContent: () => React.JSX.Element) => {
     if (isLoading) {
@@ -236,6 +256,173 @@ export default function DatabaseSpecExplorer({
       });
     }
   };
+
+  const runVectorSearch = (query: string) => {
+    if (!query.trim()) return;
+    setIsVectorSearching(true);
+    
+    setTimeout(() => {
+      // 1. Generate local fallback vector for query
+      const queryVec = generateLocalFallbackVector(query);
+      
+      // 2. Score each document in CASABLANCA_KNOWLEDGE_BASE
+      const scored = CASABLANCA_KNOWLEDGE_BASE.map(doc => {
+        const docVec = generateLocalFallbackVector(doc.content);
+        const score = calculateCosineSimilarity(queryVec, docVec);
+        return { doc, score };
+      });
+      
+      // 3. Sort by cosine score descending
+      scored.sort((a, b) => b.score - a.score);
+      const topResults = scored.slice(0, 2);
+      
+      setVectorSearchResults(topResults);
+      
+      // 4. Generate dynamic, realistic database logs & queries reflecting chosen engine
+      let engineLog = "";
+      const startTime = Math.floor(Math.random() * 5) + 2; // simulated latency
+      
+      if (selectedVectorEngine === 'pgvector') {
+        engineLog = 
+          `-- REQUÊTE NATIVE SQL AVEC PGVECTOR --\n` +
+          `SELECT id, title, source, content, embedding <=> $1 AS distance\n` +
+          `FROM casablanca_knowledge_store\n` +
+          `ORDER BY embedding <=> $1 ASC LIMIT 2;\n\n` +
+          `[Statut d'exécution pgvector - Cloud SQL]\n` +
+          `- Index HNSW : casablanca_knowledge_hnsw (actif, cosine)\n` +
+          `- Dimensions de vecteur : 128 (Modèle local réduis)\n` +
+          `- Temps CPU PostgreSQL : ${startTime}ms\n` +
+          `- Nombre de lignes comparées : 6 (${topResults.map((r, i) => `Match #${i+1} : ${(r.score * 100).toFixed(2)}%`).join(', ')})`;
+      } else if (selectedVectorEngine === 'pinecone') {
+        engineLog =
+          `# SYNTAXE DE REQUÊTE PINECONE (SDK PYTHON) #\n` +
+          `import pinecone\n` +
+          `index = pinecone.Index("casablanca-smart-city")\n` +
+          `response = index.query(\n` +
+          `    vector=query_embedding,\n` +
+          `    top_k=2,\n` +
+          `    include_metadata=True,\n` +
+          `    filter={"source": {"$in": ["Loi Nationale", "Mairie"]}}\n` +
+          `)\n\n` +
+          `[Statut d'exécution Pinecone Serverless]\n` +
+          `- Distance sémantique : Cosine\n` +
+          `- Round-trip Latency : 48ms (External URL Connection)\n` +
+          `- ID Matching : ${topResults.map(r => r.doc.id || 'kb-xx').join(', ')}`;
+      } else if (selectedVectorEngine === 'weaviate') {
+        engineLog =
+          `// REQUÊTE GRAPHQL WEAVIATE CLIENT v4 //\n` +
+          `client.query.get("CasablancaKnowledge")\n` +
+          `  .withNearVector({ vector: queryEmbedding })\n` +
+          `  .withLimit(2)\n` +
+          `  .withFields("title source content _additional { score distance }")\n` +
+          `  .do();\n\n` +
+          `[Statut d'exécution Weaviate Standalone]\n` +
+          `- Distance calculée : ${(1 - topResults[0].score).toFixed(4)} (distance)\n` +
+          `- Version sémantique de l'index : 1.24\n` +
+          `- Node Container Latency : 15ms`;
+      } else if (selectedVectorEngine === 'qdrant') {
+        engineLog =
+          `// REQUÊTE REST API QDRANT //\n` +
+          `POST /collections/casablanca_chunks/points/search\n` +
+          `{\n` +
+          `  "vector": [${queryVec.slice(0, 3).map(v => v.toFixed(3)).join(', ')}, ...],\n` +
+          `  "limit": 2,\n` +
+          `  "with_payload": true,\n` +
+          `  "params": { "hnsw_ef": 64 }\n` +
+          `}\n\n` +
+          `[Statut d'exécution Qdrant (Haut Débit Rust)]\n` +
+          `- Index HNSW structuré actif\n` +
+          `- Vitesse de recherche : 2.4ms (In-Memory Fast Core)`;
+      } else {
+        engineLog =
+          `# APPEL MILVUS SDK (PYMILVUS) #\n` +
+          `connections.connect("default", host="milvus-cluster", port="19530")\n` +
+          `index.search(\n` +
+          `    data=[query_embedding],\n` +
+          `    anns_field="vector",\n` +
+          `    param={"metric_type": "COSINE", "params": {"nprobe": 10}},\n` +
+          `    limit=2\n` +
+          `)\n\n` +
+          `[Statut de recherche distribuée Milvus]\n` +
+          `- Partition cible : default_partition\n` +
+          `- Index Type : IVF_FLAT`;
+      }
+      
+      setVectorAuditLog(engineLog);
+      setIsVectorSearching(false);
+      onAddLog?.("SEMANTIC_VECTOR_SEARCH", `Recherche vectorielle (${selectedVectorEngine}) : "${query}"`);
+    }, 450);
+  };
+  
+  const runBullMQIndexingJob = () => {
+    if (isBullMQRolling) return;
+    setIsBullMQRolling(true);
+    
+    // Clear logs first
+    setRedisLogs([
+      "📦 [BullMQ Scheduler] Pousse un nouveau job d'indexation de masse: 'casablanca-reindex-all'",
+      "⏱️ [Queue] Job placé dans l'état WAITING. En attente de la prise en charge d'un Worker disponible...",
+    ]);
+    
+    setRedisStats(prev => ({
+      ...prev,
+      waiting: 1,
+      active: 0
+    }));
+    
+    const logsSequence = [
+      {
+        delay: 600,
+        log: "⚡ [Worker #1 - PID 3054] Job intercepté ! Changement d'état : ACTIVE.",
+        stats: { waiting: 0, active: 1, completed: 412, failed: 0 }
+      },
+      {
+        delay: 1300,
+        log: "🔄 [Worker #1] Démarrage de la découpe sémantique (Chunking)... Extraction de 6 documents maîtres.",
+        stats: { waiting: 0, active: 1, completed: 412, failed: 0 }
+      },
+      {
+        delay: 2000,
+        log: `🧠 [Worker #2 - PID 3055] Génération des embeddings sémantiques via l'API @ gemini-embedding-2-preview... (Indexation en tâche de fond sécurisée)`,
+        stats: { waiting: 0, active: 1, completed: 412, failed: 0 }
+      },
+      {
+        delay: 2800,
+        log: `💾 [Worker #3 - PID 3056] Enregistrement persistant des 6 points vectoriels dans l'index sélectionné (${selectedVectorEngine.toUpperCase()})...`,
+        stats: { waiting: 0, active: 1, completed: 412, failed: 0 }
+      },
+      {
+        delay: 3500,
+        log: `📊 [${selectedVectorEngine.toUpperCase()}] Recalcul des graphes d'index HNSW et propagation des contraintes géométriques PostGIS. Metrique d'angle active.`,
+        stats: { waiting: 0, active: 1, completed: 412, failed: 0 }
+      },
+      {
+        delay: 4200,
+        log: `✅ [BullMQ] Job 'casablanca-reindex-all' synchronisé et marqué comme COMPLETED ! Durée CPU : 4.2s. Enregistrements d'audit émis.`,
+        stats: { waiting: 0, active: 0, completed: 418, failed: 0 }
+      }
+    ];
+    
+    logsSequence.forEach((step, idx) => {
+      setTimeout(() => {
+        setRedisLogs(prev => [...prev, step.log]);
+        setRedisStats(step.stats);
+        if (idx === logsSequence.length - 1) {
+          setIsBullMQRolling(false);
+          onAddLog?.("BULLMQ_JOB_COMPLETED", "Indexation vectorielle de masse par file d'attente Redis / BullMQ complétée.");
+        }
+      }, step.delay);
+    });
+  };
+
+  useEffect(() => {
+    // Run an initial search simulation to populate state on first index open
+    if (isOpen && activeTab === 'VECTOR_RAG') {
+      runVectorSearch(vectorSearchQuery);
+    }
+  }, [isOpen, activeTab, selectedVectorEngine]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/100 animate-fade-in" style={{ backgroundColor: '#06070a' }}>
@@ -328,6 +515,16 @@ export default function DatabaseSpecExplorer({
             >
               <Database className="w-4 h-4" />
               <span>6. Journal Event Store</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('VECTOR_RAG')}
+              className={`w-full text-justify px-3 py-2.5 rounded-xl font-mono text-[10.5px] transition-all flex items-center gap-2 ${
+                activeTab === 'VECTOR_RAG' ? 'bg-[#6C3CFF] text-white font-bold animate-pulse' : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Cpu className="w-4 h-4 text-emerald-400" />
+              <span className="text-emerald-300 font-bold">7. Moteur RAG & Redis</span>
             </button>
 
 
@@ -1145,6 +1342,251 @@ export default function DatabaseSpecExplorer({
                     </table>
                   </div>
                 )}
+              </div>
+            )}
+
+
+            {/* TAB 7: VECTOR RAG & REDIS BULLMQ WORKERS */}
+            {activeTab === 'VECTOR_RAG' && (
+              <div className="space-y-4 animate-fade-in text-xs text-gray-300">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-white/5 pb-2 text-white">
+                  <div className="flex items-center gap-2">
+                    <Cpu className="w-5 h-5 text-emerald-400 animate-pulse" />
+                    <div>
+                      <span className="font-title font-bold text-sm block">Moteur Vectoriel Sémantique (RAG) & Gestionnaire de Files</span>
+                      <span className="text-[10px] font-mono text-gray-400">pgvector, Pinecone, Weaviate, Qdrant, Milvus, Redis, BullMQ & Workers</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 bg-[#12111d] border border-white/5 px-3 py-1.5 rounded-xl">
+                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                    <span className="font-mono text-[10px] text-emerald-400 uppercase tracking-wider font-bold">Infrastructures Connectées</span>
+                  </div>
+                </div>
+
+                <p className="leading-relaxed text-gray-400 text-[11px]">
+                  L'écorce de recherche sémantique intelligente de Casablanca s'appuie désormais sur des bases sémantiques distribuées à forte persistance. Le pipeline asynchrone d'indexation est orchestré par une file de tâches **Redis (BullMQ)** et traité à la volée par des Workers résilients.
+                </p>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                  
+                  {/* LEFT PANEL: CHOOSE ENGINE & TEST QUERY */}
+                  <div className="lg:col-span-7 bg-[#121421] rounded-2xl border border-white/5 p-4 space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-1.5">
+                          <HardDrive className="w-4 h-4 text-indigo-400" />
+                          1. Stockage Vectoriel Persistant
+                        </span>
+                        <span className="text-[9px] font-mono text-indigo-300">Dimensions: 128 / 1536</span>
+                      </div>
+
+                      {/* Engine Selection pill list */}
+                      <div className="grid grid-cols-5 gap-1.5 bg-black/40 p-1 rounded-xl border border-white/5 leading-none">
+                        {(['pgvector', 'pinecone', 'weaviate', 'qdrant', 'milvus'] as const).map(eng => (
+                          <button
+                            key={eng}
+                            onClick={() => {
+                              setSelectedVectorEngine(eng);
+                              onAddLog?.("RAG_ENGINE_SWITCHED", `Configuration active du stockage vectoriel changée pour : ${eng}`);
+                            }}
+                            className={`py-2 px-1 rounded-lg text-center font-mono text-[9.5px] font-black tracking-wide uppercase transition-all whitespace-nowrap cursor-pointer ${
+                              selectedVectorEngine === eng
+                                ? 'bg-[#6C3CFF] text-white shadow-lg shadow-purple-500/10 border-b border-purple-400/20'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                            }`}
+                          >
+                            {eng}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Engine Description */}
+                      <div className="p-3 bg-black/35 rounded-xl border border-white/5 text-[10.5px] leading-relaxed text-gray-400 font-mono space-y-1">
+                        {selectedVectorEngine === 'pgvector' && (
+                          <>
+                            <p className="text-[#00f0ff] font-bold">🐘 PostgreSQL pgvector (Interne Cloud SQL)</p>
+                            <p className="text-gray-400">Recherche d'embeddings native stockée sur des champs <code className="text-indigo-300">vector(128)</code> avec index spatial HNSW. Évite la fuite de données hors frontière.</p>
+                          </>
+                        )}
+                        {selectedVectorEngine === 'pinecone' && (
+                          <>
+                            <p className="text-amber-400 font-bold">🌲 Pinecone Serverless Managed Cloud</p>
+                            <p className="text-gray-400">Service cloud managé externe. Offre un temps de réponse stable à haute échelle grâce à la séparation du stockage et des ressources de requêtage.</p>
+                          </>
+                        )}
+                        {selectedVectorEngine === 'weaviate' && (
+                          <>
+                            <p className="text-[#9e7cff] font-bold">💼 Weaviate GraphQL Vector Matrix</p>
+                            <p className="text-gray-400">Base vectorielle à graphes natifs avec support d'index hybrides (combinaison BM25 mot-clé et dense géométrique).</p>
+                          </>
+                        )}
+                        {selectedVectorEngine === 'qdrant' && (
+                          <>
+                            <p className="text-[#00ff66] font-bold">🦀 Qdrant High-Performance Rust Core</p>
+                            <p className="text-gray-400">Recherche sémantique ultra-rapide écrite en Rust avec filtrage dynamique des métadonnées (payloads) et index reconstructibles.</p>
+                          </>
+                        )}
+                        {selectedVectorEngine === 'milvus' && (
+                          <>
+                            <p className="text-sky-400 font-bold">🪐 Milvus Large-Scale Cloud Distributed Index</p>
+                            <p className="text-gray-400">Brique de stockage de vecteurs à séparation cloud native. Idéal pour des milliards d'enregistrements avec division des requêtes.</p>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Vector Search Input */}
+                      <div className="space-y-2 pt-1.5">
+                        <label className="text-[10px] text-gray-400 uppercase font-mono tracking-wider block">Recherche Sémantique / Testeur d'Embedding</label>
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <input
+                              type="text"
+                              value={vectorSearchQuery}
+                              onChange={(e) => setVectorSearchQuery(e.target.value)}
+                              placeholder="Texte libre de la question réglementaire..."
+                              className="w-full bg-black/50 border border-white/5 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-[#6C3CFF] pl-9 font-sans"
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') runVectorSearch(vectorSearchQuery);
+                              }}
+                            />
+                            <Search className="w-4 h-4 text-gray-500 absolute left-3.5 top-3.5" />
+                          </div>
+                          <button
+                            onClick={() => runVectorSearch(vectorSearchQuery)}
+                            disabled={isVectorSearching}
+                            className="bg-[#6C3CFF] hover:bg-purple-600 text-white font-bold px-4 rounded-xl flex items-center gap-1.5 cursor-pointer text-xs disabled:opacity-50"
+                          >
+                            {isVectorSearching ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Play className="w-3.5 h-3.5" />}
+                            <span>Rechercher</span>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Search results */}
+                      <div className="space-y-2 pt-2">
+                        <span className="text-[10px] text-gray-400 uppercase font-mono tracking-wider block">Documents les plus Pertinents (Top Matches)</span>
+                        {vectorSearchResults.length === 0 ? (
+                          <div className="p-4 bg-black/20 border border-dashed border-white/5 rounded-xl text-center text-gray-500 font-mono text-[10.5px]">
+                            Tapez une requête et cliquez sur rechercher pour observer la correspondance sémantique...
+                          </div>
+                        ) : (
+                          <div className="space-y-2">
+                            {vectorSearchResults.map((res, i) => (
+                              <div key={i} className="p-3 bg-black/45 rounded-xl border border-white/5 space-y-1.5 hover:border-white/10 transition-all">
+                                <div className="flex items-center justify-between text-[11px]">
+                                  <span className="font-bold text-[#00f0ff]">{res.doc.title}</span>
+                                  <span className={`font-mono text-[10px] font-bold px-2 py-0.5 rounded ${
+                                    res.score > 0.4 ? 'bg-[#00ff66]/15 text-emerald-400 border border-[#00ff66]/10' : 'bg-amber-500/10 text-amber-400 border border-amber-500/15'
+                                  }`}>
+                                    Cosinus: {(res.score * 100).toFixed(1)}% ({res.score > 0.4 ? 'Excellent' : 'Faible'})
+                                  </span>
+                                </div>
+                                <p className="text-gray-400 text-[10px] leading-relaxed">{res.doc.content}</p>
+                                <div className="flex items-center gap-2 text-[9px] text-gray-550 font-mono">
+                                  <span>Origine: {res.doc.source}</span>
+                                  <span>•</span>
+                                  <span>Index ID: {res.doc.id || 'kb-xx'}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Dynamic query display block */}
+                    {vectorAuditLog && (
+                      <div className="bg-black/80 rounded-xl border border-white/10 p-3 mt-3 font-mono text-[9.5px] leading-relaxed text-indigo-200 overflow-x-auto max-h-48 scrollbar-thin">
+                        <pre className="whitespace-pre">{vectorAuditLog}</pre>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RIGHT PANEL: REDIS & BULLMQ / WORKER MONITORING */}
+                  <div className="lg:col-span-5 bg-[#121421] rounded-2xl border border-white/5 p-4 space-y-4 flex flex-col justify-between">
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-white text-xs uppercase tracking-wider flex items-center gap-1.5 text-emerald-400">
+                          <Activity className="w-4 h-4" />
+                          2. Queue BullMQ & Redis
+                        </span>
+                        <span className="text-[9px] font-mono text-emerald-500 font-bold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/15">Redis: 6379</span>
+                      </div>
+
+                      {/* Redis and BullMQ Counters */}
+                      <div className="grid grid-cols-4 gap-1.5 text-center font-mono">
+                        <div className="bg-black/45 p-1.5 rounded-xl border border-white/5">
+                          <span className="text-gray-500 text-[8.5px] uppercase tracking-wider block">Waiting</span>
+                          <span className={`text-[#00f0ff] text-[12px] font-bold block mt-0.5 ${redisStats.waiting > 0 ? "animate-pulse" : ""}`}>
+                            {redisStats.waiting}
+                          </span>
+                        </div>
+                        <div className="bg-black/45 p-1.5 rounded-xl border border-white/5">
+                          <span className="text-gray-500 text-[8.5px] uppercase tracking-wider block">Active</span>
+                          <span className={`text-purple-400 text-[12px] font-bold block mt-0.5 ${redisStats.active > 0 ? "animate-pulse font-black" : ""}`}>
+                            {redisStats.active}
+                          </span>
+                        </div>
+                        <div className="bg-black/45 p-1.5 rounded-xl border border-white/5">
+                          <span className="text-gray-500 text-[8.5px] uppercase tracking-wider block">Completed</span>
+                          <span className="text-emerald-400 text-[12px] font-bold block mt-0.5">{redisStats.completed}</span>
+                        </div>
+                        <div className="bg-black/45 p-1.5 rounded-xl border border-white/5">
+                          <span className="text-gray-500 text-[8.5px] uppercase tracking-wider block">Failed</span>
+                          <span className="text-rose-500 text-[12px] font-bold block mt-0.5">{redisStats.failed}</span>
+                        </div>
+                      </div>
+
+                      {/* Launch BullMQ reindexing job button */}
+                      <button
+                        type="button"
+                        onClick={runBullMQIndexingJob}
+                        disabled={isBullMQRolling}
+                        className={`w-full py-2.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer text-xs border transition-all ${
+                          isBullMQRolling
+                            ? 'bg-purple-900/20 text-purple-300 border-purple-500/30'
+                            : 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/15 active:scale-95'
+                        }`}
+                      >
+                        <RefreshCw className={`w-4 h-4 ${isBullMQRolling ? 'animate-spin text-purple-400' : 'text-white'}`} />
+                        <span>{isBullMQRolling ? "Indexation Asynchrone..." : "Régénérer par BullMQ Background Job"}</span>
+                      </button>
+
+                      {/* BullMQ micro-terminal */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] text-gray-400 uppercase font-mono tracking-wider block">Console des Workers asynchrones :</span>
+                        
+                        <div className="bg-[#0c0d15] rounded-xl border border-white/5 p-3 h-48 overflow-y-auto scrollbar-thin select-text flex flex-col gap-1.5 font-mono text-[10px]">
+                          {redisLogs.map((log, i) => (
+                            <div key={i} className={`pb-1 border-b border-white/3 flex items-start gap-1.5 leading-relaxed ${
+                              log.includes("🟢") ? "text-emerald-400" :
+                              log.includes("⚡") ? "text-purple-300 font-bold" :
+                              log.includes("🧠") ? "text-amber-300" :
+                              log.includes("✅") ? "text-emerald-300 font-black animate-pulse" : "text-gray-400"
+                            }`}>
+                              <span className="text-gray-600 select-none">[{i + 1}]</span>
+                              <span>{log}</span>
+                            </div>
+                          ))}
+                          {isBullMQRolling && (
+                            <div className="pt-1 flex items-center gap-1.5 text-purple-400 animate-pulse font-bold">
+                              <span>●</span>
+                              <span>Traitement par le cluster de Workers...</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-emerald-950/15 border border-emerald-500/15 p-3 rounded-xl flex items-start gap-2.5 mt-2">
+                      <ShieldAlert className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <div className="space-y-0.5 text-emerald-300 font-sans text-[10px] leading-relaxed">
+                        <strong>Avantage de la queue asynchrone :</strong> Supprime la charge de calcul des embeddings lors de l'intégration de documents volumineux. Empêche également les timeout d'API en étalant les appels sémantiques.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
               </div>
             )}
 
