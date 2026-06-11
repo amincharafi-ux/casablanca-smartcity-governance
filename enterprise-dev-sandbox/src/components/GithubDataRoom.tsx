@@ -59,6 +59,7 @@ export default function GithubDataRoom({ isOpen, onClose, onAddLog, currentCity 
   const [githubUsername, setGithubUsername] = useState<string>('amincharafi-ux');
   const [repoName, setRepoName] = useState<string>('casablanca-smartcity-governance');
   const [showToken, setShowToken] = useState(false);
+  const [suggestSimulation, setSuggestSimulation] = useState(false);
   
   // Real config file contents loaded dynamically from secure backend server
   const [packageJsonContent, setPackageJsonContent] = useState<string>('');
@@ -668,6 +669,7 @@ jobs:
   // Real GitHub Export Direct API Integration
   const handleGitHubExport = async () => {
     const cleanUsername = githubUsername.trim();
+    setSuggestSimulation(false);
     
     // Ultimate robust sanitizer for GitHub Personal Access Tokens (Classic or Fine-grained)
     // Strips quotes, backticks, "token ", "bearer ", and filters to printable ASCII characters to remove hidden bytes
@@ -690,6 +692,30 @@ jobs:
     }).join('');
 
     const cleanRepo = repoName.trim();
+
+    // Detect if they populated with a mock placeholder key
+    const isMock = 
+      !cleanToken ||
+      cleanToken.toLowerCase().includes("xxx") ||
+      cleanToken.toLowerCase().includes("your") ||
+      cleanToken.toLowerCase().includes("token") ||
+      cleanToken.toLowerCase().includes("demo") ||
+      cleanToken.toLowerCase().includes("test") ||
+      cleanToken.toLowerCase().includes("simulate") ||
+      cleanToken.toLowerCase().includes("simulation") ||
+      cleanToken.toLowerCase().includes("placeholder");
+
+    if (isMock && cleanToken.length > 0) {
+      setExportState('LOADING');
+      setExportLogs([
+        "🔑 Jeton fictif ou de test détecté.",
+        "💡 Redirection automatique vers le simulateur de livraison double-structure haute fidélité..."
+      ]);
+      setTimeout(() => {
+        handleSimulatedGitHubExport();
+      }, 800);
+      return;
+    }
 
     if (!cleanUsername) {
       setExportError("Le nom d'utilisateur GitHub est requis.");
@@ -735,6 +761,7 @@ jobs:
       });
 
       if (checkResponse.status === 401) {
+        setSuggestSimulation(true);
         setExportLogs(prev => [
           ...prev,
           "❌ ERREUR D'AUTHENTIFICATION : Le jeton d'accès personnel GitHub (PAT) fourni a été refusé par l'API GitHub (Erreur 401 Unauthorized).",
@@ -976,6 +1003,7 @@ jobs:
 
     setExportState('LOADING');
     setExportError('');
+    setSuggestSimulation(false);
     setExportLogs([
       "🚀 Connexion sécurisée au serveur API GitHub (api.github.com) [Simulation Sandbox]...",
       `📡 Vérification du dépôt : ${cleanUsername}/${cleanRepo}...`,
@@ -2083,20 +2111,25 @@ jobs:
                     </div>
                   </div>
                   {exportError && (
-                    <div className="p-3.5 bg-red-950/30 border border-red-500/30 text-red-300 rounded-lg text-xs font-mono flex flex-col gap-2.5">
+                    <div className="p-3.5 bg-red-950/35 border border-red-500/40 text-red-300 rounded-lg text-xs font-mono flex flex-col gap-2.5 shadow-lg shadow-red-500/5">
                       <div className="flex items-start gap-2">
-                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+                        <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5 animate-pulse" />
                         <span className="leading-relaxed">{exportError}</span>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 border-t border-red-500/15 pt-2 mt-0.5">
-                        <span className="text-[10px] text-[#8b949e]">Pas de token personnel valide ?</span>
-                        <button
-                          type="button"
-                          onClick={handleSimulatedGitHubExport}
-                          className="px-2.5 py-1 bg-indigo-600/90 hover:bg-indigo-600 text-white font-bold rounded font-sans text-[10px] transition-colors cursor-pointer"
-                        >
-                          🚀 Utiliser le Simulateur d'Exportation local
-                        </button>
+                      <div className="flex flex-col gap-2 border-t border-red-500/15 pt-2.5">
+                        <p className="text-[10.5px] text-gray-400 font-sans leading-relaxed">
+                          ⚠️ <strong className="text-white">Note de démonstration :</strong> L'exportation en direct requiert un jeton d'accès GitHub personnel (PAT) réel et actif disposant des autorisations correspondantes sur votre compte personnel.
+                        </p>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-[10px] text-emerald-400 font-bold">💡 Solution d'évaluation instantanée :</span>
+                          <button
+                            type="button"
+                            onClick={handleSimulatedGitHubExport}
+                            className="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white font-black rounded-lg font-sans text-[10px] transition-all cursor-pointer shadow-md shadow-purple-500/20 active:scale-95"
+                          >
+                            🚀 Lancer le Simulateur d'Exportation Virtuelle
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
