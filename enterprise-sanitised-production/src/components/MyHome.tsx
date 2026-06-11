@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import CreditSimulator from './MyHome/CreditSimulator';
+import ResidenceModule from './MyHome/ResidenceModule';
+import ConciergeModule from './MyHome/ConciergeModule';
+import HostModule from './MyHome/HostModule';
 import { 
   Building, 
   Home, 
@@ -253,8 +256,8 @@ const HOME_BUSINESSES: HomeBusiness[] = [
 ];
 
 export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) {
-  // Sub-tab selection for MyHome: IMMO (Real estate database + Simulation) or BUSINESS (commerces de la maison)
-  const [myHomeSubTab, setMyHomeSubTab] = useState<'IMMO' | 'BUSINESS'>('IMMO');
+  // Sub-tab selection for MyHome: RESIDENCE, CONCIERGE, HOST, LOCAL, IMMO
+  const [myHomeSubTab, setMyHomeSubTab] = useState<'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO'>('RESIDENCE');
   const [simPropertyPrice, setSimPropertyPrice] = useState<number>(2000000);
   const [businessSearch, setBusinessSearch] = useState('');
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
@@ -635,33 +638,70 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       </div>
 
       {/* Main Sub-Tabs Selector inside MyHome */}
-      <div className="flex bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-xl mx-auto shadow-md mb-6">
+      <div className="flex flex-wrap bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-4xl mx-auto shadow-md mb-6">
+        <button
+          onClick={() => setMyHomeSubTab('RESIDENCE')}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            myHomeSubTab === 'RESIDENCE' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Building className="w-4 h-4" />
+          <span>🔑 Residence</span>
+        </button>
+        <button
+          onClick={() => setMyHomeSubTab('CONCIERGE')}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            myHomeSubTab === 'CONCIERGE' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Wrench className="w-4 h-4" />
+          <span>🧹 Concierge</span>
+        </button>
+        <button
+          onClick={() => setMyHomeSubTab('HOST')}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            myHomeSubTab === 'HOST' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <Home className="w-4 h-4" />
+          <span>🏨 Host & MRE</span>
+        </button>
+        <button
+          onClick={() => setMyHomeSubTab('LOCAL')}
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            myHomeSubTab === 'LOCAL' 
+              ? 'bg-[#a16eff] text-white shadow-lg' 
+              : 'text-gray-400 hover:text-white hover:bg-white/5'
+          }`}
+        >
+          <ShoppingBag className="w-4 h-4" />
+          <span>🛒 Local</span>
+        </button>
         <button
           onClick={() => setMyHomeSubTab('IMMO')}
-          className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
             myHomeSubTab === 'IMMO' 
               ? 'bg-[#a16eff] text-white shadow-lg' 
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Building className="w-4 h-4" />
-          <span>🏢 MyImmo : Transactions Immo</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('BUSINESS')}
-          className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            myHomeSubTab === 'BUSINESS' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>🛒 Commerces de la Maison</span>
+          <span>🏢 Immo</span>
         </button>
       </div>
 
       {/* Conditional Rendering of MyHome sections */}
-      {myHomeSubTab === 'BUSINESS' ? (
+      {myHomeSubTab === 'RESIDENCE' && <ResidenceModule currentLang={currentLang} />}
+      {myHomeSubTab === 'CONCIERGE' && <ConciergeModule currentLang={currentLang} />}
+      {myHomeSubTab === 'HOST' && <HostModule currentLang={currentLang} />}
+
+      {myHomeSubTab === 'LOCAL' && (
         <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
           {/* Header Card for Business Portal */}
           <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
@@ -807,7 +847,9 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             ))}
           </div>
         </div>
-      ) : (
+      )}
+
+      {myHomeSubTab === 'IMMO' && (
         <div id="myhome-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Left 2 Cols: Listing Feed and Interactive Search */}
