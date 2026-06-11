@@ -7,6 +7,7 @@ import { db, isDbConnected } from "../db/index";
 import * as schema from "../db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
+import { SovereignVectorDB, KnowledgeChunk } from "../lib/vectorDb";
 
 const router = Router();
 
@@ -41,6 +42,19 @@ function getGeminiClient(): GoogleGenAI | null {
   return helperAiClient;
 }
 
+let vectorDbInstance: SovereignVectorDB | null = null;
+function getVectorDb(): SovereignVectorDB {
+  if (!vectorDbInstance) {
+    const client = getGeminiClient();
+    vectorDbInstance = new SovereignVectorDB(client);
+    // Asynchronous warmup of local document embeddings
+    vectorDbInstance.initializeVectorIndex().catch(err => {
+      console.warn("[VectorDB] Warmup warning ignored:", err);
+    });
+  }
+  return vectorDbInstance;
+}
+
 function verifyWebJwt(token: string): any | null {
   try {
     return jwt.verify(token, getJwtSecret(), { algorithms: ["HS256"] });
@@ -57,7 +71,20 @@ const authMiddleware = (req: any, res: Response, next: any) => {
   const cookieJwt = jwtMatch ? jwtMatch[1] : null;
   const token = (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null) || cookieJwt;
 
+  // Real-time security filter for sensitive portals
+  const requestUrl = req.originalUrl || req.url || "";
+  const sensitivePathRegex = /(\/admin|\/syndic|\/mairie|\/dashboard\/mairie|\/dashboard\/admin)/i;
+  const isSensitivePath = sensitivePathRegex.test(requestUrl);
+
   if (!token) {
+    if (isSensitivePath) {
+      return res.status(401).json({
+        error: {
+          code: "ERR_UNAUTHORIZED",
+          message: "Authentification obligatoire. L'accès anonyme ou invité n'est pas autorisé pour les modules syndic, mairie et administration."
+        }
+      });
+    }
     req.user = { role: "PUBLIC", email: null, full_name: "Citoyen Public" };
     return next();
   }
@@ -65,6 +92,15 @@ const authMiddleware = (req: any, res: Response, next: any) => {
   const decoded = verifyWebJwt(token);
   if (decoded) {
     req.user = decoded;
+    // Prevent anyone with PUBLIC/citizen-guest privileges from hitting administration routes even with a valid token
+    if (isSensitivePath && (req.user.role || "PUBLIC").toUpperCase() === "PUBLIC") {
+      return res.status(403).json({
+        error: {
+          code: "ERR_FORBIDDEN",
+          message: "Accès interdit. Le rôle 'PUBLIC' n'est pas autorisé à accéder aux modules d'administration, syndic ou mairie."
+        }
+      });
+    }
     next();
   } else {
     // Bad/Expired token = return 401 Unauthorized immediately instead of silent degradation
@@ -1502,13 +1538,6 @@ router.get("/dashboard/mairie/heatmap", restrictTo("mairie", "institution"), (re
 // 9. MODULE IA CONVERSATIONNELLE AVEC RETRIEVAL-AUGMENTED GENERATION (RAG)
 // ============================================================================
 
-interface KnowledgeChunk {
-  title: string;
-  source: string;
-  content: string;
-  keywords: string[];
-}
-
 const CASABLANCA_KNOWLEDGE_BASE: KnowledgeChunk[] = [
   {
     title: "Article 4 de la loi CNDP 09-08 (Consentement Préalable)",
@@ -1548,32 +1577,6 @@ const CASABLANCA_KNOWLEDGE_BASE: KnowledgeChunk[] = [
   }
 ];
 
-function performSemanticRAGSearch(query: string): { retrievedDocs: KnowledgeChunk[]; promptAddendum: string } {
-  const normQuery = query.toLowerCase();
-  
-  // Score based on word matches in keywords or content
-  const scored = CASABLANCA_KNOWLEDGE_BASE.map(doc => {
-    let score = 0;
-    doc.keywords.forEach(kw => {
-      if (normQuery.includes(kw)) score += 3;
-    });
-    if (doc.content.toLowerCase().includes(normQuery)) score += 5;
-    if (doc.title.toLowerCase().includes(normQuery)) score += 4;
-    return { doc, score };
-  });
-
-  // Filter those with > 0 score, or default to highest matching
-  const matches = scored.filter(item => item.score > 0).sort((a, b) => b.score - a.score).map(item => item.doc);
-  const finalDocs = matches.length > 0 ? matches.slice(0, 2) : CASABLANCA_KNOWLEDGE_BASE.slice(0, 2);
-
-  const docsExcerpt = finalDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
-  
-  return {
-    retrievedDocs: finalDocs,
-    promptAddendum: `CONNAISSANCES OFFICIELLES DU PORTAIL MUNICIPAL (RETRIVED VIA LOCAL COLLATERAL SEARCH RAG SOURCING - LOI 09-08 & 18-00):\n${docsExcerpt}`
-  };
-}
-
 router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "public"), async (req: Request, res: Response) => {
   const { message, language, context } = req.body;
 
@@ -1585,8 +1588,34 @@ router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "p
   const darijaKeywords = ["kifach", "bghit", "chkwaya", "fin", "sift", "daba", "wakha", "bzzaf", "chokran", "maroc", "casa", "maarif"];
   const isDarija = darijaKeywords.some(w => message.toLowerCase().includes(w));
 
-  // Perform Retrieval stage (RAG)
-  const { retrievedDocs, promptAddendum } = performSemanticRAGSearch(message);
+  let retrievedDocs: KnowledgeChunk[] = [];
+  let promptAddendum = "";
+  let vectorAuditLog = "";
+
+  try {
+    const vectorDb = getVectorDb();
+    const { results, retrievalAuditLog } = await vectorDb.searchVectorIndex(message, 2);
+    retrievedDocs = results.map(r => r.chunk);
+    vectorAuditLog = retrievalAuditLog;
+    
+    // Log the vector search trace on server console
+    console.log(retrievalAuditLog);
+
+    const docsExcerpt = retrievedDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
+    promptAddendum = `CONNAISSANCES OFFICIELLES DU PORTAIL MUNICIPAL (RETRIVED VIA TRUE VECTOR DATABASE EMBEDDING SEARCH - LOI 09-08 & 18-00):\n${docsExcerpt}`;
+  } catch (err) {
+    console.warn("[RAG] Failed to perform real-time vector search, activating simple backup retrieval...", err);
+    // Simple fallback
+    const norm = message.toLowerCase();
+    const fallbackDb = getVectorDb(); // contains CASABLANCA_KNOWLEDGE_BASE
+    retrievedDocs = CASABLANCA_KNOWLEDGE_BASE.filter(doc => 
+      doc.keywords.some(kw => norm.includes(kw)) || doc.content.toLowerCase().includes(norm)
+    ).slice(0, 2);
+    if (retrievedDocs.length === 0) retrievedDocs = CASABLANCA_KNOWLEDGE_BASE.slice(0, 2);
+    const docsExcerpt = retrievedDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
+    promptAddendum = `CONNAISSANCES DE SECOURS:\n${docsExcerpt}`;
+    vectorAuditLog = "[VectorDB RAG] Real-time vector search mode skipped due to index/warmup exception.";
+  }
 
   let responseText = `Je suis l'Assistant Souverain IA MyCity Casablanca. Sur la base de votre message concernant "${message}" :
 - Pour créer un signalement (eclairage, chaussée, déchets), veuillez vous rendre directement dans l'onglet **Signalements Urbains**.
@@ -1634,7 +1663,10 @@ Speak politely, refer to Moroccan local governance and Smart-city procedures (li
         title: d.title,
         source: d.source,
         excerpt: d.content.substring(0, 100) + "..."
-      }))
+      })),
+      observability: {
+        vector_db_audit_log: vectorAuditLog
+      }
     })
   );
 });
