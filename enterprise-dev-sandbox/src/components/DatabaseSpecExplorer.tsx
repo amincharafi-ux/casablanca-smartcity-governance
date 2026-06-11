@@ -45,12 +45,22 @@ export default function DatabaseSpecExplorer({
   const fetchSourcedEvents = () => {
     setIsEventsLoading(true);
     fetch('/api/events/sourced')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error ${res.status}`);
+        }
+        return res.json();
+      })
       .then(data => {
-        setSourcedEvents(data);
+        if (Array.isArray(data)) {
+          setSourcedEvents(data);
+        } else {
+          setSourcedEvents([]);
+        }
       })
       .catch(err => {
         console.error("Failed to load sourced events:", err);
+        setSourcedEvents([]);
       })
       .finally(() => {
         setIsEventsLoading(false);
@@ -163,10 +173,24 @@ export default function DatabaseSpecExplorer({
 
   if (!isOpen) return null;
 
-  if (error) {
-    return (
-      <div id="db-spec-explorer-error-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md animate-fade-in">
-        <div id="db-spec-error-card" className="bg-[#161821] border border-red-500/30 w-full max-w-lg rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-red-500/5 p-6 space-y-4">
+  const renderTabSecureGuard = (tabContent: () => React.JSX.Element) => {
+    if (isLoading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 space-y-4">
+          <div className="w-10 h-10 rounded-full border-t-2 border-emerald-400 animate-spin"></div>
+          <span className="text-xs font-mono text-gray-400 uppercase tracking-widest">
+            Vérification du Token JWT d'Administration...
+          </span>
+          <span className="text-[9px] font-mono text-gray-600 uppercase">
+            Route d'API Sécurisée : /api/admin/db-schema
+          </span>
+        </div>
+      );
+    }
+
+    if (error) {
+      return (
+        <div id="db-spec-error-card" className="bg-[#161821] border border-red-500/30 w-full max-w-lg rounded-3xl overflow-hidden flex flex-col shadow-2xl shadow-red-500/5 p-6 space-y-4 mx-auto my-6">
           <div id="db-spec-error-header" className="flex items-center gap-3 border-b border-white/5 pb-3">
             <div id="db-spec-error-icon-box" className="p-2 bg-red-500/10 text-red-400 rounded-xl border border-red-500/20">
               <ShieldAlert className="w-6 h-6 animate-pulse" />
@@ -184,39 +208,15 @@ export default function DatabaseSpecExplorer({
           <div id="db-spec-error-details" className="bg-black/40 p-3 rounded-xl border border-white/5 font-mono text-[9px] text-gray-400 space-y-1">
             <p id="db-spec-detail-role">• Rôle Utilisateur : {currentUserRole}</p>
             <p id="db-spec-detail-jwt">• Validation JWT : {error?.toLowerCase().includes("forbidden") || error?.toLowerCase().includes("interdit") || error?.toLowerCase().includes("suffis") || error?.toLowerCase().includes("autoris") || error?.toLowerCase().includes("403") ? "Succès de la Signature (Droits insuffisants pour ce rôle)" : "Échouée ou Manquante"}</p>
-            <p id="db-spec-detail-id">• Audit Log ID : aut-{Date.now().toString(16)}</p>
+            <p id="db-spec-detail-id">• Audit Log ID : aut-19eb4f6c123</p>
             <p id="db-spec-detail-warn" className="text-red-400 font-bold">• Résultat : Tentative de scan inscrite sur l'historique d'audit de la ville.</p>
           </div>
-
-          <div id="db-spec-error-actions" className="flex justify-end pt-2">
-            <button
-              id="db-spec-close-error-btn"
-              onClick={onClose}
-              className="px-4 py-2 bg-red-950/40 border border-red-500/30 hover:bg-red-500 hover:text-white text-red-400 transition-all font-mono text-xs font-bold rounded-xl cursor-pointer"
-            >
-              Fermer la Session d'Inspection
-            </button>
-          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
-  if (isLoading) {
-    return (
-      <div id="db-spec-explorer-loading-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in">
-        <div id="db-spec-loading-card" className="bg-[#0f111a] border border-white/10 w-full max-w-lg rounded-3xl overflow-hidden flex flex-col p-8 items-center justify-center space-y-4 shadow-2xl">
-          <div id="db-spec-loader" className="w-12 h-12 rounded-full border-t-2 border-emerald-400 animate-spin"></div>
-          <span id="db-spec-loader-text" className="text-xs font-mono text-gray-400 uppercase tracking-widest">
-            Vérification du Token JWT d'Administration...
-          </span>
-          <span id="db-spec-loader-api" className="text-[10px] font-mono text-gray-600 uppercase">
-            Route d'API Sécurisée : /api/admin/db-schema
-          </span>
-        </div>
-      </div>
-    );
-  }
+    return tabContent();
+  };
 
   const runSqlConsole = (query: string) => {
     setCustomQuery(query);
@@ -538,7 +538,7 @@ export default function DatabaseSpecExplorer({
             )}
 
             {/* TAB 2: SQL SCHEMA EXPLORER */}
-            {activeTab === 'DATABASE' && (
+            {activeTab === 'DATABASE' && renderTabSecureGuard(() => (
               <div className="space-y-4 animate-fade-in flex flex-col h-full">
                 <div className="flex items-center gap-2 border-b border-white/5 pb-2 text-white shrink-0">
                   <Database className="w-5 h-5 text-[#6C3CFF]" />
@@ -603,10 +603,10 @@ export default function DatabaseSpecExplorer({
                   </div>
                 </div>
               </div>
-            )}
+            ))}
 
             {/* TAB 3: LIVE SQL CONSOLE SIMULATOR */}
-            {activeTab === 'SQL_CONSOLE' && (
+            {activeTab === 'SQL_CONSOLE' && renderTabSecureGuard(() => (
               <div className="space-y-4 animate-fade-in text-xs text-gray-300">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2">
                   <div className="flex items-center gap-2 text-white">
@@ -675,10 +675,10 @@ export default function DatabaseSpecExplorer({
                   </pre>
                 </div>
               </div>
-            )}
+            ))}
 
             {/* TAB 4: CONFIGURATION .ENV AND API KEYS DEFINITIONS */}
-            {activeTab === 'ENV_CONFIG' && (
+            {activeTab === 'ENV_CONFIG' && renderTabSecureGuard(() => (
               <div className="space-y-4 animate-fade-in text-xs text-gray-300">
                 <div className="flex items-center gap-2 border-b border-white/5 pb-2 text-white justify-between">
                   <div className="flex items-center gap-2">
@@ -812,7 +812,7 @@ export default function DatabaseSpecExplorer({
                   </div>
                 </div>
               </div>
-            )}
+            ))}
 
             {/* TAB 5: CNDP COMPLIANCE & RGPD DATA MANAGEMENT */}
             {activeTab === 'CNDP_COMPLIANCE' && (
