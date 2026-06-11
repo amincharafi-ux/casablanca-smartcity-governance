@@ -426,6 +426,35 @@ export const invoices = pgTable("invoices", {
 });
 
 // ============================================================================
+// 20B. MULTI-TENANCY SYSTEM TABLES (Tenants, Tenant Roles, Tenant Members)
+// ============================================================================
+export const tenants = pgTable("tenants", {
+  id: varchar("id", { length: 50 }).primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  domain: varchar("domain", { length: 255 }),
+  status: varchar("status", { length: 20 }).default("ACTIVE"), // ACTIVE, INACTIVE, SUSPENDED
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const tenantRoles = pgTable("tenant_roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 50 }).references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 50 }).notNull(), // ADMIN, AGENT, MODERATOR, CITIZEN
+  permissions: jsonb("permissions").default('["read:public"]'),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const tenantMembers = pgTable("tenant_members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: varchar("tenant_id", { length: 50 }).references(() => tenants.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  roleId: uuid("role_id").references(() => tenantRoles.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
 // 21. TABLE: MUNICIPAL WORKFORCES (Departments, Agents, Dispatched Work Orders, Status Histories)
 // ============================================================================
 export const departments = pgTable("departments", {
