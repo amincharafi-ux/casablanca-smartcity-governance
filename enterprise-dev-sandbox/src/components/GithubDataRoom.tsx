@@ -966,6 +966,15 @@ jobs:
           const errBody = await commitResp.json().catch(() => ({}));
           let errMsg = errBody.message || commitResp.statusText || "";
           
+          if (gitPath.includes(".github/workflows/") || gitPath.endsWith("ci.yml")) {
+            setExportLogs(prev => [
+              ...prev,
+              `⚠️ AVERTISSEMENT WORKFLOW : Le jeton d'accès GitHub (PAT) ne semble pas détenir l'autorisation d'écriture requis 'workflow' (Erreur ${commitResp.status} : ${errMsg}).`,
+              `💡 Récupération intelligente : Le fichier d'intégration continue ${gitPath} a été ignoré. L'export des autres fichiers du projet continue sans interruption.`
+            ]);
+            continue;
+          }
+
           if (commitResp.status === 401 || errMsg === "Bad credentials") {
             errMsg += " (⚠️ Erreur d'authentification : Votre jeton d'accès GitHub (PAT) est incorrect, expiré ou révoqué. Assurez-vous de l'avoir copié-collé correctement sans espaces ni guillemets.)";
           } else if (commitResp.status === 403 || errMsg.toLowerCase().includes("personal access token") || errMsg.toLowerCase().includes("not accessible")) {
