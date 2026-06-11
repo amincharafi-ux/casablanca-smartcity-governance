@@ -109,7 +109,7 @@ export default function App() {
 
   const [isSqlSpecOpen, setIsSqlSpecOpen] = useState(false);
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
-  const [dbSpecInitialTab, setDbSpecInitialTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE'>('ARCHITECTURE');
+  const [dbSpecInitialTab, setDbSpecInitialTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE' | 'VECTOR_RAG'>('ARCHITECTURE');
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false);
   const [isSecurityAuditOpen, setIsSecurityAuditOpen] = useState(false);
   const [isGithubRoomOpen, setIsGithubRoomOpen] = useState(false);
@@ -561,6 +561,20 @@ export default function App() {
                 >
                   <Lock className="w-3.5 h-3.5 text-emerald-400" />
                   <span>🔒 Conformité CNDP</span>
+                </button>
+
+                <button
+                  id="rag-vector-redis-dashboard-btn"
+                  onClick={() => {
+                    setDbSpecInitialTab('VECTOR_RAG');
+                    setIsSqlSpecOpen(true);
+                    handleAddPrivacyLog("RAG Tab Open", "Utilisateur a ouvert le panneau RAG, pgvector et queues BullMQ/Redis.");
+                  }}
+                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-300 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
+                  title="Ouvrir le panneau Moteur RAG & Files Redis"
+                >
+                  <Cpu className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                  <span>🧠 RAG, pgvector & Redis</span>
                 </button>
               </div>
 
