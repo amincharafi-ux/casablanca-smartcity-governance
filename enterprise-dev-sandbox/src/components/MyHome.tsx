@@ -255,9 +255,9 @@ const HOME_BUSINESSES: HomeBusiness[] = [
   }
 ];
 
-export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) {
+export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE' }: { currentLang: string; defaultSubTab?: 'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO' }) {
   // Sub-tab selection for MyHome: RESIDENCE, CONCIERGE, HOST, LOCAL, IMMO
-  const [myHomeSubTab, setMyHomeSubTab] = useState<'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO'>('RESIDENCE');
+  const [myHomeSubTab, setMyHomeSubTab] = useState<'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO'>(defaultSubTab);
   const [simPropertyPrice, setSimPropertyPrice] = useState<number>(2000000);
   const [businessSearch, setBusinessSearch] = useState('');
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
