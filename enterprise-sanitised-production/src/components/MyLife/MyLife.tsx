@@ -934,6 +934,8 @@ interface MyLifePortalProps {
   onPostReview?: (eventId: string, rating: number, comment: string) => void;
   onPostLike?: (eventId: string) => void;
   onSelectEventOnMap?: (evt: CityEvent) => void;
+  defaultLifeTab?: 'PROVIDERS' | 'AGENDA';
+  defaultCategoryId?: number;
 }
 
 export default function MyLifePortal({ 
@@ -942,9 +944,11 @@ export default function MyLifePortal({
   onPostReview,
   onPostLike,
   onSelectEventOnMap,
+  defaultLifeTab = 'AGENDA',
+  defaultCategoryId = 1,
 }: MyLifePortalProps) {
   // Navigation & filter states
-  const [myLifeTab, setMyLifeTab] = useState<'PROVIDERS' | 'AGENDA'>('AGENDA');
+  const [myLifeTab, setMyLifeTab] = useState<'PROVIDERS' | 'AGENDA'>(defaultLifeTab);
   const [eventCategoryFilter, setEventCategoryFilter] = useState<'ALL' | 'CULTURE' | 'ECONOMIC' | 'ECO_CSR' | 'SPORT'>('ALL');
   const [activeReviewEventId, setActiveReviewEventId] = useState<string | null>(null);
   const [userRating, setUserRating] = useState<number>(5);
@@ -956,7 +960,7 @@ export default function MyLifePortal({
 
   const tGlobal = globalTranslations[currentLang];
 
-  const [activeCategoryId, setActiveCategoryId] = useState<number>(1);
+  const [activeCategoryId, setActiveCategoryId] = useState<number>(defaultCategoryId);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("ALL");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("ALL");
