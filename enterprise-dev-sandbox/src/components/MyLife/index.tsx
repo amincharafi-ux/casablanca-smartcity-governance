@@ -10,6 +10,8 @@ interface MyLifeProps {
   onPostReview?: (eventId: string, rating: number, comment: string) => void;
   onPostLike?: (eventId: string) => void;
   onSelectEventOnMap?: (evt: CityEvent) => void;
+  defaultLifeTab?: 'PROVIDERS' | 'AGENDA';
+  defaultCategoryId?: number;
 }
 
 export default function MyLifeAdapter({ 
@@ -17,7 +19,9 @@ export default function MyLifeAdapter({
   events,
   onPostReview,
   onPostLike,
-  onSelectEventOnMap
+  onSelectEventOnMap,
+  defaultLifeTab,
+  defaultCategoryId
 }: MyLifeProps) {
   return (
     <Suspense 
@@ -36,6 +40,8 @@ export default function MyLifeAdapter({
         onPostReview={onPostReview}
         onPostLike={onPostLike}
         onSelectEventOnMap={onSelectEventOnMap}
+        defaultLifeTab={defaultLifeTab}
+        defaultCategoryId={defaultCategoryId}
       />
     </Suspense>
   );
