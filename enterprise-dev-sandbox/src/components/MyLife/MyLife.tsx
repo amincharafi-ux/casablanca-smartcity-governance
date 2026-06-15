@@ -181,25 +181,6 @@ const CATEGORIES_DATA: Category[] = [
       "Adoption",
       "Promeneurs"
     ]
-  },
-  {
-    id: 8,
-    name: "Maison & Services",
-    emoji: "🏠",
-    color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/30 text-cyan-400",
-    description: "Artisans qualifiés, dépannages et petits travaux",
-    subCategories: [
-      "Plombier",
-      "Électricien",
-      "Femme de ménage",
-      "Jardinier",
-      "Climatisation",
-      "Réparation électroménager",
-      "Déménagement",
-      "Décoration",
-      "Architectes",
-      "Petits travaux"
-    ]
   }
 ];
 
@@ -838,92 +819,6 @@ const PROVIDERS_DATABASE: Provider[] = [
     description: "Éducateurs présents en permanence, alimentation haut de gamme, et balades en pleine forêt deux fois par jour.",
     reviews: [
       { id: "r7-3-1", author: "Rachid G.", rating: 5, date: "20 Mai 2026", comment: "Mon dalmatien y séjourne pendant mes voyages d'affaires. Des vidéos me sont envoyées tous les jours." }
-    ]
-  },
-
-  // --- MAISON & SERVICES (categoryId: 8) ---
-  {
-    id: "p8-1",
-    categoryId: 8,
-    subCategory: "Plombier",
-    name: "Allo Plomberie Rapide - Hassan & Fils",
-    neighborhood: "Bourgogne",
-    address: "Angle Boulevard Moulay Youssef, Casablanca",
-    phone: "+212 661-390412",
-    website: "www.hassan-plomberierapide.ma",
-    rating: 4.8,
-    certified: true,
-    highlight: "Déplacement offert pour Devis & Dépannage en 30 minutes",
-    description: "Spécialiste en recherche de fuites invisibles d'eau par caméra acoustique, débouchage mécanique lourd et étanchéité des terrasses de Casa.",
-    reviews: [
-      { id: "r8-1-1", author: "Chakib B.", rating: 5, date: "2 Juin 2026", comment: "Intervenu en urgence pour une rupture de canalisation. Réparation propre et sans bavures." },
-      { id: "r8-1-2", author: "Amine S.", rating: 4, date: "10 Mai 2026", comment: "Honnête et ponctuel. Le tarif a été annoncé avant de percer." }
-    ]
-  },
-  {
-    id: "p8-2",
-    categoryId: 8,
-    subCategory: "Électricien",
-    name: "Rachid Électrotechnique Générale",
-    neighborhood: "Maarif",
-    address: "Angle Boulevard Bir Anzarane, Casablanca",
-    phone: "+212 660-254011",
-    website: "www.rachidcasa-electricite.ma",
-    rating: 4.7,
-    certified: true,
-    highlight: "Mise aux normes NF, domotique de sécurité",
-    description: "Installations de détecteurs d'incendies, rénovations complètes de tableaux électriques désuets, pose de climatiseurs légers.",
-    reviews: [
-      { id: "r8-2-1", author: "Latifa A.", rating: 5, date: "14 Avril 2026", comment: "Très pro, a ré-équipé tout mon salon avec des dalles LED esthétiques." }
-    ]
-  },
-  {
-    id: "p8-3",
-    categoryId: 8,
-    subCategory: "Femme de ménage",
-    name: "Clean Home Casablanca Services Premium",
-    neighborhood: "Anfa",
-    address: "Boulevard Roosevelt, Résidence Palmeraie, Casablanca",
-    phone: "+212 522-390499",
-    website: "www.cleanhome-casa.ma",
-    rating: 4.9,
-    certified: true,
-    highlight: "Intervenantes formées, certifiées & déclarées",
-    description: "Service de nettoyage d'intérieur de prestige, repassage méticuleux, et lessives préservant les fibres textiles. Disponibilité d'urgences.",
-    reviews: [
-      { id: "r8-3-1", author: "Nadia L.", rating: 5, date: "28 Mai 2026", comment: "Le service est d'une fiabilité totale. La prestation est contrôlée à chaque passage." }
-    ]
-  },
-  {
-    id: "p8-4",
-    categoryId: 8,
-    subCategory: "Jardinier",
-    name: "Espaces Verts de l'Atlas - Maroc Paysage",
-    neighborhood: "Bouskoura",
-    address: "Ville Verte, Point Entreprises, Casablanca",
-    phone: "+212 663-801240",
-    website: "www.marocpaysage.ma",
-    rating: 4.8,
-    certified: true,
-    highlight: "Aménagement de jardins secs économes en eau",
-    description: "Taille des arbres ornementaux, réajustement des sols, installation d'arrosages automatiques connectés goute-à-goute optimaux.",
-    reviews: []
-  },
-  {
-    id: "p8-5",
-    categoryId: 8,
-    subCategory: "Climatisation",
-    name: "Climatisation Dépannage Direct MyCity",
-    neighborhood: "Ain Diab",
-    address: "Boulevard de l'Océan Atlantique, Casablanca",
-    phone: "+212 522-794011",
-    website: "www.climdirect-casa.ma",
-    rating: 4.7,
-    certified: true,
-    highlight: "Installation de pompes à chaleur classe A+++",
-    description: "Entretien préventif annuel des filtres anti-pollen, réparation immédiate de fuites de gaz réfrigérants écologiques certifiés.",
-    reviews: [
-      { id: "r8-5-1", author: "Imed E.", rating: 4, date: "30 Mai 2026", comment: "De bons conseils techniques concernant la pose d'unité Inverter économique." }
     ]
   }
 ];
