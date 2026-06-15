@@ -161,6 +161,19 @@ export async function seedDatabase() {
   try {
     console.log("[POSTGRES SERVICE] Database online - running automated upsert seeding.");
 
+    // Seeding default sovereign tenant if not exists
+    const defaultTenantId = "d4838958-9a55-4b32-b3e3-eb2da451c4c1";
+    const existingTenant = await db.select().from(schema.tenants).where(eq(schema.tenants.id, defaultTenantId)).limit(1);
+    if (existingTenant.length === 0) {
+      console.log("[POSTGRES SERVICE] Seeding default sovereign tenant.");
+      await db.insert(schema.tenants).values({
+        id: defaultTenantId,
+        name: "Casablanca Souverain",
+        domain: "souverain.ma",
+        status: "ACTIVE"
+      });
+    }
+
     // 1. Seed default users
     const defaultUsers = [
       { email: "fz.mayor@mairie-casablanca.ma", role: "MAIRIE", pass: "MairiePassword123!", name: "Fatim-Zahra Mayor" },
@@ -854,7 +867,7 @@ export async function verifyAndRotateRefreshToken(oldToken: string, newToken: st
 }
 
 // --- CO-OWNERSHIP STATE PERSISTENCE (Loi 18-00 Conformant) ---
-export async function fetchResidences(tenantId: string = "casablanca-souverain-tenant"): Promise<any[]> {
+export async function fetchResidences(tenantId: string = "d4838958-9a55-4b32-b3e3-eb2da451c4c1"): Promise<any[]> {
   const connected = await isDbConnected();
   if (connected) {
     try {
@@ -879,7 +892,7 @@ export async function fetchAnnouncements(residenceId: string): Promise<any[]> {
 }
 
 // --- MARKETPLACE ORDER SYSTEMS & SECURE COMPLIANT INVOICING ---
-export async function createOrder(buyerId: string, listingId: string, quantity: number, priceMad: number, tenantId: string = "casablanca-souverain-tenant"): Promise<any> {
+export async function createOrder(buyerId: string, listingId: string, quantity: number, priceMad: number, tenantId: string = "d4838958-9a55-4b32-b3e3-eb2da451c4c1"): Promise<any> {
   const total = priceMad * quantity;
   const tvaAmount = total * 0.20; // Conformant Moroccan TVA (20%)
   const subtotal = total - tvaAmount;
