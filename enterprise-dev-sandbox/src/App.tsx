@@ -24,7 +24,7 @@ import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
 import MyHome from './components/MyHome';
 import HostModule from './components/MyHome/HostModule';
-import XoviaUniverseDashboard from './components/XoviaUniverseDashboard';
+import MyWorkflowsAndJourneys from './components/MyWorkflowsAndJourneys';
 
 // @ts-ignore
 import cityLogo from './assets/images/city_logo_1779750911433-1.png';
@@ -125,7 +125,7 @@ export default function App() {
   const [homeSubTab, setHomeSubTab] = useState<'RESIDENCE' | 'HOST' | 'IMMO' | 'SERVICES'>('RESIDENCE');
   const [lifeSubTab, setLifeSubTab] = useState<'EVENTS' | 'BUSINESS' | 'MARKETPLACE' | 'COMMUNITY'>('EVENTS');
   const [urbanSubTab, setUrbanSubTab] = useState<'CIVIC' | 'ALERT' | 'GOV' | 'DATA'>('DATA');
-  const [transverseSubTab, setTransverseSubTab] = useState<'PAY' | 'MANAGER' | 'PARTNER' | 'AI' | 'TRUST' | 'ARCH_DASHBOARD'>('ARCH_DASHBOARD');
+  const [transverseSubTab, setTransverseSubTab] = useState<'PAY' | 'MANAGER' | 'PARTNER' | 'AI' | 'TRUST' | 'WORKFLOWS'>('WORKFLOWS');
 
   const navigateXovia = (module: 'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE') => {
     setXoviaModule(module);
@@ -733,23 +733,6 @@ export default function App() {
               <span>3. MyCity Urban</span>
             </button>
           </div>
-
-          <div className="shrink-0 md:w-px md:h-auto h-px bg-white/10 w-full" />
-
-          <button
-            onClick={() => {
-              navigateXovia('TRANSVERSE');
-              handleAddPrivacyLog("Xovia Navigate Transverse", "Sélection du cockpit XOVIA Modules Transverses (Commissions, AI, Trust).");
-            }}
-            className={`py-3 px-5 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer shrink-0 ${
-              xoviaModule === 'TRANSVERSE'
-                ? 'bg-gradient-to-br from-emerald-500 to-teal-600 text-neutral-950 shadow-lg shadow-emerald-500/20 scale-[1.01]'
-                : 'text-[#00ffcc] hover:bg-emerald-500/5 hover:text-white border border-[#00ffcc]/10'
-            }`}
-          >
-            <span className="text-sm">🔗</span>
-            <span>Modules Transverses</span>
-          </button>
         </div>
 
         {/* XOVIA SUB-MODULE DYNAMIC NAVIGATION BAR */}
@@ -786,7 +769,7 @@ export default function App() {
                   homeSubTab === 'SERVICES' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🛠️ MyHome Services
+                🛠️ MyServices
               </button>
             </>
           )}
@@ -868,12 +851,12 @@ export default function App() {
           {xoviaModule === 'TRANSVERSE' && (
             <>
               <button
-                onClick={() => setTransverseSubTab('ARCH_DASHBOARD')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'ARCH_DASHBOARD' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setTransverseSubTab('WORKFLOWS')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  transverseSubTab === 'WORKFLOWS' ? 'bg-purple-650 bg-purple-600 text-white border border-purple-500/50' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                📊 Architecture & Requêtes XOVIA
+                🔄 Workflows & Parcours
               </button>
               <button
                 onClick={() => setTransverseSubTab('PAY')}
@@ -913,7 +896,7 @@ export default function App() {
                   transverseSubTab === 'TRUST' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🛡️ Trust & Data/CNDP
+                🛡️ MyCity Trust & Data
               </button>
             </>
           )}
@@ -963,7 +946,7 @@ export default function App() {
                 <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
                     <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">PORTFOLIO HOME</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyHome Services</h3>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyServices</h3>
                   </div>
                   <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
                 </div>
@@ -1187,8 +1170,12 @@ export default function App() {
           {/* RENDER XOVIA TRANSVERSE CORE WORKSPACES */}
           {xoviaModule === 'TRANSVERSE' && (
             <div className="space-y-6">
-              {transverseSubTab === 'ARCH_DASHBOARD' && (
-                <XoviaUniverseDashboard currentLang={currentLang} />
+              {transverseSubTab === 'WORKFLOWS' && (
+                <MyWorkflowsAndJourneys
+                  currentLang={currentLang}
+                  userRole={userRole}
+                  onAddLog={handleAddPrivacyLog}
+                />
               )}
               {transverseSubTab === 'PAY' && (
                 <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
