@@ -10,7 +10,6 @@ import MapSimulation from './components/MapSimulation';
 import ChatCompanion from './components/ChatCompanion';
 import BLEMeshSim from './components/BLEMeshSim';
 import CitizenPortal from './components/CitizenPortal';
-import BusinessPortal from './components/BusinessPortal';
 import MairiePortal from './components/MairiePortal';
 import DataTeamDashboard from './components/DataTeamDashboard';
 import DatabaseSpecExplorer from './components/DatabaseSpecExplorer';
@@ -123,7 +122,7 @@ export default function App() {
   const [xoviaModule, setXoviaModule] = useState<'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE'>('HOME');
   const [activeMainModule, setActiveMainModule] = useState<'URBAN' | 'MYHOME' | 'MYLIFE'>('MYHOME');
   const [homeSubTab, setHomeSubTab] = useState<'RESIDENCE' | 'HOST' | 'IMMO' | 'SERVICES'>('RESIDENCE');
-  const [lifeSubTab, setLifeSubTab] = useState<'EVENTS' | 'BUSINESS' | 'MARKETPLACE' | 'COMMUNITY'>('EVENTS');
+  const [lifeSubTab, setLifeSubTab] = useState<'EVENTS' | 'MARKETPLACE' | 'COMMUNITY'>('EVENTS');
   const [urbanSubTab, setUrbanSubTab] = useState<'CIVIC' | 'ALERT' | 'GOV' | 'DATA'>('DATA');
   const [transverseSubTab, setTransverseSubTab] = useState<'PAY' | 'MANAGER' | 'PARTNER' | 'AI' | 'TRUST' | 'WORKFLOWS'>('WORKFLOWS');
 
@@ -785,14 +784,6 @@ export default function App() {
                 🎭 MyEvents
               </button>
               <button
-                onClick={() => setLifeSubTab('BUSINESS')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  lifeSubTab === 'BUSINESS' ? 'bg-[#d4af7a]/20 text-[#d4af7a] border border-[#d4af7a]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🏪 MyBusiness
-              </button>
-              <button
                 onClick={() => setLifeSubTab('MARKETPLACE')}
                 className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
                   lifeSubTab === 'MARKETPLACE' ? 'bg-[#d4af7a]/20 text-[#d4af7a] border border-[#d4af7a]/30' : 'text-gray-400 hover:text-white'
@@ -974,23 +965,6 @@ export default function App() {
                   />
                 </div>
               )}
-              {lifeSubTab === 'BUSINESS' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#d4af7a]/10 text-[#d4af7a] font-mono text-[9px] font-bold">PORTFOLIO LIFE</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyBusiness Directory</h3>
-                  </div>
-                  <MyLife 
-                    currentLang={currentLang} 
-                    events={events}
-                    defaultLifeTab="PROVIDERS"
-                    defaultCategoryId={5}
-                    onPostReview={handlePostReview}
-                    onPostLike={handlePostLike}
-                    onSelectEventOnMap={handleSelectEventOnMap}
-                  />
-                </div>
-              )}
               {lifeSubTab === 'MARKETPLACE' && (
                 <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
@@ -1001,7 +975,7 @@ export default function App() {
                     currentLang={currentLang} 
                     events={events}
                     defaultLifeTab="PROVIDERS"
-                    defaultCategoryId={8}
+                    defaultCategoryId={5}
                     onPostReview={handlePostReview}
                     onPostLike={handlePostLike}
                     onSelectEventOnMap={handleSelectEventOnMap}
