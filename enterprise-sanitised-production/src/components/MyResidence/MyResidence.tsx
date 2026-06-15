@@ -31,7 +31,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-import MyHome from '../MyHome';
 
 // Define TS Interfaces
 interface BuildingGroup {
@@ -126,7 +125,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
   const activeBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
 
   // Tab Selection
-  const [activeTab, setActiveTab] = useState<'FORUM' | 'LAWS' | 'TRADES' | 'BUDGET' | 'ASSISTANT' | 'ADMIN_MOD' | 'MYHOME'>('MYHOME');
+  const [activeTab, setActiveTab] = useState<'FORUM' | 'LAWS' | 'TRADES' | 'BUDGET' | 'ASSISTANT' | 'ADMIN_MOD'>('FORUM');
 
   // Co-ownership verification states for current user
   // This satisfies the /deepthink core requirement to allow authenticating residents through document upload or syndic code
@@ -757,7 +756,6 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
       {/* Internal Navigation tabs mapping */}
       <div className="flex border-b border-white/5 pb-2 mb-6 gap-2 overflow-x-auto scroller-hidden">
         {[
-          { id: 'MYHOME', label: 'MyHome 🏠', icon: Home },
           { id: 'FORUM', label: tStr.tabForum, icon: MessageSquare },
           { id: 'ASSISTANT', label: tStr.tabAssistant, icon: Scale },
           { id: 'LAWS', label: tStr.tabLaws, icon: FileText },
@@ -784,11 +782,6 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
       </div>
 
       {/* RENDER ACTIVE TAB BODY WITH SECURITY GUARDS FOR THE FORUM */}
-
-      {/* TAB MYHOME: REAL ESTATE LISTINGS */}
-      {activeTab === 'MYHOME' && (
-        <MyHome currentLang={currentLang} />
-      )}
 
       {/* TAB 1: GENERAL FORUM */}
       {activeTab === 'FORUM' && (
