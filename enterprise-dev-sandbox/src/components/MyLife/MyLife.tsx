@@ -865,6 +865,14 @@ export default function MyLifePortal({
   // States for reviews expander (avis vérifiés)
   const [expandedReviewsProviderId, setExpandedReviewsProviderId] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    setMyLifeTab(defaultLifeTab);
+  }, [defaultLifeTab]);
+
+  React.useEffect(() => {
+    setActiveCategoryId(defaultCategoryId);
+  }, [defaultCategoryId]);
+
   // States for dynamic quote request form (demande de devis)
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState<boolean>(false);
   const [selectedProviderForQuote, setSelectedProviderForQuote] = useState<Provider | null>(null);
@@ -1109,35 +1117,7 @@ export default function MyLifePortal({
         </div>
       </div>
 
-      {/* Tab Switcher for Providers Directory vs City Events Agenda */}
-      <div className="flex border border-white/5 bg-[#0f111a] rounded-xl p-1 gap-1 max-w-md shadow-inner">
-        <button
-          onClick={() => setMyLifeTab('AGENDA')}
-          className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            myLifeTab === 'AGENDA' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#d4af7a] text-white shadow-md' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
-          }`}
-        >
-          <span>📅</span>
-          <span>
-            {currentLang === 'AR' ? "الأجندة والأنشطة" : currentLang === 'EN' ? "City Events & Booking" : "Agenda & Billetterie"}
-          </span>
-        </button>
-        <button
-          onClick={() => setMyLifeTab('PROVIDERS')}
-          className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            myLifeTab === 'PROVIDERS' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#d4af7a] text-white shadow-md' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
-          }`}
-        >
-          <span>🏢</span>
-          <span>
-            {currentLang === 'AR' ? "دليل مقدمي الخدمات" : currentLang === 'EN' ? "Local Directory" : "Annuaire Prestataires"}
-          </span>
-        </button>
-      </div>
+
 
       {myLifeTab === 'PROVIDERS' ? (
         <>
