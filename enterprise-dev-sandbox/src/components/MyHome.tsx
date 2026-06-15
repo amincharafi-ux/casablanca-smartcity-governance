@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import CreditSimulator from './MyHome/CreditSimulator';
-import ResidenceModule from './MyHome/ResidenceModule';
 import ConciergeModule from './MyHome/ConciergeModule';
-import HostModule from './MyHome/HostModule';
 import { 
   Building, 
   Home, 
@@ -30,7 +28,9 @@ import {
   ShoppingBag,
   Sparkles,
   Truck,
-  Wrench
+  Wrench,
+  Calendar,
+  Key
 } from 'lucide-react';
 
 // Define property representation
@@ -255,9 +255,13 @@ const HOME_BUSINESSES: HomeBusiness[] = [
   }
 ];
 
-export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE' }: { currentLang: string; defaultSubTab?: 'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO' }) {
-  // Sub-tab selection for MyHome: RESIDENCE, CONCIERGE, HOST, LOCAL, IMMO
-  const [myHomeSubTab, setMyHomeSubTab] = useState<'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO'>(defaultSubTab);
+export default function MyHome({ currentLang = 'FR', defaultSubTab = 'IMMO' }: { currentLang: string; defaultSubTab?: 'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO' }) {
+  // Sub-tab selection for MyHome: CONCIERGE, LOCAL, IMMO
+  const [myHomeSubTab, setMyHomeSubTab] = useState<'CONCIERGE' | 'LOCAL' | 'IMMO'>(
+    defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL' || defaultSubTab === 'IMMO'
+      ? defaultSubTab
+      : 'IMMO'
+  );
   const [simPropertyPrice, setSimPropertyPrice] = useState<number>(2000000);
   const [businessSearch, setBusinessSearch] = useState('');
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
@@ -265,11 +269,112 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
   const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
   const [showNotaireModal, setShowNotaireModal] = useState(false);
 
+  // MyImmo Sub-tabs: BUY (Purchase/Sale) vs RENT (Rental & B'n'B)
+  const [immoTab, setImmoTab] = useState<'BUY' | 'RENT'>('BUY');
+
+  // Rentals / B'n'B offer representation
+  interface RentalOffer {
+    id: string;
+    title: string;
+    description: string;
+    priceValue: number; // Nightly price for SHORT, Monthly price for LONG
+    type: 'SHORT' | 'LONG';  // SHORT = B'n'B / Courte durée, LONG = Location Longue Durée
+    propertyType: 'APPARTEMENT' | 'VILLA' | 'STUDIO';
+    district: string;
+    areaSqm: number;
+    rooms: number;
+    ownerName: string;
+    ownerContact: string;
+    verifiedMyHost: boolean;
+  }
+
+  // Initial Rentals / B'n'B listings
+  const [rentalOffers, setRentalOffers] = useState<RentalOffer[]>([
+    {
+      id: 'rent-1',
+      title: "Magnifique Loft Face Mer - B'n'B Sunset",
+      description: "Profitez d'un séjour inoubliable dans ce loft haut de gamme avec vue panoramique sur l'océan Atlantique. Idéal pour séjours d'affaires ou vacances courtes. Wifi haut débit par fibre optique, climatisation intégrale.",
+      priceValue: 950,
+      type: 'SHORT',
+      propertyType: 'APPARTEMENT',
+      district: "Anfa",
+      areaSqm: 75,
+      rooms: 1,
+      ownerName: "Youssef Bennani",
+      ownerContact: "+212 661-344910",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-2',
+      title: "Appartement d'Architecte - Longue Durée Gauthier",
+      description: "Très bel appartement non-meublé pour longue durée dans un immeuble moderne résidentiel hautement sécurisé. Cuisine haut de gamme ouverte en marbre, balcon filant de 12m, deux places de parking titrées.",
+      priceValue: 12500,
+      type: 'LONG',
+      propertyType: 'APPARTEMENT',
+      district: "Gauthier",
+      areaSqm: 110,
+      rooms: 3,
+      ownerName: "Laila El Alami",
+      ownerContact: "+212 663-911802",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-3',
+      title: "Studio Cozy Moderne - Près Clinique du Val",
+      description: "Charmant studio moderne entièrement équipé et géré via le pass intelligent MyHost (Keyless check-in). Idéal pour courte durée ou transit professionnel. Propreté impeccable garantie.",
+      priceValue: 550,
+      type: 'SHORT',
+      propertyType: 'STUDIO',
+      district: "Maârif",
+      areaSqm: 45,
+      rooms: 1,
+      ownerName: "Karim Guessous",
+      ownerContact: "+212 662-774021",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-4',
+      title: "Villa Privative d'exception - Bouskoura Golf Resort",
+      description: "Exceptionnelle villa en courte durée aux abords du complexe golfique de la Ville Verte. Piscine chauffée, personnel de maison disponible sous option, tranquillité absolue et green d'exception.",
+      priceValue: 3500,
+      type: 'SHORT',
+      propertyType: 'VILLA',
+      district: "Bouskoura",
+      areaSqm: 380,
+      rooms: 4,
+      ownerName: "Fadel Slaoui",
+      ownerContact: "+212 654-200900",
+      verifiedMyHost: false,
+    }
+  ]);
+
+  // Booking states
+  const [selectedRentalForBooking, setSelectedRentalForBooking] = useState<RentalOffer | null>(null);
+  const [bookingCheckIn, setBookingCheckIn] = useState<string>('');
+  const [bookingCheckOut, setBookingCheckOut] = useState<string>('');
+  const [bookingGuests, setBookingGuests] = useState<number>(2);
+  const [bookingDuration, setBookingDuration] = useState<number>(3); // days for short, months for long
+  const [bookingTenantName, setBookingTenantName] = useState<string>('Amin Charafi');
+  const [bookingTenantEmail, setBookingTenantEmail] = useState<string>('amin.charafi@gmail.com');
+  const [bookingSuccessData, setBookingSuccessData] = useState<any | null>(null);
+
+  // New rental listing state (MyHost deployment form)
+  const [newRentTitle, setNewRentTitle] = useState('');
+  const [newRentDesc, setNewRentDesc] = useState('');
+  const [newRentPrice, setNewRentPrice] = useState('');
+  const [newRentType, setNewRentType] = useState<'SHORT' | 'LONG'>('SHORT');
+  const [newRentPropertyType, setNewRentPropertyType] = useState<'APPARTEMENT' | 'VILLA' | 'STUDIO'>('APPARTEMENT');
+  const [newRentDistrict, setNewRentDistrict] = useState('Anfa');
+  const [newRentArea, setNewRentArea] = useState('');
+  const [newRentRooms, setNewRentRooms] = useState('2');
+  const [newRentVerifiedHostFlag, setNewRentVerifiedHostFlag] = useState<boolean>(true);
+
   // Account Roles for Simulation
   // UserGroup1: Promoteurs immobilliers professionnels (ImmoPro Account)
   // UserGroup2: Tous comptes utilisateurs / MarketPlace non-neuf (Limit: 1 listing)
   const [userRole, setUserRole] = useState<'IMMO_PRO' | 'CITIZEN'>('IMMO_PRO');
   const [currentUserListingsCount, setCurrentUserListingsCount] = useState<number>(0);
+  const [currentUserRentalsCount, setCurrentUserRentalsCount] = useState<number>(0);
 
   // Pro promoter profile definition (UserGroup1)
   const proProfile = {
@@ -414,6 +519,87 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
     ces: number; // Coefficient d'emprise au sol
     restrictions: string;
   } | null>(null);
+
+  // Filter state for Rentals / B'n'B
+  const [rentFilter, setRentFilter] = useState<'ALL' | 'SHORT' | 'LONG'>('ALL');
+
+  // Publish dynamic rental to the local feed
+  const handlePublishRental = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRentTitle || !newRentPrice || !newRentArea) {
+      alert("Erreur: Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+
+    // HARD CONDITION verification: 1 rental listing per user account for citizen (anti-spam)
+    if (userRole === 'CITIZEN' && currentUserRentalsCount >= 1) {
+      alert("⚠️ Limitation Résidente Anti-Spam: Dans le cadre des normes de protection d'utilisation MyHost, les comptes citoyens/particuliers sont strictement limités à 1 offre en location active à la fois. Passez en mode Promoteur Professionnel dans l'entête pour bénéficier d'un quota de location pro illimité.");
+      return;
+    }
+
+    const price = parseFloat(newRentPrice);
+    const area = parseFloat(newRentArea);
+    if (isNaN(price) || isNaN(area)) {
+      alert("Erreur: Le prix et la surface doivent être des valeurs numériques.");
+      return;
+    }
+
+    const newOffer: RentalOffer = {
+      id: `rent-custom-${Date.now()}`,
+      title: newRentTitle,
+      description: newRentDesc || "Aucune description supplémentaire fournie.",
+      priceValue: price,
+      type: newRentType,
+      propertyType: newRentPropertyType,
+      district: newRentDistrict,
+      areaSqm: area,
+      rooms: parseInt(newRentRooms),
+      ownerName: userRole === 'IMMO_PRO' ? proProfile.name : citizenProfile.name,
+      ownerContact: userRole === 'IMMO_PRO' ? proProfile.contact : citizenProfile.contact,
+      verifiedMyHost: newRentVerifiedHostFlag
+    };
+
+    setRentalOffers(prev => [newOffer, ...prev]);
+    if (userRole === 'CITIZEN') {
+      setCurrentUserRentalsCount(prev => prev + 1);
+    }
+    alert(`🎉 Succès ! Votre logement a été enregistré avec succès et déployé sur MyHost !\nIl est maintenant disponible à la réservation en direct par nos utilisateurs.`);
+    
+    // Reset state
+    setNewRentTitle('');
+    setNewRentDesc('');
+    setNewRentPrice('');
+    setNewRentArea('');
+  };
+
+  // Confirm booking action
+  const handleConfirmBooking = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRentalForBooking) return;
+    
+    const isShort = selectedRentalForBooking.type === 'SHORT';
+    const totalAmount = selectedRentalForBooking.priceValue * bookingDuration;
+    
+    // Generate a random smart lock PIN
+    const rawPin = Math.floor(1000 + Math.random() * 9000);
+    const pinCode = `*#${rawPin}#`;
+    const resRef = `RES-MH-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    setBookingSuccessData({
+      ref: resRef,
+      propertyTitle: selectedRentalForBooking.title,
+      propertyDistrict: selectedRentalForBooking.district,
+      type: selectedRentalForBooking.type,
+      tenantName: bookingTenantName,
+      tenantEmail: bookingTenantEmail,
+      checkIn: bookingCheckIn || (isShort ? "Aujourd'hui" : "Créneau 1er du mois"),
+      guests: bookingGuests,
+      duration: bookingDuration,
+      totalAmount,
+      pinCode,
+      ownerContact: selectedRentalForBooking.ownerContact
+    });
+  };
 
   // Anti-spam checking rule
   const handleAddProperty = (e: React.FormEvent) => {
@@ -607,6 +793,9 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
               <span className="text-amber-400 font-bold flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5" /> {proProfile.contact}
               </span>
+              <div className="text-[10px] text-gray-500 mt-1">
+                Portefeuille Actif : <span className="text-amber-400 font-bold">Illimité (Multi-bien)</span>
+              </div>
             </div>
           </>
         ) : (
@@ -618,7 +807,7 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="font-mono text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Compte Particulier</span>
-                  <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">1 Annonce Limit</span>
+                  <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">Max 1 annonce / type</span>
                 </div>
                 <h3 className="font-title font-bold text-base text-white">{citizenProfile.name}</h3>
                 <p className="text-xs text-gray-400">Actif sur le forum et la marketplace non-neuf de Casablanca.</p>
@@ -629,8 +818,9 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
               <span className="text-[#a16eff] font-black flex items-center gap-1">
                 <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
               </span>
-              <div className="text-[10px] text-gray-500 mt-1">
-                Annonces actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span>
+              <div className="text-[10px] text-gray-400 mt-1 flex flex-col items-end gap-0.5">
+                <span>Ventes actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span></span>
+                <span>Locations actives : <span className="text-white font-bold">{currentUserRentalsCount} / 1</span></span>
               </div>
             </div>
           </>
@@ -638,17 +828,17 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
       </div>
 
       {/* Main Sub-Tabs Selector inside MyHome */}
-      <div className="flex flex-wrap bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-4xl mx-auto shadow-md mb-6">
+      <div className="flex bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-xl mx-auto shadow-md mb-6">
         <button
-          onClick={() => setMyHomeSubTab('RESIDENCE')}
+          onClick={() => setMyHomeSubTab('IMMO')}
           className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'RESIDENCE' 
+            myHomeSubTab === 'IMMO' 
               ? 'bg-[#a16eff] text-white shadow-lg' 
               : 'text-gray-400 hover:text-white hover:bg-white/5'
           }`}
         >
           <Building className="w-4 h-4" />
-          <span>🔑 Residence</span>
+          <span>🔑 MyImmo</span>
         </button>
         <button
           onClick={() => setMyHomeSubTab('CONCIERGE')}
@@ -659,18 +849,7 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
           }`}
         >
           <Wrench className="w-4 h-4" />
-          <span>🧹 Concierge</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('HOST')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'HOST' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Home className="w-4 h-4" />
-          <span>🏨 Host & MRE</span>
+          <span>🛠️ MyServices</span>
         </button>
         <button
           onClick={() => setMyHomeSubTab('LOCAL')}
@@ -681,25 +860,12 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
           }`}
         >
           <ShoppingBag className="w-4 h-4" />
-          <span>🛒 Local</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('IMMO')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'IMMO' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Building className="w-4 h-4" />
-          <span>🏢 Immo</span>
+          <span>🛒 Showrooms Déco</span>
         </button>
       </div>
 
       {/* Conditional Rendering of MyHome sections */}
-      {myHomeSubTab === 'RESIDENCE' && <ResidenceModule currentLang={currentLang} />}
       {myHomeSubTab === 'CONCIERGE' && <ConciergeModule currentLang={currentLang} />}
-      {myHomeSubTab === 'HOST' && <HostModule currentLang={currentLang} />}
 
       {myHomeSubTab === 'LOCAL' && (
         <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
@@ -850,7 +1016,38 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
       )}
 
       {myHomeSubTab === 'IMMO' && (
-        <div id="myhome-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div id="myimmo-wrapper" className="space-y-6 animate-fade-in">
+          
+          {/* Subtab Selector for Buy vs Rent */}
+          <div className="bg-[#12141c]/80 border border-white/5 p-1 rounded-2xl flex max-w-sm gap-1">
+            <button
+              id="immo-buy-tab-btn"
+              onClick={() => setImmoTab('BUY')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                immoTab === 'BUY'
+                  ? 'bg-gradient-to-r from-emerald-500/10 to-[#a16eff]/20 border border-[#a16eff]/30 text-white shadow shadow-emerald-500/10 font-extrabold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Building className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Achat / Vente Directe</span>
+            </button>
+            <button
+              id="immo-rent-tab-btn"
+              onClick={() => setImmoTab('RENT')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                immoTab === 'RENT'
+                  ? 'bg-gradient-to-r from-purple-500/10 to-[#a16eff]/25 border border-[#a16eff]/30 text-white shadow shadow-purple-500/10 font-extrabold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Home className="w-3.5 h-3.5 text-purple-400" />
+              <span>Location / B'n'B (MyHost)</span>
+            </button>
+          </div>
+
+          {immoTab === 'BUY' ? (
+            <div id="myhome-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Left 2 Cols: Listing Feed and Interactive Search */}
         <div className="xl:col-span-2 space-y-6">
@@ -1512,6 +1709,301 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
         </div>
 
       </div>
+          ) : (
+             <div id="myrent-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in" style={{ direction: 'ltr' }}>
+               
+               {/* Left 2 Cols: Rent Available Feed + Publish via MyHost form */}
+               <div className="xl:col-span-2 space-y-6">
+                 
+                 {/* Search / Filters Panel */}
+                 <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 flex flex-wrap gap-3 items-center">
+                   <div className="relative flex-1 min-w-[160px]">
+                     <Search className="w-4 h-4 text-gray-500 absolute left-3 top-3" />
+                     <input
+                       type="text"
+                       placeholder="Filtrer par quartier (ex: Anfa, Gauthier, Maârif)..."
+                       value={searchDistrict}
+                       onChange={(e) => setSearchDistrict(e.target.value)}
+                       className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#a16eff]"
+                     />
+                   </div>
+
+                   {/* Filter Pills for Short vs Long */}
+                   <div className="flex gap-1">
+                     {[
+                       { id: 'ALL', label: 'Tout voir 📋' },
+                       { id: 'SHORT', label: "🏨 B'n'B / Courte" },
+                       { id: 'LONG', label: '🔑 Longue Durée' }
+                     ].map(pill => (
+                       <button
+                         key={pill.id}
+                         type="button"
+                         onClick={() => setRentFilter(pill.id as any)}
+                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                           rentFilter === pill.id
+                             ? 'bg-purple-600 text-white border-purple-500 shadow font-extrabold'
+                             : 'bg-black/20 text-gray-400 border-white/5 hover:text-white'
+                         }`}
+                       >
+                         {pill.label}
+                       </button>
+                     ))}
+                   </div>
+                 </div>
+
+                 {/* Rental list Cards */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {rentalOffers.filter(offer => {
+                     const matchesDistrict = searchDistrict === '' || offer.district.toLowerCase().includes(searchDistrict.toLowerCase());
+                     const matchesType = rentFilter === 'ALL' || offer.type === rentFilter;
+                     return matchesDistrict && matchesType;
+                   }).map(offer => (
+                     <div
+                       key={offer.id}
+                       className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl relative overflow-hidden group"
+                     >
+                       {/* MyHost Verified Badge */}
+                       <div className="absolute top-4 right-4 flex items-center gap-1">
+                         {offer.verifiedMyHost ? (
+                           <span className="text-[8.5px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black uppercase flex items-center gap-1">
+                             <CheckCircle className="w-2.5 h-2.5 text-emerald-400" /> Compliant MyHost
+                           </span>
+                         ) : (
+                           <span className="text-[8.5px] font-mono bg-amber-500/5 text-amber-500 border border-amber-500/10 px-2 py-0.5 rounded font-bold uppercase">
+                             Particulier Direct
+                           </span>
+                         )}
+                       </div>
+
+                       <div className="space-y-2 mt-2">
+                         <div className="flex items-center gap-1 text-[10.5px] text-gray-400 font-mono">
+                           <MapPin className="w-3.5 h-3.5 text-red-500" />
+                           <span>{offer.district}, Casablanca</span>
+                         </div>
+
+                         <h3 className="font-title font-bold text-sm text-white group-hover:text-[#be8bff] transition-colors pr-10">
+                           {offer.title}
+                         </h3>
+
+                         <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                           {offer.description}
+                         </p>
+
+                         <div className="bg-black/15 p-2.5 rounded-xl border border-white/5 flex justify-between text-[10.5px] text-gray-400 font-mono">
+                           <span>Surface : <b>{offer.areaSqm} m²</b></span>
+                           <span>Pièces : <b>{offer.rooms} {offer.rooms > 1 ? 'Chambres' : 'Chambre'}</b></span>
+                         </div>
+                       </div>
+
+                       {/* Price + Action Button */}
+                       <div className="border-t border-white/5 mt-5 pt-4 flex items-center justify-between">
+                         <div>
+                           <span className="text-[9px] font-mono text-gray-500 block uppercase">Tarif :</span>
+                           <span className="text-sm font-black text-emerald-400 font-mono">
+                             {offer.priceValue.toLocaleString('fr-FR')} MAD 
+                             <span className="text-gray-500 font-normal text-[10px] font-sans">
+                               {offer.type === 'SHORT' ? ' / nuit' : ' / mois'}
+                             </span>
+                           </span>
+                         </div>
+
+                         <button
+                           onClick={() => setSelectedRentalForBooking(offer)}
+                           className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#a16eff] hover:from-purple-600 hover:to-[#be8bff] text-white text-xs font-black font-title rounded-xl transition-all cursor-pointer shadow-md shadow-purple-500/10"
+                         >
+                           🏨 Réserver (Book)
+                         </button>
+                       </div>
+                     </div>
+                   ))}
+                   {rentalOffers.filter(offer => {
+                     const matchesDistrict = searchDistrict === '' || offer.district.toLowerCase().includes(searchDistrict.toLowerCase());
+                     const matchesType = rentFilter === 'ALL' || offer.type === rentFilter;
+                     return matchesDistrict && matchesType;
+                   }).length === 0 && (
+                     <div className="md:col-span-2 text-center py-8 text-gray-500 text-xs font-mono bg-[#161821]/50 border border-white/5 rounded-2xl">
+                       Aucun bien en location ne correspond à votre recherche.
+                     </div>
+                   )}
+                 </div>
+
+                 {/* Form to list my property via MyHost */}
+                 <div id="rent-publish-container" className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-4">
+                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 justify-between">
+                     <div className="flex items-center gap-2">
+                       <Home className="w-5 h-5 text-purple-400" />
+                       <div>
+                         <h4 className="font-title font-bold text-sm text-white">Mettre mon bien en location via MyHost</h4>
+                         <p className="text-[10px] text-gray-400 mt-0.5">Propulsez votre logement en courte ou longue durée avec gestion automatisée.</p>
+                       </div>
+                     </div>
+                     <span className="text-[10px] font-bold font-mono text-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-lg uppercase">MyHost Premium</span>
+                   </div>
+
+                   <form onSubmit={handlePublishRental} className="space-y-3.5 text-xs">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Titre de l'annonce de location *</label>
+                         <input
+                           type="text"
+                           placeholder="Ex: Charmante Suite Gauthier avec Terrasse"
+                           value={newRentTitle}
+                           onChange={(e) => setNewRentTitle(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Quartier</label>
+                         <select
+                           value={newRentDistrict}
+                           onChange={(e) => setNewRentDistrict(e.target.value)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="Anfa">Anfa / Boulevard d'Anfa</option>
+                           <option value="Gauthier">Gauthier / Centre</option>
+                           <option value="Maârif">Maârif Extension</option>
+                           <option value="Bouskoura">Bouskoura Ville Verte</option>
+                           <option value="Bourgogne">Bourgogne</option>
+                         </select>
+                       </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Type de bail *</label>
+                         <select
+                           value={newRentType}
+                           onChange={(e) => setNewRentType(e.target.value as any)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="SHORT">Chambre / B'n'B (Courte)</option>
+                           <option value="LONG">Longue Durée (Mensuel)</option>
+                         </select>
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Loyer estimé (MAD) *</label>
+                         <input
+                           type="number"
+                           placeholder={newRentType === 'SHORT' ? "Ex: 800" : "Ex: 10000"}
+                           value={newRentPrice}
+                           onChange={(e) => setNewRentPrice(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Surface (m²) *</label>
+                         <input
+                           type="number"
+                           placeholder="Ex: 65"
+                           value={newRentArea}
+                           onChange={(e) => setNewRentArea(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Chambres / Pièces</label>
+                         <select
+                           value={newRentRooms}
+                           onChange={(e) => setNewRentRooms(e.target.value)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="1">1 Chambre (Studio)</option>
+                           <option value="2">2 Chambres (F3)</option>
+                           <option value="3">3 Chambres (F4)</option>
+                           <option value="4">4+ Chambres (Grande)</option>
+                         </select>
+                       </div>
+                     </div>
+
+                     <div>
+                       <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Description et équipements</label>
+                       <textarea
+                         placeholder="Quartier calme, climatisé, équipements de cuisine, Smart Lock, parfait état..."
+                         value={newRentDesc}
+                         onChange={(e) => setNewRentDesc(e.target.value)}
+                         rows={2}
+                         className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff] resize-none"
+                       />
+                     </div>
+
+                     <div className="flex items-center pt-2">
+                       <label className="flex items-center gap-2 cursor-pointer text-white text-[11px] font-mono">
+                         <input
+                           type="checkbox"
+                           checked={newRentVerifiedHostFlag}
+                           onChange={(e) => setNewRentVerifiedHostFlag(e.target.checked)}
+                           className="accent-purple-500 w-4 h-4 text-purple-500 border border-white/10"
+                         />
+                         <span>Activer la labellisation et serrure connectée MyHost</span>
+                       </label>
+                     </div>
+
+                     <button
+                       type="submit"
+                       className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-[#a16eff] hover:from-purple-700 hover:to-[#be8bff] text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-purple-500/15"
+                     >
+                       🚀 Mettre en ligne sur MyCity (via MyHost)
+                     </button>
+                   </form>
+                 </div>
+               </div>
+
+               {/* Right 1 Col: MyHost details and statistics */}
+               <div className="space-y-6 col-span-1">
+                 
+                 {/* Why list with MyHost */}
+                 <div className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-4">
+                   <div className="flex items-center gap-2 text-[#a16eff] border-b border-white/5 pb-2.5 bg-gradient-to-r from-transparent to-transparent">
+                     <Sparkles className="w-5 h-5 text-purple-400" />
+                     <h4 className="font-title font-bold text-xs text-white uppercase tracking-wider font-title">Pourquoi louer via MyHost ?</h4>
+                   </div>
+                   <p className="text-gray-400 text-[11px] leading-relaxed font-sans">
+                     MyHost simplifie l'expérience locative des loueurs et voyageurs grâce à la souveraineté numérique locale :
+                   </p>
+
+                   <div className="space-y-3 text-[10px] font-mono">
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><Key className="w-3.5 h-3.5 text-purple-400" /> Auto Check-in intelligent</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Génération automatique de codes à chiffre unique transmis physiquement à la serrure connectée de l'appartement.</p>
+                     </div>
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-emerald-400" /> Déclaration Sécurisée</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Toute réservation transmet automatiquement les identités requises aux autorités locales via API conforme CNDP.</p>
+                     </div>
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5 text-yellow-400" /> Protection des Hôtes</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Garantie contre les pépins physiques et assurance dommage d'un million de dirhams incluse d'office.</p>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Active guest statistics */}
+                 <div className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-3">
+                   <h4 className="text-[10px] uppercase font-mono tracking-wider text-gray-400 border-b border-white/5 pb-2 font-bold font-mono">🎯 Tendances Locatives à Casablanca :</h4>
+                   <div className="grid grid-cols-2 gap-3 text-center font-mono">
+                     <div className="p-3 bg-black/20 border border-white/5 rounded-2xl">
+                       <span className="text-[9px] uppercase text-gray-500 block">Loyer Moyen B'n'B</span>
+                       <strong className="text-xs text-purple-400">820 MAD/nuit</strong>
+                     </div>
+                     <div className="p-3 bg-black/20 border border-white/5 rounded-2xl">
+                       <span className="text-[9px] uppercase text-gray-500 block">Taux de Remplissage</span>
+                       <strong className="text-xs text-emerald-400">81.5 % moyen</strong>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+               
+             </div>
+          )}
+
+        </div>
       )}
 
       {/* Details modal with Map simulation & PIN pointer */}
@@ -1787,6 +2279,197 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'RESIDENCE'
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal for Rentals / B'n'B */}
+      {selectedRentalForBooking && !bookingSuccessData && (
+        <div id="booking-sheet" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/90 backdrop-blur-md animate-fade-in" style={{ direction: 'ltr' }}>
+          <div className="bg-[#161821] border border-[#a16eff]/30 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
+            <div className="flex justify-between items-start border-b border-white/5 pb-3">
+              <div>
+                <span className="font-mono text-[9px] bg-purple-500/15 text-[#be8bff] border border-purple-500/25 px-2 py-0.5 rounded font-black uppercase">
+                  Réservation directe - MyHost
+                </span>
+                <h3 className="font-title font-black text-sm text-white mt-1.5 leading-tight">
+                  {selectedRentalForBooking.title}
+                </h3>
+                <span className="text-[10.5px] text-gray-400 font-mono">Quartier : {selectedRentalForBooking.district}</span>
+              </div>
+              <button
+                onClick={() => setSelectedRentalForBooking(null)}
+                className="p-1 px-2.5 bg-black/40 hover:bg-rose-950/40 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmBooking} className="space-y-4 text-xs text-gray-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Nom Complet du réservataire *</label>
+                  <input
+                    type="text"
+                    value={bookingTenantName}
+                    onChange={(e) => setBookingTenantName(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#a16eff]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Adresse E-mail *</label>
+                  <input
+                    type="email"
+                    value={bookingTenantEmail}
+                    onChange={(e) => setBookingTenantEmail(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#a16eff]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Date d'arrivée *</label>
+                  <input
+                    type="date"
+                    value={bookingCheckIn}
+                    onChange={(e) => setBookingCheckIn(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-1.5 text-white outline-none focus:border-[#a16eff] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Nombre d'invités</label>
+                  <select
+                    value={bookingGuests}
+                    onChange={(e) => setBookingGuests(parseInt(e.target.value))}
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-1.5 text-white outline-none cursor-pointer"
+                  >
+                    <option value="1">1 Personne</option>
+                    <option value="2">2 Personnes</option>
+                    <option value="3">3 Personnes</option>
+                    <option value="4">4+ Personnes</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">
+                    {selectedRentalForBooking.type === 'SHORT' ? 'Nombre de nuits *' : 'Nombre de mois *'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={bookingDuration}
+                    onChange={(e) => setBookingDuration(parseInt(e.target.value) || 1)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-1.5 text-white outline-none focus:border-[#a16eff] font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Price Calculation Widget */}
+              <div className="bg-black/45 p-3 rounded-2xl border border-white/5 space-y-1.5 font-mono">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span>Tarif de base ({selectedRentalForBooking.type === 'SHORT' ? 'par nuit' : 'par mois'}):</span>
+                  <span className="text-white font-bold">{selectedRentalForBooking.priceValue.toLocaleString('fr-FR')} MAD</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] pb-1.5 border-b border-white/5">
+                  <span>Période / Durée :</span>
+                  <span className="text-white font-bold">
+                    {bookingDuration} {selectedRentalForBooking.type === 'SHORT' ? 'nuit(s)' : 'mois'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold font-sans pt-1">
+                  <span className="text-gray-400">Total à régler (TTC) :</span>
+                  <span className="text-emerald-400 font-mono text-sm font-black">
+                    {(selectedRentalForBooking.priceValue * bookingDuration).toLocaleString('fr-FR')} MAD
+                  </span>
+                </div>
+              </div>
+
+              {/* Automated security compliance explanation */}
+              <p className="text-[10px] text-gray-400 leading-normal font-sans italic">
+                🛡️ Transmis via MyHost : Votre identité sera cryptographiquement sécurisée auprès du Conseil de copropriété pour conformité d'accès de nuit (Conforme CNDP).
+              </p>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setSelectedRentalForBooking(null)}
+                  type="button"
+                  className="flex-1 py-2.5 bg-neutral-950 hover:bg-white/5 border border-white/10 text-gray-400 text-xs font-bold rounded-xl cursor-pointer transition-all uppercase tracking-wider font-mono text-center"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-[#a16eff] hover:from-purple-700 hover:to-[#be8bff] text-white text-xs font-black font-title rounded-xl cursor-pointer shadow-lg shadow-purple-500/20 text-center uppercase tracking-wider"
+                >
+                  Confirmer mon séjour 🏨
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Confirmation Receipt Sheet */}
+      {selectedRentalForBooking && bookingSuccessData && (
+        <div id="booking-success-sheet" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/95 backdrop-blur-md animate-fade-in" style={{ direction: 'ltr' }}>
+          <div className="bg-[#161821] border border-emerald-500/30 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl p-6 md:p-8 space-y-4" style={{ backgroundColor: '#161821' }}>
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/35 flex items-center justify-center mx-auto text-emerald-400 text-xl font-bold animate-pulse">
+                ✓
+              </div>
+              <h3 className="font-title font-black text-sm text-white">Réservation confirmée avec MyHost !</h3>
+              <p className="text-[10.5px] text-gray-400">Votre quittance numérique souveraine a été enregistrée avec succès.</p>
+            </div>
+
+            <div className="bg-black/40 p-4 rounded-2xl border border-white/5 space-y-2 text-xs font-mono text-gray-300">
+              <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
+                <span className="text-gray-500">Référence séjour :</span>
+                <span className="text-white font-bold text-[#e1bcff]">{bookingSuccessData.ref}</span>
+              </div>
+              <div className="space-y-0.5 text-[10.5px]">
+                <p className="truncate text-white font-bold">{bookingSuccessData.propertyTitle}</p>
+                <p className="text-gray-400 font-sans">Zone : <b>{bookingSuccessData.propertyDistrict}</b></p>
+                <p className="text-gray-400 font-sans">Voyageur : <b>{bookingSuccessData.tenantName}</b></p>
+                <p className="text-gray-400 font-sans">Durée : <b>{bookingSuccessData.duration} {bookingSuccessData.type === 'SHORT' ? 'nuit(s)' : 'mois'}</b></p>
+                <p className="text-gray-400 font-sans">Date d'arrivée : <b>{bookingSuccessData.checkIn}</b></p>
+              </div>
+              <div className="flex justify-between items-center pt-1.5 border-t border-white/5">
+                <span className="text-gray-500 font-sans">Montant total réglé :</span>
+                <span className="text-emerald-400 font-bold">{bookingSuccessData.totalAmount.toLocaleString('fr-FR')} MAD</span>
+              </div>
+            </div>
+
+            {/* Smart Lock activation indicator */}
+            <div className="bg-[#12141c] p-3 rounded-xl border border-purple-500/25 text-center space-y-2">
+              <span className="font-mono text-[9px] uppercase bg-purple-500/20 text-[#be8bff] border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest">
+                🗝️ Smart Lock Pass MyHost
+              </span>
+              <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
+                Voici le code d'accès de nuit à la serrure connectée de cet appartement, valide dès votre arrivée :
+              </p>
+              <div className="py-2.5 bg-black/50 border border-white/5 rounded-xl text-lg font-black font-mono text-[#be8bff] tracking-wider select-all cursor-pointer">
+                {bookingSuccessData.pinCode}
+              </div>
+              <p className="text-[9px] text-gray-500 italic font-sans leading-tight">
+                Entrez ce code sur le digicode de la poignée de l'appartement. Assistance Voyageur MyCity : +212 522-890010 (24h/24)
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedRentalForBooking(null);
+                setBookingSuccessData(null);
+              }}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-emerald-600/10 text-center uppercase tracking-wider"
+            >
+              Terminer & fermer la quittance
+            </button>
           </div>
         </div>
       )}
