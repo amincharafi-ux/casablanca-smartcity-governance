@@ -256,12 +256,25 @@ const HOME_BUSINESSES: HomeBusiness[] = [
 ];
 
 export default function MyHome({ currentLang = 'FR', defaultSubTab = 'IMMO' }: { currentLang: string; defaultSubTab?: 'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO' }) {
-  // Sub-tab selection for MyHome: CONCIERGE, LOCAL, IMMO
-  const [myHomeSubTab, setMyHomeSubTab] = useState<'CONCIERGE' | 'LOCAL' | 'IMMO'>(
-    defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL' || defaultSubTab === 'IMMO'
-      ? defaultSubTab
+  // Sub-tab selection for MyHome: CONCIERGE, IMMO
+  const [myHomeSubTab, setMyHomeSubTab] = useState<'CONCIERGE' | 'IMMO'>(
+    defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL'
+      ? 'CONCIERGE'
       : 'IMMO'
   );
+
+  const [conciergeTab, setConciergeTab] = useState<'SERVICES' | 'DECO'>(
+    defaultSubTab === 'LOCAL' ? 'DECO' : 'SERVICES'
+  );
+
+  React.useEffect(() => {
+    setMyHomeSubTab(
+      defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL'
+        ? 'CONCIERGE'
+        : 'IMMO'
+    );
+    setConciergeTab(defaultSubTab === 'LOCAL' ? 'DECO' : 'SERVICES');
+  }, [defaultSubTab]);
   const [simPropertyPrice, setSimPropertyPrice] = useState<number>(2000000);
   const [businessSearch, setBusinessSearch] = useState('');
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
@@ -735,283 +748,280 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'IMMO' }: {
     <div id="myhome-container" className="space-y-6">
       
       {/* Simulation Command Center Bar */}
-      <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#a16eff]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
-          <h4 className="text-xs font-bold text-white uppercase mt-0.5">Permuter l'identité de simulation de listing :</h4>
-          <p className="text-[10px] text-gray-400 mt-1">Conforme à la condition stricte anti-spam (Max 1 annonce pour particuliers).</p>
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            id="role-immo-pro-btn"
-            onClick={() => setUserRole('IMMO_PRO')}
-            className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
-              userRole === 'IMMO_PRO'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-md shadow-amber-500/10'
-                : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
-            }`}
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Group 1: ImmoPro (Promoteur)</span>
-          </button>
+      {myHomeSubTab === 'IMMO' && immoTab === 'BUY' && (
+        <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#a16eff]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in">
+          <div>
+            <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
+            <h4 className="text-xs font-bold text-white uppercase mt-0.5">Permuter l'identité de simulation de listing :</h4>
+            <p className="text-[10px] text-gray-400 mt-1">Conforme à la condition stricte anti-spam (Max 1 annonce pour particuliers).</p>
+          </div>
           
-          <button
-            id="role-citizen-btn"
-            onClick={() => setUserRole('CITIZEN')}
-            className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
-              userRole === 'CITIZEN'
-                ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-md'
-                : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Group 2: Particulier (MarketPlace)</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              id="role-immo-pro-btn"
+              onClick={() => setUserRole('IMMO_PRO')}
+              className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
+                userRole === 'IMMO_PRO'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-md shadow-amber-500/10'
+                  : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Group 1: ImmoPro (Promoteur)</span>
+            </button>
+            
+            <button
+              id="role-citizen-btn"
+              onClick={() => setUserRole('CITIZEN')}
+              className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
+                userRole === 'CITIZEN'
+                  ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-md'
+                  : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Group 2: Particulier (MarketPlace)</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header Profile for User Group 1 / User Group 2 */}
-      <div id="myhome-banner-profile" className="bg-[#161821] border border-white/5 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden">
-        {userRole === 'IMMO_PRO' ? (
-          <>
-            <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${proProfile.logoColor} flex items-center justify-center font-title font-black text-xl text-black shadow-lg`}>
-                {proProfile.logoText}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Promoteur Agréé</span>
-                  <span className="font-mono text-[9px] bg-sky-500/10 text-sky-400 border border-sky-500/10 px-2 py-0.5 rounded font-bold uppercase">Loi 31-08 Conforme</span>
+      {myHomeSubTab === 'IMMO' && immoTab === 'BUY' && (
+        <div id="myhome-banner-profile" className="bg-[#161821] border border-white/5 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden animate-fade-in">
+          {userRole === 'IMMO_PRO' ? (
+            <>
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${proProfile.logoColor} flex items-center justify-center font-title font-black text-xl text-black shadow-lg`}>
+                  {proProfile.logoText}
                 </div>
-                <h3 className="font-title font-bold text-base text-white">{proProfile.name}</h3>
-                <p className="text-xs text-gray-400">Directeur de comptes promoteurs : <b>Yasmine Mansouri</b></p>
-              </div>
-            </div>
-            <div className="flex flex-col items-end gap-1 font-mono text-xs">
-              <span className="text-gray-500">Contact d'Agence Immobilière :</span>
-              <span className="text-amber-400 font-bold flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {proProfile.contact}
-              </span>
-              <div className="text-[10px] text-gray-500 mt-1">
-                Portefeuille Actif : <span className="text-amber-400 font-bold">Illimité (Multi-bien)</span>
-              </div>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#a16eff]/10 border border-[#a16eff]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
-                ME
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Compte Particulier</span>
-                  <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">Max 1 annonce / type</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Promoteur Agréé</span>
+                    <span className="font-mono text-[9px] bg-sky-500/10 text-sky-400 border border-sky-500/10 px-2 py-0.5 rounded font-bold uppercase">Loi 31-08 Conforme</span>
+                  </div>
+                  <h3 className="font-title font-bold text-base text-white">{proProfile.name}</h3>
+                  <p className="text-xs text-gray-400">Directeur de comptes promoteurs : <b>Yasmine Mansouri</b></p>
                 </div>
-                <h3 className="font-title font-bold text-base text-white">{citizenProfile.name}</h3>
-                <p className="text-xs text-gray-400">Actif sur le forum et la marketplace non-neuf de Casablanca.</p>
               </div>
-            </div>
-            <div className="flex flex-col items-end gap-1 font-mono text-xs">
-              <span className="text-gray-500">Contact personnel vérifié :</span>
-              <span className="text-[#a16eff] font-black flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
-              </span>
-              <div className="text-[10px] text-gray-400 mt-1 flex flex-col items-end gap-0.5">
-                <span>Ventes actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span></span>
-                <span>Locations actives : <span className="text-white font-bold">{currentUserRentalsCount} / 1</span></span>
+              <div className="flex flex-col items-end gap-1 font-mono text-xs">
+                <span className="text-gray-500">Contact d'Agence Immobilière :</span>
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> {proProfile.contact}
+                </span>
+                <div className="text-[10px] text-gray-500 mt-1">
+                  Portefeuille Actif : <span className="text-amber-400 font-bold">Illimité (Multi-bien)</span>
+                </div>
               </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Main Sub-Tabs Selector inside MyHome */}
-      <div className="flex bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-xl mx-auto shadow-md mb-6">
-        <button
-          onClick={() => setMyHomeSubTab('IMMO')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'IMMO' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Building className="w-4 h-4" />
-          <span>🔑 MyImmo</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('CONCIERGE')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'CONCIERGE' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Wrench className="w-4 h-4" />
-          <span>🛠️ MyServices</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('LOCAL')}
-          className={`flex-1 py-2 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
-            myHomeSubTab === 'LOCAL' 
-              ? 'bg-[#a16eff] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>🛒 Showrooms Déco</span>
-        </button>
-      </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#a16eff]/10 border border-[#a16eff]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
+                  ME
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Compte Particulier</span>
+                    <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">Max 1 annonce / type</span>
+                  </div>
+                  <h3 className="font-title font-bold text-base text-white">{citizenProfile.name}</h3>
+                  <p className="text-xs text-gray-400">Actif sur le forum et la marketplace non-neuf de Casablanca.</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 font-mono text-xs">
+                <span className="text-gray-500">Contact personnel vérifié :</span>
+                <span className="text-[#a16eff] font-black flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
+                </span>
+                <div className="text-[10px] text-gray-400 mt-1 flex flex-col items-end gap-0.5">
+                  <span>Ventes actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span></span>
+                  <span>Locations actives : <span className="text-white font-bold">{currentUserRentalsCount} / 1</span></span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Conditional Rendering of MyHome sections */}
-      {myHomeSubTab === 'CONCIERGE' && <ConciergeModule currentLang={currentLang} />}
+      {myHomeSubTab === 'CONCIERGE' && (
+        <div className="space-y-6">
+          {/* Internal sub-switchers for MyServices */}
+          <div className="flex bg-[#0f111a]/85 border border-white/5 rounded-xl p-1 gap-1 max-w-md mx-auto shadow-inner">
+            <button
+              onClick={() => setConciergeTab('SERVICES')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                conciergeTab === 'SERVICES' 
+                  ? 'bg-gradient-to-r from-[#a16eff] to-[#8d5deb] text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
+              }`}
+            >
+              <span>🛠️</span>
+              <span>Services du Quotidien (Concierge)</span>
+            </button>
+            <button
+              onClick={() => setConciergeTab('DECO')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                conciergeTab === 'DECO' 
+                  ? 'bg-gradient-to-r from-[#a16eff] to-[#8d5deb] text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
+              }`}
+            >
+              <span>🪴</span>
+              <span>Showrooms Déco & Aménagement</span>
+            </button>
+          </div>
 
-      {myHomeSubTab === 'LOCAL' && (
-        <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
-          {/* Header Card for Business Portal */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#a16eff]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
-            <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#a16eff]/15 border border-[#a16eff]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Réseau d'Experts Habitat
+          {conciergeTab === 'SERVICES' ? (
+            <ConciergeModule currentLang={currentLang} />
+          ) : (
+            <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
+              {/* Header Card for Business Portal */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#a16eff]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+                <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#a16eff]/15 border border-[#a16eff]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Réseau d'Experts Habitat
+                    </div>
+                    <h1 className="text-xl md:text-2xl font-black font-title text-white tracking-tight leading-tight mt-1">
+                      🛒 Commerces & Showrooms de la Maison
+                    </h1>
+                    <p className="text-gray-400 text-xs md:text-sm max-w-2xl leading-relaxed">
+                      Trouvez les meilleurs showrooms d'ameublement contemporain, décoration d'art traditionnel, cuisinistes d'élite, pépiniéristes et artisans marbriers à Casablanca, Mohammedia, Bouskoura et Dar Bouazza.
+                    </p>
+                  </div>
                 </div>
-                <h1 className="text-xl md:text-2xl font-black font-title text-white tracking-tight leading-tight mt-1">
-                  🛒 Commerces & Showrooms de la Maison
-                </h1>
-                <p className="text-gray-400 text-xs md:text-sm max-w-2xl leading-relaxed">
-                  Trouvez les meilleurs showrooms d'ameublement contemporain, décoration d'art traditionnel, cuisinistes d'élite, pépiniéristes et artisans marbriers à Casablanca, Mohammedia, Bouskoura et Dar Bouazza.
-                </p>
               </div>
-            </div>
-          </div>
 
-          {/* Search bar + filters for Businesses */}
-          <div className="bg-[#12141c]/80 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center shadow-lg">
-            <div className="relative w-full flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Rechercher canapé, tapis Beni Ouarain, dressing, paysagiste, plâtrier, zellige..."
-                value={businessSearch}
-                onChange={(e) => setBusinessSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#a16eff]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
-                id="business-search-input"
-              />
-            </div>
-
-            {/* City zone selector */}
-            <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-              <Map className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-              <select
-                value={selectedBusinessCity}
-                onChange={(e) => setSelectedBusinessCity(e.target.value)}
-                className="w-full md:w-44 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-xl text-xs font-mono outline-none cursor-pointer"
-              >
-                <option value="ALL">Grand Casablanca (Toutes)</option>
-                <option value="Casablanca">Casablanca Centre</option>
-                <option value="Mohammedia">Mohammedia</option>
-                <option value="Bouskoura">Bouskoura Ville Verte</option>
-                <option value="Dar Bouazza">Dar Bouazza Littoral</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Categories Tab Selector */}
-          <div className="flex flex-wrap gap-2 justify-center border-b border-white/5 pb-4">
-            {[
-              { id: 'ALL', label: 'Tout voir 📋' },
-              { id: 'FURNITURE', label: '🪑 Ameublement & Mobilier' },
-              { id: 'DECO', label: '🪴 Design & Décoration' },
-              { id: 'KITCHEN', label: '🍳 Cuisines & Cuisinistes' },
-              { id: 'GARDENING', label: '🌳 Jardinage & Aménagements' },
-              { id: 'SATELLITES', label: '⚡ Experts & Satellites Domotique' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedBusinessCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                  selectedBusinessCategory === cat.id
-                    ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-lg shadow-[#a16eff]/20'
-                    : 'bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Business Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {HOME_BUSINESSES.filter(biz => {
-              const matchesSearch = biz.name.toLowerCase().includes(businessSearch.toLowerCase()) ||
-                                    biz.description.toLowerCase().includes(businessSearch.toLowerCase()) ||
-                                    biz.tags.some(t => t.toLowerCase().includes(businessSearch.toLowerCase()));
-              const matchesCategory = selectedBusinessCategory === 'ALL' || biz.category === selectedBusinessCategory;
-              const matchesCity = selectedBusinessCity === 'ALL' || biz.cityZone === selectedBusinessCity;
-              return matchesSearch && matchesCategory && matchesCity;
-            }).map(biz => (
-              <div
-                key={biz.id}
-                className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
-              >
-                <div>
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <span className="text-[10px] font-mono uppercase bg-[#a16eff]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#a16eff]/10 font-bold">
-                      {biz.category === 'FURNITURE' && "Ameublement"}
-                      {biz.category === 'DECO' && "Décoration d'Art"}
-                      {biz.category === 'KITCHEN' && "Cuisiniste d'Art"}
-                      {biz.category === 'GARDENING' && "Jardin & Extérieurs"}
-                      {biz.category === 'SATELLITES' && "Artisans & Domotique"}
-                    </span>
-                    <span className="text-yellow-400 font-mono text-xs font-bold">⭐ {biz.rating.toFixed(1)}</span>
-                  </div>
-
-                  <h3 className="font-title font-black text-sm text-white mt-1 group-hover:text-[#9E8BFF] transition-colors">
-                    {biz.name}
-                  </h3>
-
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono mt-2">
-                    <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                    <span><b>[{biz.cityZone}]</b> {biz.address}</span>
-                  </div>
-
-                  <p className="text-gray-400 text-xs mt-3 line-clamp-3 leading-relaxed">
-                    {biz.description}
-                  </p>
-
-                  <div className="mt-3 py-1 bg-black/10 px-2.5 rounded-lg border border-white/5 flex items-center justify-between text-[10.5px] font-mono text-emerald-300">
-                    <span className="text-gray-400 font-sans">Atout-phare :</span>
-                    <span className="font-bold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#9E8BFF] animate-pulse" /> {biz.highlight}
-                    </span>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-1.5 mt-3.5">
-                    {biz.tags.map(tag => (
-                      <span key={tag} className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+              {/* Search bar + filters for Businesses */}
+              <div className="bg-[#12141c]/80 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center shadow-lg">
+                <div className="relative w-full flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher canapé, tapis Beni Ouarain, dressing, paysagiste, plâtrier, zellige..."
+                    value={businessSearch}
+                    onChange={(e) => setBusinessSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#a16eff]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
+                    id="business-search-input"
+                  />
                 </div>
 
-                <div className="border-t border-white/5 mt-5 pt-4 flex gap-2">
-                  <button
-                    onClick={() => setSelectedBusiness(biz)}
-                    className="w-full py-2 bg-[#a16eff]/15 hover:bg-[#a16eff] text-white hover:text-white border border-[#a16eff]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
+                {/* City zone selector */}
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+                  <Map className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                  <select
+                    value={selectedBusinessCity}
+                    onChange={(e) => setSelectedBusinessCity(e.target.value)}
+                    className="w-full md:w-44 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-xl text-xs font-mono outline-none cursor-pointer"
                   >
-                    🤝 Voir Showroom & Services
-                  </button>
+                    <option value="ALL">Grand Casablanca (Toutes)</option>
+                    <option value="Casablanca">Casablanca Centre</option>
+                    <option value="Mohammedia">Mohammedia</option>
+                    <option value="Bouskoura">Bouskoura Ville Verte</option>
+                    <option value="Dar Bouazza">Dar Bouazza Littoral</option>
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Categories Tab Selector */}
+              <div className="flex flex-wrap gap-2 justify-center border-b border-white/5 pb-4">
+                {[
+                  { id: 'ALL', label: 'Tout voir 📋' },
+                  { id: 'FURNITURE', label: '🪑 Ameublement & Mobilier' },
+                  { id: 'DECO', label: '🪴 Design & Décoration' },
+                  { id: 'KITCHEN', label: '🍳 Cuisines & Cuisinistes' },
+                  { id: 'GARDENING', label: '🌳 Jardinage & Aménagements' },
+                  { id: 'SATELLITES', label: '⚡ Experts & Satellites Domotique' }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedBusinessCategory(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      selectedBusinessCategory === cat.id
+                        ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-lg shadow-[#a16eff]/20'
+                        : 'bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Business Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {HOME_BUSINESSES.filter(biz => {
+                  const matchesSearch = biz.name.toLowerCase().includes(businessSearch.toLowerCase()) ||
+                                        biz.description.toLowerCase().includes(businessSearch.toLowerCase()) ||
+                                        biz.tags.some(t => t.toLowerCase().includes(businessSearch.toLowerCase()));
+                  const matchesCategory = selectedBusinessCategory === 'ALL' || biz.category === selectedBusinessCategory;
+                  const matchesCity = selectedBusinessCity === 'ALL' || biz.cityZone === selectedBusinessCity;
+                  return matchesSearch && matchesCategory && matchesCity;
+                }).map(biz => (
+                  <div
+                    key={biz.id}
+                    className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <span className="text-[10px] font-mono uppercase bg-[#a16eff]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#a16eff]/10 font-bold">
+                          {biz.category === 'FURNITURE' && "Ameublement"}
+                          {biz.category === 'DECO' && "Décoration d'Art"}
+                          {biz.category === 'KITCHEN' && "Cuisiniste d'Art"}
+                          {biz.category === 'GARDENING' && "Jardin & Extérieurs"}
+                          {biz.category === 'SATELLITES' && "Artisans & Domotique"}
+                        </span>
+                        <span className="text-yellow-400 font-mono text-xs font-bold">⭐ {biz.rating.toFixed(1)}</span>
+                      </div>
+
+                      <h3 className="font-title font-black text-sm text-white mt-1 group-hover:text-[#9E8BFF] transition-colors">
+                        {biz.name}
+                      </h3>
+
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono mt-2">
+                        <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <span><b>[{biz.cityZone}]</b> {biz.address}</span>
+                      </div>
+
+                      <p className="text-gray-400 text-xs mt-3 line-clamp-3 leading-relaxed">
+                        {biz.description}
+                      </p>
+
+                      <div className="mt-3 py-1 bg-black/10 px-2.5 rounded-lg border border-white/5 flex items-center justify-between text-[10.5px] font-mono text-emerald-300">
+                        <span className="text-gray-400 font-sans">Atout-phare :</span>
+                        <span className="font-bold flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-[#9E8BFF] animate-pulse" /> {biz.highlight}
+                        </span>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-1.5 mt-3.5">
+                        {biz.tags.map(tag => (
+                          <span key={tag} className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-white/5 mt-5 pt-4 flex gap-2">
+                      <button
+                        onClick={() => setSelectedBusiness(biz)}
+                        className="w-full py-2 bg-[#a16eff]/15 hover:bg-[#a16eff] text-white hover:text-white border border-[#a16eff]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
+                      >
+                        🤝 Voir Showroom & Services
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -1837,7 +1847,26 @@ export default function MyHome({ currentLang = 'FR', defaultSubTab = 'IMMO' }: {
                          <p className="text-[10px] text-gray-400 mt-0.5">Propulsez votre logement en courte ou longue durée avec gestion automatisée.</p>
                        </div>
                      </div>
-                     <span className="text-[10px] font-bold font-mono text-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-lg uppercase">MyHost Premium</span>
+                     <div className="flex items-center gap-1.5 flex-wrap">
+                       <span className="text-[10px] font-bold font-mono text-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-lg uppercase">MyHost Premium</span>
+                       {userRole === 'IMMO_PRO' ? (
+                         <span className="text-[10px] font-bold font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg uppercase">
+                           ✨ ImmoPro (Locations Illimitées)
+                         </span>
+                       ) : (
+                         <button
+                           type="button"
+                           onClick={() => {
+                             setUserRole('IMMO_PRO');
+                             alert("✨ Mode Promoteur Professionnel activé ! Vous bénéficiez désormais d'un quota de location court/long terme illimité.");
+                           }}
+                           className="text-[10px] font-bold font-mono bg-[#a16eff]/10 hover:bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/20 px-2 py-0.5 rounded-lg uppercase transition-all cursor-pointer"
+                           title="Passer en compte professionnel pour lever la limite de 1 annonce"
+                         >
+                           👤 Particulier (Max 1) - Activer Pro 🔓
+                         </button>
+                       )}
+                     </div>
                    </div>
 
                    <form onSubmit={handlePublishRental} className="space-y-3.5 text-xs">
