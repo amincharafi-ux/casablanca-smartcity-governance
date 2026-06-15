@@ -1341,7 +1341,7 @@ app.get("/api/admin/db-schema", (req: any, res: any) => {
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
   address TEXT,
-  tenant_id VARCHAR(50) DEFAULT 'casablanca-souverain-tenant',
+  tenant_id UUID REFERENCES tenants(id) DEFAULT 'd4838958-9a55-4b32-b3e3-eb2da451c4c1',
   syndic_id UUID REFERENCES syndics(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );`
@@ -1431,6 +1431,51 @@ app.get("/api/admin/db-schema", (req: any, res: any) => {
   notes TEXT,
   timestamp TIMESTAMPTZ DEFAULT NOW()
 );`
+      },
+      event_store: {
+        name: 'event_store',
+        description: 'Registre d\'Event Sourcing immuable stockant tous les événements d\'activités de la plateforme pour garantir la traçabilité absolue.',
+        rls: 'Active • Lecture restreinte aux auditeurs système et écriture automatique par trigger.',
+        sql: `CREATE TABLE event_store (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  aggregate_id UUID NOT NULL,
+  aggregate_type VARCHAR(50) NOT NULL, -- 'CLAIM', 'CONSENT', 'TRANSACTION'
+  event_type VARCHAR(50) NOT NULL,     -- 'CREATED', 'ASSIGNED', 'RESOLVED'
+  payload JSONB NOT NULL,
+  recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  actor VARCHAR(255) NOT NULL
+);
+CREATE INDEX idx_event_store_aggregate ON event_store(aggregate_id);`
+      },
+      cndp_audit_logs: {
+        name: 'cndp_audit_logs',
+        description: 'Registre de piste d\'audit immuable et Append-Only verrouillé par trigger SQL interdisant toute modification ou suppression d\'historiques de sécurité (Respect strict Loi CNDP 09-08).',
+        rls: 'Active • Lecture réservée au DPO de la Mairie.',
+        sql: `CREATE TABLE cndp_audit_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
+  action_type VARCHAR(50) NOT NULL, -- 'EXCEL_EXPORT', 'DATA_PORTABILITY_REQUEST', 'PURGE'
+  ip_hash VARCHAR(64) NOT NULL,     -- SHA-256 anonymisé de l'IP de l'opérateur
+  user_agent_hash VARCHAR(64) NOT NULL,
+  recorded_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Trigger de protection immuable
+CREATE TRIGGER restrict_audit_mutations
+BEFORE UPDATE OR DELETE ON cndp_audit_logs
+FOR EACH ROW EXECUTE FUNCTION block_audit_log_mutation();`
+      },
+      city_districts: {
+        name: 'city_districts',
+        description: 'Découpage géospatial PostGIS des polygones d\'arrondissements administratifs de la ville pour le ciblage automatique territoriale.',
+        rls: 'Active • Lecture publique, modifications réservées aux administrateurs municipaux.',
+        sql: `CREATE TABLE city_districts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  district_name VARCHAR(100) NOT NULL,
+  manager_id UUID REFERENCES user_profiles(id) ON DELETE SET NULL,
+  geom_polygon GEOMETRY(Polygon, 4326) NOT NULL
+);
+CREATE INDEX idx_city_districts_geom ON city_districts USING GIST(geom_polygon);`
       }
     },
     presetQueries: [
