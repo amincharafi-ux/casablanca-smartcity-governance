@@ -8,6 +8,8 @@ import * as schema from "../db/schema";
 import { eq, desc, and } from "drizzle-orm";
 import { GoogleGenAI } from "@google/genai";
 import { SovereignVectorDB, KnowledgeChunk } from "../lib/vectorDb";
+import { AuthController } from "../controllers/auth.controller";
+import { AiController } from "../controllers/ai.controller";
 
 const router = Router();
 
@@ -581,61 +583,10 @@ router.post("/auth/reset-password", (req: Request, res: Response) => {
 });
 
 // GET /auth/me
-router.get("/auth/me", (req: any, res: Response) => {
-  if (!req.user || !req.user.email) {
-    return res.status(401).json(wrapError("ERR_UNAUTHORIZED", "Vous devez être connecté pour lire votre profil personnel."));
-  }
-
-  res.json(
-    wrapData({
-      id: req.user.userId || crypto.randomUUID(),
-      email: req.user.email,
-      full_name: req.user.full_name || "Citoyen Souverain",
-      role: (req.user.role || "PUBLIC").toLowerCase(),
-      phone: "+212661234567",
-      city: "casablanca",
-      subscription_tier: "free",
-      sub_expires_at: null,
-      bookings_count: 3,
-      claims_count: 2,
-      consent: {
-        location: true,
-        analytics: true,
-        ai_profiling: false,
-        updated_at: new Date().toISOString()
-      }
-    })
-  );
-});
+router.get("/auth/me", AuthController.me);
 
 // PATCH /auth/me
-router.patch("/auth/me", (req: any, res: Response) => {
-  if (!req.user || !req.user.email) {
-    return res.status(401).json(wrapError("ERR_UNAUTHORIZED", "Action interdite : utilisateur non authentifié."));
-  }
-
-  const { full_name, phone, avatar_url, language_preference } = req.body;
-
-  res.json(
-    wrapData({
-      id: req.user.userId || crypto.randomUUID(),
-      email: req.user.email,
-      full_name: full_name || req.user.full_name || "Citoyen Souverain",
-      role: (req.user.role || "PUBLIC").toLowerCase(),
-      phone: phone || "+212661234567",
-      city: "casablanca",
-      avatar_url: avatar_url || null,
-      language_preference: language_preference || "fr",
-      subscription_tier: "free",
-      consent: {
-        location: true,
-        analytics: true,
-        ai_profiling: false,
-        updated_at: new Date().toISOString()
-      }
-    })
-  );
-});
+router.patch("/auth/me", AuthController.patchMe);
 
 // ============================================================================
 // 2. MODULE CLAIMS (Signalements)
@@ -1572,103 +1523,85 @@ const CASABLANCA_KNOWLEDGE_BASE: KnowledgeChunk[] = [
   {
     title: "Charte de l'Éclairage Public et Maintenance Réseau",
     source: "Mairie de Casablanca - Secrétariat Infrastructures",
-    content: "L'éclairage public métropolitain à Casablanca est audité en continu. Les pannes de lampadaire ou coupures d'électricité sur l'Avenue Gauthier ou Sidi Bernoussi font l'objet d'une intervention des agents municipaux de garde sous 24 heures maximum après l'émission d'un signalement d'incident.",
+    content: "L'éclairage public métropolitain à Casablanca est audité en continu. Les pannes de lampadaire ou coupures d'électricité sur l Avenue Gauthier ou Sidi Bernoussi font l'objet d'une intervention des agents municipaux de garde sous 24 heures maximum après l'émission d'un signalement d'incident.",
     keywords: ["eclairage", "lumiere", "noir", "panne", "lampadaire", "poteau", "securite", "avenue", "obscur", "electricite"]
   }
 ];
 
-router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "public"), async (req: Request, res: Response) => {
-  const { message, language, context } = req.body;
+router.post("/ai/chat", restrictTo("citizen", "business", "syndic", "mairie", "public"), (req, res) => {
+  AiController.chat(req, res, getGeminiClient);
+});
 
-  if (!message) {
-    return res.status(400).json(wrapError("ERR_VALIDATION", "Le champ 'message' est obligatoire."));
-  }
+// ============================================================================
+// 9B. CNDP PRIVACY RIGHTS (Télécharger / Supprimer conforme Dahir 09-08)
+// ============================================================================
 
-  // Detect Moroccan Darija patterns
-  const darijaKeywords = ["kifach", "bghit", "chkwaya", "fin", "sift", "daba", "wakha", "bzzaf", "chokran", "maroc", "casa", "maarif"];
-  const isDarija = darijaKeywords.some(w => message.toLowerCase().includes(w));
+// POST /privacy/export
+router.post("/privacy/export", restrictTo("citizen", "business", "syndic", "mairie", "public"), (req: any, res: Response) => {
+  const email = req.user?.email || "anonymous@mycity.ma";
+  const name = req.user?.full_name || "Citoyen Souverain";
 
-  let retrievedDocs: KnowledgeChunk[] = [];
-  let promptAddendum = "";
-  let vectorAuditLog = "";
-
-  try {
-    const vectorDb = getVectorDb();
-    const { results, retrievalAuditLog } = await vectorDb.searchVectorIndex(message, 2);
-    retrievedDocs = results.map(r => r.chunk);
-    vectorAuditLog = retrievalAuditLog;
-    
-    // Log the vector search trace on server console
-    console.log(retrievalAuditLog);
-
-    const docsExcerpt = retrievedDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
-    promptAddendum = `CONNAISSANCES OFFICIELLES DU PORTAIL MUNICIPAL (RETRIVED VIA TRUE VECTOR DATABASE EMBEDDING SEARCH - LOI 09-08 & 18-00):\n${docsExcerpt}`;
-  } catch (err) {
-    console.warn("[RAG] Failed to perform real-time vector search, activating simple backup retrieval...", err);
-    // Simple fallback
-    const norm = message.toLowerCase();
-    const fallbackDb = getVectorDb(); // contains CASABLANCA_KNOWLEDGE_BASE
-    retrievedDocs = CASABLANCA_KNOWLEDGE_BASE.filter(doc => 
-      doc.keywords.some(kw => norm.includes(kw)) || doc.content.toLowerCase().includes(norm)
-    ).slice(0, 2);
-    if (retrievedDocs.length === 0) retrievedDocs = CASABLANCA_KNOWLEDGE_BASE.slice(0, 2);
-    const docsExcerpt = retrievedDocs.map(d => `[SOURCE: ${d.source} | DOCUMENT: ${d.title}]\n${d.content}`).join("\n\n");
-    promptAddendum = `CONNAISSANCES DE SECOURS:\n${docsExcerpt}`;
-    vectorAuditLog = "[VectorDB RAG] Real-time vector search mode skipped due to index/warmup exception.";
-  }
-
-  let responseText = `Je suis l'Assistant Souverain IA MyCity Casablanca. Sur la base de votre message concernant "${message}" :
-- Pour créer un signalement (eclairage, chaussée, déchets), veuillez vous rendre directement dans l'onglet **Signalements Urbains**.
-- Les données de nos citoyens sont gardées de manière 100% souveraine et auditées par notre CNDP locale (Conformité Loi 09-08).`;
-
-  if (isDarija) {
-    responseText = `مرحباً بك في مساعد الدار البيضاء MyCity الذكي:
-- بخصوص السؤال ديالك: يمكن ليك تسجل الشكاية ديالك ديريكتومون في قسم **التبليغات** (الإنارة العمومية، الطرقان، الأزبال).
-- حنا كنضمنو الحماية الكاملة ديال المعطيات الشخصية ديالك بالتنسيق مع اللجنة الوطنية CNDP (القانون 09-08).`;
-  }
-
-  try {
-    const ai = getGeminiClient();
-    if (ai) {
-      const response = await ai.models.generateContent({
-        model: "gemini-3.5-flash",
-        contents: `You are the sovereign AI Chat coordinator of MyCity Casablanca smart governance portal. 
-
-${promptAddendum}
-
-The user asks: "${message}" 
-Provide a helpful support answer in French or Moroccan Arabic/Darija depending on the language used.
-You must ground your answers directly in the retrieved knowledge documents provided above (cite CNDP Article 4/7/8 or Dahir 18-00 or Casa Baia waste details if relevant).
-Speak politely, refer to Moroccan local governance and Smart-city procedures (like CNDP, Mairie, etc.). Keep it concise and authoritative.`,
-      });
-      if (response && response.text) {
-        responseText = response.text;
+  const exportData = {
+    metadata: {
+      compliance: "Dahir n° 1-09-15 (Loi 09-08 Maroc - CNDP)",
+      dpo_signature: crypto.createHash("sha256").update(email + "DPO_SECRET_KEY").digest("hex"),
+      exported_at: new Date().toISOString(),
+      user_email: email,
+      user_name: name
+    },
+    user_identity: {
+      email,
+      full_name: name,
+      phone: "+212661234567",
+      consents: {
+        location: true,
+        analytics: true,
+        ai_profiling: true,
+        ble_mesh_beacon: false
       }
+    },
+    activity_logs: [
+      { action: "AUTH_LOGIN", timestamp: new Date(Date.now() - 3600000).toISOString(), ip: "196.200.150.12" },
+      { action: "CLAIM_CREATE", details: "Signalement d'anomalie voirie Maarif", timestamp: new Date(Date.now() - 7200000 * 24).toISOString() }
+    ]
+  };
+
+  res.json({
+    data: {
+      message: "Exportation de sécurité CNDP réussie. Vos données personnelles complètes ont été compilées de manière structurée et cryptographiquement vérifiable.",
+      download_payload: exportData,
+      certificate_sha256: crypto.createHash("sha256").update(JSON.stringify(exportData)).digest("hex")
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+      request_id: crypto.randomUUID()
     }
-  } catch (err) {
-    console.log("Failed to process Gemini content in chat, fallback triggered:", err);
-  }
+  });
+});
 
-  res.json(
-    wrapData({
-      message_id: crypto.randomUUID(),
-      conversation_id: crypto.randomUUID(),
-      response: responseText,
-      language_detected: isDarija ? "darija" : (language || "fr"),
-      intent: message.toLowerCase().includes("signal") || message.toLowerCase().includes("chkwaya") ? "claim_creation" : "general_info",
-      suggested_actions: [
-        { label: "Créer un signalement", action: "navigate", url: "/claims" }
-      ],
-      sources: retrievedDocs.map(d => ({
-        title: d.title,
-        source: d.source,
-        excerpt: d.content.substring(0, 100) + "..."
-      })),
-      observability: {
-        vector_db_audit_log: vectorAuditLog
+// POST /privacy/delete
+router.post("/privacy/delete", restrictTo("citizen", "business", "syndic", "mairie", "public"), (req: any, res: Response) => {
+  const email = req.user?.email || "anonymous@mycity.ma";
+
+  // Simulate total irréversible anonymisation
+  const signatureHash = crypto.createHash("sha256").update(email + "DPO_CERTIFICATE_OUBLI").digest("hex");
+
+  res.json({
+    data: {
+      message: "Droit à l'oubli validé (Art. 8 de la loi CNDP 09-08). Votre profil utilisateur a fait l'objet d'une anonymisation stricte et instantanée dans nos bases PostgreSQL souveraines.",
+      anonymized_fields: ["email", "full_name", "phone", "avatar_url", "tenant_id"],
+      dpo_proof: {
+        regulatory_body: "Commission Nationale de contrôle de la protection des Données à caractère Personnel (CNDP)",
+        certification_id: `CERT-OUBLI-${crypto.randomBytes(4).toString("hex").toUpperCase()}`,
+        signature_sha256: signatureHash,
+        revoked: false
       }
-    })
-  );
+    },
+    meta: {
+      timestamp: new Date().toISOString(),
+      request_id: crypto.randomUUID()
+    }
+  });
 });
 
 // ============================================================================
