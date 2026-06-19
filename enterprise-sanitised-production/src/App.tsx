@@ -25,6 +25,11 @@ import MyHome from './components/MyHome';
 import HostModule from './components/MyHome/HostModule';
 import MyWorkflowsAndJourneys from './components/MyWorkflowsAndJourneys';
 
+// Sovereign DDD Core Modular Components
+import AICityDispatcher from './components/AICityDispatcher';
+import ObservabilityPanel from './components/ObservabilityPanel';
+import RevenueEngine from './components/RevenueEngine';
+
 // @ts-ignore
 import cityLogo from './assets/images/city_logo_1779750911433-1.png';
 
@@ -126,14 +131,42 @@ export default function App() {
   const [urbanSubTab, setUrbanSubTab] = useState<'CIVIC' | 'ALERT' | 'GOV' | 'DATA'>('DATA');
   const [transverseSubTab, setTransverseSubTab] = useState<'PAY' | 'MANAGER' | 'PARTNER' | 'AI' | 'TRUST' | 'WORKFLOWS'>('WORKFLOWS');
 
+  // Domain Driven Design (DDD) Sovereign OS States
+  const [activeDomain, setActiveDomain] = useState<'CITIZEN' | 'RESIDENCE' | 'COMMERCE' | 'MUNICIPALITY'>('RESIDENCE');
+  const [citizenSubView, setCitizenSubView] = useState<'PROFILE' | 'JOURNEYS'>('PROFILE');
+  const [residenceSubView, setResidenceSubView] = useState<'SYNDIC' | 'HOST' | 'IMMO'>('SYNDIC');
+  const [commerceSubView, setCommerceSubView] = useState<'DECO' | 'SERVICES' | 'MARKETPLACE' | 'REVENUE'>('REVENUE');
+  const [municipalitySubView, setMunicipalitySubView] = useState<'CIVIC' | 'GOV' | 'MAP'>('MAP');
+
+  const selectDomain = (domain: 'CITIZEN' | 'RESIDENCE' | 'COMMERCE' | 'MUNICIPALITY') => {
+    setActiveDomain(domain);
+    handleAddPrivacyLog("DDD Domain Select", `Passage au domaine métier : ${domain} Domain`);
+    if (domain === 'CITIZEN') {
+      setXoviaModule('TRANSVERSE');
+      setTransverseSubTab('WORKFLOWS');
+    } else if (domain === 'RESIDENCE') {
+      setXoviaModule('HOME');
+      setHomeSubTab('RESIDENCE');
+    } else if (domain === 'COMMERCE') {
+      setXoviaModule('LIFE');
+      setLifeSubTab('MARKETPLACE');
+    } else if (domain === 'MUNICIPALITY') {
+      setXoviaModule('URBAN');
+      setUrbanSubTab('DATA');
+    }
+  };
+
   const navigateXovia = (module: 'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE') => {
     setXoviaModule(module);
     if (module === 'HOME') {
       setActiveMainModule('MYHOME');
+      setActiveDomain('RESIDENCE');
     } else if (module === 'LIFE') {
       setActiveMainModule('MYLIFE');
+      setActiveDomain('COMMERCE');
     } else {
       setActiveMainModule('URBAN');
+      setActiveDomain('MUNICIPALITY');
     }
   };
 
@@ -685,209 +718,189 @@ export default function App() {
         </div>
       </div>
       <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pt-2 pb-3">
-        <div className="bg-[#12141c]/90 border border-white/5 p-1.5 rounded-2xl flex flex-col md:flex-row gap-2 shadow-2xl">
-          <div className="flex-1 grid grid-cols-3 gap-1.5">
+        {/* CTO COMPLIANT DOMAIN DRIVEN DESIGN COCKPIT SWITCHER */}
+        <div className="bg-[#12141c]/90 border border-[#a16eff]/20 p-2 rounded-2xl md:p-3 shadow-2xl flex flex-col space-y-3">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/5 pb-2.5 gap-2">
+            <div>
+              <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">TERRITORIAL BUSINESS DOMAINS (DDD)</span>
+              <h2 className="text-xs font-bold text-white uppercase mt-0.5">Souverain Territorial Operating System (OS)</h2>
+            </div>
+            <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-2.5 py-1 rounded border border-white/5 uppercase">Architecture : micro-services & event streams</span>
+          </div>
+
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {/* CITIZEN DOMAIN */}
             <button
-              onClick={() => {
-                navigateXovia('HOME');
-                handleAddPrivacyLog("Xovia Navigate Home", "Sélection du portefeuille XOVIA : MyCity Home (Habitat, syndic, immo).");
-              }}
-              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                xoviaModule === 'HOME'
-                  ? 'bg-gradient-to-br from-[#a16eff] to-[#7c3aed] text-white shadow-lg shadow-[#a16eff]/20 scale-[1.01]'
-                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border border-transparent'
+              onClick={() => selectDomain('CITIZEN')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'CITIZEN'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
               }`}
             >
-              <span className="text-sm">🏠</span>
-              <span>1. MyCity Home</span>
-            </button>
-            
-            <button
-              onClick={() => {
-                navigateXovia('LIFE');
-                handleAddPrivacyLog("Xovia Navigate Life", "Sélection du portefeuille XOVIA : MyCity Life (Commerces, événements, community).");
-              }}
-              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                xoviaModule === 'LIFE'
-                  ? 'bg-gradient-to-br from-[#d4af7a] to-[#b88c4c] text-neutral-950 shadow-lg shadow-[#d4af7a]/20 scale-[1.01]'
-                  : 'text-gray-400 hover:text-white hover:bg-[#d4af7a]/5 border border-transparent'
-              }`}
-            >
-              <span className="text-sm">🌱</span>
-              <span>2. MyCity Life</span>
+              <span className="text-lg">👤</span>
+              <span className="font-bold">Citizen Domain</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Profiles & Consent</span>
             </button>
 
+            {/* RESIDENCE DOMAIN */}
             <button
-              onClick={() => {
-                navigateXovia('URBAN');
-                handleAddPrivacyLog("Xovia Navigate Urban", "Sélection du portefeuille XOVIA : MyCity Urban (Citoyenneté, voirie, alertes).");
-              }}
-              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer ${
-                xoviaModule === 'URBAN'
-                  ? 'bg-gradient-to-br from-[#7dd3fc] to-[#0284c7] text-slate-950 shadow-lg shadow-[#7dd3fc]/20 scale-[1.01]'
-                  : 'text-gray-400 hover:text-white hover:bg-[#7dd3fc]/5 border border-transparent'
+              onClick={() => selectDomain('RESIDENCE')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'RESIDENCE'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
               }`}
             >
-              <span className="text-sm">🏙️</span>
-              <span>3. MyCity Urban</span>
+              <span className="text-lg">🏢</span>
+              <span className="font-bold">Residence Domain</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Co-op & Smart Immo</span>
+            </button>
+
+            {/* COMMERCE DOMAIN */}
+            <button
+              onClick={() => selectDomain('COMMERCE')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'COMMERCE'
+                  ? 'bg-gradient-to-br from-[#a16eff]/20 to-[#a16eff]/5 text-white border-[#a16eff]/60 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">🛍️</span>
+              <span className="font-bold">Commerce Domain</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Market & FinTech</span>
+            </button>
+
+            {/* MUNICIPALITY DOMAIN */}
+            <button
+              onClick={() => selectDomain('MUNICIPALITY')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'MUNICIPALITY'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">🏛️</span>
+              <span className="font-bold">Municipality Domain</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Mairie & Telemetry</span>
             </button>
           </div>
         </div>
 
-        {/* XOVIA SUB-MODULE DYNAMIC NAVIGATION BAR */}
+        {/* SUBTAB BAR WITH NO DUPLICATES (PORTFOLIO ACTIONS) */}
         <div className="mt-3 bg-[#161821]/50 border border-white/5 rounded-xl p-1 flex gap-2 overflow-x-auto scrollbar-none">
-          {xoviaModule === 'HOME' && (
+          {activeDomain === 'CITIZEN' && (
             <>
               <button
-                onClick={() => setHomeSubTab('RESIDENCE')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  homeSubTab === 'RESIDENCE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🏘️ MyResidence / MySyndic
-              </button>
-              <button
-                onClick={() => setHomeSubTab('HOST')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  homeSubTab === 'HOST' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                ✈️ MyHost MRE
-              </button>
-              <button
-                onClick={() => setHomeSubTab('IMMO')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  homeSubTab === 'IMMO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🔑 MyImmo
-              </button>
-              <button
-                onClick={() => setHomeSubTab('SERVICES')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  homeSubTab === 'SERVICES' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🛠️ MyServices
-              </button>
-            </>
-          )}
-
-          {xoviaModule === 'LIFE' && (
-            <>
-              <button
-                onClick={() => setLifeSubTab('EVENTS')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  lifeSubTab === 'EVENTS' ? 'bg-[#d4af7a]/20 text-[#d4af7a] border border-[#d4af7a]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🎭 MyEvents
-              </button>
-              <button
-                onClick={() => setLifeSubTab('MARKETPLACE')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  lifeSubTab === 'MARKETPLACE' ? 'bg-[#d4af7a]/20 text-[#d4af7a] border border-[#d4af7a]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🛒 MyMarketplace
-              </button>
-              <button
-                onClick={() => setLifeSubTab('COMMUNITY')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  lifeSubTab === 'COMMUNITY' ? 'bg-[#d4af7a]/20 text-[#d4af7a] border border-[#d4af7a]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                💬 MyCommunity
-              </button>
-            </>
-          )}
-
-          {xoviaModule === 'URBAN' && (
-            <>
-              <button
-                onClick={() => setUrbanSubTab('CIVIC')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  urbanSubTab === 'CIVIC' ? 'bg-[#4fc3f7]/20 text-[#4fc3f7] border border-[#4fc3f7]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🌿 MyCivic / Signalements
-              </button>
-              <button
-                onClick={() => setUrbanSubTab('ALERT')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  urbanSubTab === 'ALERT' ? 'bg-[#4fc3f7]/20 text-[#4fc3f7] border border-[#4fc3f7]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🚨 MyAlert / Sécurité
-              </button>
-              <button
-                onClick={() => setUrbanSubTab('GOV')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  urbanSubTab === 'GOV' ? 'bg-[#4fc3f7]/20 text-[#4fc3f7] border border-[#4fc3f7]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                🏛️ MyGov / Administration
-              </button>
-              <button
-                onClick={() => setUrbanSubTab('DATA')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  urbanSubTab === 'DATA' ? 'bg-[#4fc3f7]/20 text-[#4fc3f7] border border-[#4fc3f7]/30' : 'text-gray-400 hover:text-white'
-                }`}
-              >
-                📊 MyUrban Data / BI
-              </button>
-            </>
-          )}
-
-          {xoviaModule === 'TRANSVERSE' && (
-            <>
-              <button
-                onClick={() => setTransverseSubTab('WORKFLOWS')}
+                onClick={() => setCitizenSubView('PROFILE')}
                 className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'WORKFLOWS' ? 'bg-purple-650 bg-purple-600 text-white border border-purple-500/50' : 'text-gray-400 hover:text-white'
+                  citizenSubView === 'PROFILE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🔄 Workflows & Parcours
+                👤 Mon Profil & Consentement CNDP
               </button>
               <button
-                onClick={() => setTransverseSubTab('PAY')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'PAY' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setCitizenSubView('JOURNEYS')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  citizenSubView === 'JOURNEYS' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                💰 MyCity Pay
+                🔄 Parcours & Démarches Citoyennes
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'RESIDENCE' && (
+            <>
+              <button
+                onClick={() => setResidenceSubView('SYNDIC')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'SYNDIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🏘️ Copropriété & Syndic Virtuel
               </button>
               <button
-                onClick={() => setTransverseSubTab('MANAGER')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'MANAGER' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setResidenceSubView('HOST')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'HOST' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                ⚙️ MyCity Manager
+                ✈️ MRE Gestion Locative (Host)
               </button>
               <button
-                onClick={() => setTransverseSubTab('PARTNER')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'PARTNER' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setResidenceSubView('IMMO')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'IMMO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🤝 MyCity Partner
+                🔑 Immobilier Direct (MyImmo)
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'COMMERCE' && (
+            <>
+              <button
+                onClick={() => setCommerceSubView('REVENUE')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'REVENUE' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                💰 Fintech Revenue Engine (Monétisation)
               </button>
               <button
-                onClick={() => setTransverseSubTab('AI')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'AI' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setCommerceSubView('DECO')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'DECO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🧠 MyCity AI
+                🪴 Showrooms Déco & Domotique
               </button>
               <button
-                onClick={() => setTransverseSubTab('TRUST')}
-                className={`flex-1 py-1 px-3 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
-                  transverseSubTab === 'TRUST' ? 'bg-emerald-500/25 text-emerald-400 border border-emerald-500/30' : 'text-gray-400 hover:text-white'
+                onClick={() => setCommerceSubView('SERVICES')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'SERVICES' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🛡️ MyCity Trust & Data
+                🛠️ Services de Proximité (Quotidien)
+              </button>
+              <button
+                onClick={() => setCommerceSubView('MARKETPLACE')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'MARKETPLACE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🛒 Marketplace & Événements
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'MUNICIPALITY' && (
+            <>
+              <button
+                onClick={() => setMunicipalitySubView('MAP')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'MAP' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                📊 Télémétrie Urbaine (Map)
+              </button>
+              <button
+                onClick={() => setMunicipalitySubView('CIVIC')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'CIVIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🌿 Bureau des Signalements (MyCivic)
+              </button>
+              <button
+                onClick={() => setMunicipalitySubView('GOV')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'GOV' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                🏛️ Mairie Administration (MyGov)
               </button>
             </>
           )}
@@ -900,76 +913,155 @@ export default function App() {
         {/* LEFT COLUMN: ACTIVE INTERACTIVE CITY MAP OR MYRESIDENCE HUB */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* RENDER MYCITY HOME WORKSPACES */}
-          {xoviaModule === 'HOME' && (
-            <div className="space-y-6">
-              {homeSubTab === 'RESIDENCE' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+          {/* CITIZEN DOMAIN WORKSPACE */}
+          {activeDomain === 'CITIZEN' && (
+            <div className="space-y-6 animate-fade-in">
+              {citizenSubView === 'PROFILE' && (
+                <div className="space-y-6 animate-fade-in text-sans">
+                  {/* Inline Profile Overview Card */}
+                  <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xl">
+                        {currentUser.initials}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">{currentUser.name}</h3>
+                        <p className="text-xs text-gray-400">{"citoyen@casablanca.ma"}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] bg-[#a16eff]/10 text-[#a16eff] font-mono px-2 py-0.5 rounded uppercase font-bold">
+                            {userRole}
+                          </span>
+                          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-mono px-2 py-0.5 rounded font-bold uppercase">
+                            Souveraineté Validée CNDP
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-300 leading-normal">
+                      Votre identité numérique territoriale est cryptographiée et gérée de manière souveraine. Vous pouvez mettre à jour vos consentements et réclamer vos droits CNDP.
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <button
+                        onClick={() => setIsUserDashboardOpen(true)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      >
+                        ⚙️ Ouvrir la Console CNDP & Préférences
+                      </button>
+                      <button
+                        onClick={() => setIsBlueprintOpen(true)}
+                        className="px-4 py-2 bg-[#1b1c26] border border-white/10 hover:bg-white/5 text-gray-300 hover:text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      >
+                        🧬 Consulter le Blueprint d'Architecture
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Active Consent Checklist inline */}
+                  <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
+                    <h3 className="text-xs font-mono text-white/40 uppercase tracking-widest">📋 État d'Assentiment des Données</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center bg-black/20 p-3 rounded-2xl border border-white/5 text-xs">
+                        <div>
+                          <span className="font-bold text-gray-200 block">Géolocalisation Résidentielle</span>
+                          <span className="text-[10px] text-gray-500">Filtrage géospatial national sans tracking continu</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded">ACTIF</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-black/20 p-3 rounded-2xl border border-white/5 text-xs">
+                        <div>
+                          <span className="font-bold text-gray-200 block">IA Sémantique Locale</span>
+                          <span className="text-[10px] text-gray-500">Auto-priorisation et classification des incidents</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded">ACTIF</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {citizenSubView === 'JOURNEYS' && (
+                <MyWorkflowsAndJourneys
+                  currentLang={currentLang}
+                  userRole={userRole}
+                  onAddLog={handleAddPrivacyLog}
+                />
+              )}
+            </div>
+          )}
+
+          {/* RESIDENCE DOMAIN WORKSPACE */}
+          {activeDomain === 'RESIDENCE' && (
+            <div className="space-y-6 animate-fade-in">
+              {residenceSubView === 'SYNDIC' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">PORTFOLIO HOME</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyResidence & MySyndic</h3>
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold pb-0.5">RESIDENCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Copropriété & Syndic Virtuel</h3>
                   </div>
                   <MyResidence currentLang={currentLang} />
                 </div>
               )}
-              {homeSubTab === 'HOST' && (
+
+              {residenceSubView === 'HOST' && (
                 <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
                   <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-2">
                     <div className="flex items-center gap-2">
-                      <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold font-black">PORTFOLIO HOME</span>
-                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyHost MRE</h3>
+                      <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">RESIDENCE DOMAIN</span>
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">MRE Gestion Locative (Host)</h3>
                     </div>
                     <span className="font-mono text-[9px] text-gray-500 uppercase">Gestion Locative Court Terme</span>
                   </div>
                   <HostModule currentLang={currentLang} />
                 </div>
               )}
-              {homeSubTab === 'IMMO' && (
+
+              {residenceSubView === 'IMMO' && (
                 <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">PORTFOLIO HOME</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyImmo</h3>
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">RESIDENCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Immobilier Direct (MyImmo)</h3>
                   </div>
                   <MyHome currentLang={currentLang} defaultSubTab="IMMO" />
-                </div>
-              )}
-              {homeSubTab === 'SERVICES' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">PORTFOLIO HOME</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyServices</h3>
-                  </div>
-                  <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
                 </div>
               )}
             </div>
           )}
 
-          {/* RENDER MYCITY LIFE WORKSPACES */}
-          {xoviaModule === 'LIFE' && (
-            <div className="space-y-6">
-              {lifeSubTab === 'EVENTS' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#d4af7a]/10 text-[#d4af7a] font-mono text-[9px] font-bold">PORTFOLIO LIFE</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyEvents</h3>
+          {/* COMMERCE DOMAIN WORKSPACE */}
+          {activeDomain === 'COMMERCE' && (
+            <div className="space-y-6 animate-fade-in">
+              {commerceSubView === 'REVENUE' && (
+                <RevenueEngine currentLang={currentLang} />
+              )}
+
+              {commerceSubView === 'DECO' && (
+                <div className="bg-[#161821] border border-[#a16eff]/10 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4 font-sans">
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold pb-0.5">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">🪴 Showrooms Déco & Domotique</h3>
                   </div>
-                  <MyLife 
-                    currentLang={currentLang} 
-                    events={events}
-                    defaultLifeTab="AGENDA"
-                    defaultCategoryId={1}
-                    onPostReview={handlePostReview}
-                    onPostLike={handlePostLike}
-                    onSelectEventOnMap={handleSelectEventOnMap}
-                  />
+                  {/* Shows Deco decoration center inside MyServices (which is a sub-module of MyHome concierge listings) */}
+                  <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
                 </div>
               )}
-              {lifeSubTab === 'MARKETPLACE' && (
+
+              {commerceSubView === 'SERVICES' && (
                 <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#d4af7a]/10 text-[#d4af7a] font-mono text-[9px] font-bold">PORTFOLIO LIFE</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyMarketplace / Réservations</h3>
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">🛠️ Services de Proximité (Quotidien)</h3>
+                  </div>
+                  <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
+                </div>
+              )}
+
+              {commerceSubView === 'MARKETPLACE' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-amber-500/10 text-amber-500 font-mono text-[9px] font-bold">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">🛒 Marketplace & Événements</h3>
                   </div>
                   <MyLife 
                     currentLang={currentLang} 
@@ -982,125 +1074,14 @@ export default function App() {
                   />
                 </div>
               )}
-              {lifeSubTab === 'COMMUNITY' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-[#d4af7a]/10 text-[#d4af7a] font-mono text-[9px] font-bold uppercase tracking-widest font-black">PORTFOLIO LIFE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCommunity</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-[#d4af7a] uppercase font-bold tracking-widest bg-[#d4af7a]/10 px-2.5 py-1 rounded">Voisinage Gauthier</span>
-                  </div>
-                  <p className="text-xs text-gray-300">Bienvenue dans l'espace communautaire de Casablanca. Échangez avec vos voisins, partagez des recommandations ou déposez des annonces de copropriété certifiées.</p>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-black/30 p-4 border border-white/5 rounded-2xl space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-black uppercase">RECOMMANDATION</span>
-                        <span className="text-[10px] text-gray-500 font-mono">Il y a 2h</span>
-                      </div>
-                      <h4 className="text-xs font-bold text-white">Recherche d'un bon menuisier à Gauthier</h4>
-                      <p className="text-xs text-gray-400 leading-normal">"Bonjour, je recommande vivement Maâlem Abdelhalim. Il vient de rénover entièrement mes volets en bois à la rue de Rome. Prix juste, ponctuel et travail soigné."</p>
-                      <div className="text-[10px] text-[#d4af7a] font-bold flex items-center gap-1">👤 Par Fatima O. • 👍 12 Likes</div>
-                    </div>
-                    
-                    <div className="bg-black/30 p-4 border border-white/5 rounded-2xl space-y-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[9px] font-mono text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded font-black uppercase">ANNONCE LOCALE</span>
-                        <span className="text-[10px] text-gray-500 font-mono">Il y a 1 jour</span>
-                      </div>
-                      <h4 className="text-xs font-bold text-white">Cours de yoga collectif au Parc de la Ligue Arabe</h4>
-                      <p className="text-xs text-gray-400 leading-normal">"Ce samedi matin à 9h. Amenez votre tapis ! Séance gratuite d'éveil musculaire sous les palmiers. Ouvert à tous les niveaux."</p>
-                      <div className="text-[10px] text-[#d4af7a] font-bold flex items-center gap-1">👤 Par Yassine A. • 👍 24 Likes</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#1b1c26] p-4 rounded-2xl border border-white/5 space-y-3">
-                    <h4 className="text-xs font-bold text-white">Publier une annonce / conseil de voisinage</h4>
-                    <div className="flex gap-2">
-                      <input type="text" placeholder="Qu'avez-vous à partager avec vos voisins ?" className="flex-1 bg-black/40 border border-white/5 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-[#d4af7a]/5" />
-                      <button onClick={() => alert("Votre annonce de voisinage a été cryptographiée et envoyée avec succès sur le réseau local souverain.")} className="px-4 py-2 bg-[#d4af7a] hover:bg-[#c39e6a] text-black font-title font-bold text-xs rounded-xl cursor-pointer">Ajouter</button>
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
-          {/* RENDER MYCITY URBAN WORKSPACES */}
-          {xoviaModule === 'URBAN' && (
-            <div className="space-y-6">
-              {urbanSubTab === 'CIVIC' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">PORTFOLIO URBAN</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyCivic - Signalements Urbains</h3>
-                  </div>
-                  <CitizenPortal claims={claims} onSubmitClaim={handleAddClaim} currentLang={currentLang} />
-                </div>
-              )}
-              {urbanSubTab === 'ALERT' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-[#7dd3fc]/10 text-[#7dd3fc] font-mono text-[9px] font-bold uppercase tracking-widest font-black">PORTFOLIO URBAN</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyAlert</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-red-400 uppercase font-bold tracking-widest bg-red-400/10 px-2.5 py-1 rounded">Alerte Intégrée</span>
-                  </div>
-                  <p className="text-xs text-gray-300">Station d'alertes citoyennes en temps réel pour Casablanca. Suivez les notifications d'urgences, les coupures prévues et les travaux communaux.</p>
-
-                  <div className="space-y-3">
-                    <div className="bg-red-500/5 p-3 rounded-2xl border border-red-500/10 flex items-start gap-3">
-                      <div className="p-2 bg-red-500/10 text-red-500 rounded-xl">⚠️</div>
-                      <div className="text-xs space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-red-400">URGENT</span>
-                          <span className="text-[10px] text-gray-500 font-mono">11/06/2026 à 14:00</span>
-                        </div>
-                        <p className="text-white font-bold leading-none">Coupure d'eau provisoire - Gauthier G2</p>
-                        <p className="text-gray-400 leading-normal mt-0.5">Lydec annonce des travaux de raccordement réseau ce soir de 23:00 à 04:00. Stockage d'eau à prévoir d'urgence.</p>
-                      </div>
-                    </div>
-
-                    <div className="bg-amber-500/5 p-3 rounded-2xl border border-amber-500/10 flex items-start gap-3">
-                      <div className="p-2 bg-amber-500/10 text-amber-500 rounded-xl">🚧</div>
-                      <div className="text-xs space-y-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-bold text-amber-400">TRAVAUX</span>
-                          <span className="text-[10px] text-gray-500 font-mono">Hier à 10:30</span>
-                        </div>
-                        <p className="text-white font-bold leading-none">Rénovation de voirie - Bd de l'Aéropostale</p>
-                        <p className="text-gray-400 leading-normal mt-0.5">Voie de gauche fermée temporairement pour renouvellement de l'enrobé. Prudence recommandée chez tous les usagers.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {urbanSubTab === 'GOV' && (
-                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
-                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold font-black">PORTFOLIO URBAN</span>
-                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-title">MyGov - Espace Municipal</h3>
-                  </div>
-                  <MairiePortal
-                    claims={claims}
-                    pharmacies={INITIAL_PHARMACIES}
-                    hospitals={INITIAL_HOSPITALS}
-                    privacyLogs={privacyLogs}
-                    onUpdateClaimStatus={handleUpdateClaimStatus}
-                    onAddLog={handleAddPrivacyLog}
-                    currentLang={currentLang}
-                    onChangeUserRole={setUserRole}
-                    onChangeActiveModule={setActiveMainModule}
-                    onOpenSqlSpec={() => setIsSqlSpecOpen(true)}
-                    currentUserRole={userRole}
-                  />
-                </div>
-              )}
-              {urbanSubTab === 'DATA' && (
+          {/* MUNICIPALITY DOMAIN WORKSPACE */}
+          {activeDomain === 'MUNICIPALITY' && (
+            <div className="space-y-6 animate-fade-in">
+              {municipalitySubView === 'MAP' && (
                 <div className="space-y-6">
-                  {/* Section Heading */}
                   <div className="flex items-center justify-between">
                     <h2 className="text-xs font-mono text-white/40 uppercase tracking-widest flex items-center gap-2">
                       🗺️ Simulateur de Télémétrie Urbaine
@@ -1119,15 +1100,15 @@ export default function App() {
                     activeCategoryFilter={activeCategoryFilter}
                     onSelectEvent={handleSelectEventOnMap}
                     onSelectMyHome={() => {
-                      navigateXovia('HOME');
-                      handleAddPrivacyLog("Map Navigate Home", "Redirection depuis la carte vers MyHome (Espace immobilier).");
+                      selectDomain('RESIDENCE');
+                      handleAddPrivacyLog("Map Navigate Residence", "Redirection depuis la carte vers Residence Domain (Copropriété).");
                     }}
                     currentLang={currentLang}
                   />
 
                   <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
                     <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
-                      <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">PORTFOLIO URBAN</span>
+                      <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">MUNICIPALITY DOMAIN</span>
                       <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyUrban Data Dashboard</h3>
                     </div>
                     <DataTeamDashboard
@@ -1138,186 +1119,36 @@ export default function App() {
                   </div>
                 </div>
               )}
-            </div>
-          )}
 
-          {/* RENDER XOVIA TRANSVERSE CORE WORKSPACES */}
-          {xoviaModule === 'TRANSVERSE' && (
-            <div className="space-y-6">
-              {transverseSubTab === 'WORKFLOWS' && (
-                <MyWorkflowsAndJourneys
-                  currentLang={currentLang}
-                  userRole={userRole}
-                  onAddLog={handleAddPrivacyLog}
-                />
-              )}
-              {transverseSubTab === 'PAY' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold font-black">TRANSVERSAL CORE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCity Pay</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-[#00ffcc] uppercase font-bold tracking-widest bg-[#00ffcc]/10 px-2.5 py-1 rounded">RÉSEAU SOUVERAIN</span>
+              {municipalitySubView === 'CIVIC' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">MUNICIPALITY DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyCivic - Signalements Urbains</h3>
                   </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">Passerelle de transaction financière anonymisée et sécurisée pour les règlements de charges syndicaux, commissions marketplace, et acomptes de prestations partenaires.</p>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-black/35 p-4 rounded-2xl border border-white/5 text-xs text-left">
-                      <span className="text-[9px] font-mono text-gray-500 uppercase block">Total Transactions Copro</span>
-                      <span className="text-lg font-black text-white font-mono mt-1 block">148,320 MAD</span>
-                    </div>
-                    <div className="bg-black/35 p-4 rounded-2xl border border-[#00ffcc]/15 text-xs text-left">
-                      <span className="text-[9px] font-mono text-[#00ffcc] uppercase block">Assiette Commissions (1.5%)</span>
-                      <span className="text-lg font-black text-[#00ffcc] font-mono mt-1 block">2,224.8 MAD</span>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#1b1c26] p-4 rounded-2xl border border-white/5 space-y-3">
-                    <h4 className="text-xs font-bold text-white">Registre transactions récentes</h4>
-                    <div className="space-y-2 text-[11px] font-mono">
-                      <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
-                        <span className="text-gray-400">#TX-90341 (Charges Syndic Les Jardins)</span>
-                        <span className="text-emerald-400 font-black font-mono">+1,200 MAD</span>
-                      </div>
-                      <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
-                        <span className="text-gray-400">#TX-90339 (Commission Padel Oasis)</span>
-                        <span className="text-emerald-450 font-black text-emerald-400 font-mono">+9.5 MAD</span>
-                      </div>
-                      <div className="flex justify-between items-center bg-black/20 p-2.5 rounded-lg border border-white/5">
-                        <span className="text-gray-400 font-medium text-gray-400">#TX-90338 (Maintenance Plomberie Hassan)</span>
-                        <span className="text-emerald-400 font-black font-mono">+350 MAD</span>
-                      </div>
-                    </div>
-                  </div>
+                  <CitizenPortal claims={claims} onSubmitClaim={handleAddClaim} currentLang={currentLang} />
                 </div>
               )}
-              {transverseSubTab === 'MANAGER' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold font-black">TRANSVERSAL CORE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCity Manager</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-[#00ffcc] uppercase font-bold tracking-widest bg-[#00ffcc]/10 px-2.5 py-1 rounded">ADMIN BACK-OFFICE</span>
-                  </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">Console de supervision interne réservée aux exploitants administratifs, syndics délégués, et modérateurs municipaux de Casablanca.</p>
 
-                  <div className="space-y-3">
-                    <div className="grid grid-cols-3 gap-3 text-center">
-                      <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                        <span className="text-[8px] font-mono text-gray-500 uppercase block">Copropriétés</span>
-                        <span className="text-sm font-black text-white font-mono">14</span>
-                      </div>
-                      <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                        <span className="text-[8px] font-mono text-gray-500 uppercase block">Commerçants</span>
-                        <span className="text-sm font-black text-white font-mono">82</span>
-                      </div>
-                      <div className="bg-black/20 p-3 rounded-xl border border-white/5">
-                        <span className="text-[8px] font-mono text-gray-500 uppercase block">Prestataires</span>
-                        <span className="text-sm font-black text-white font-mono">245</span>
-                      </div>
-                    </div>
-
-                    <div className="bg-[#1b1c26] p-4 rounded-2xl border border-white/5 space-y-2">
-                      <h4 className="text-xs font-bold text-white">Actions d'Exploitant</h4>
-                      <div className="flex flex-col gap-2 pt-1">
-                        <button onClick={() => alert("Tous les syndics inactifs ont reçu une relance automatisée de paiement.")} className="py-2.5 bg-emerald-600 hover:bg-emerald-500 text-neutral-950 transition-colors text-xs font-bold font-title rounded-xl cursor-pointer">
-                          ⚡ Relancer l'ensemble des Impayés Syndicaux
-                        </button>
-                        <button onClick={() => alert("Notification de tempête de sable envoyée à l'intégralité des résidents de Dar Bouazza.")} className="py-2.5 bg-neutral-900 border border-white/10 hover:bg-white/5 text-gray-300 hover:text-white transition-colors text-xs font-bold font-title rounded-xl cursor-pointer">
-                          📡 Diffuser une Alerte Métropolitaine Directe
-                        </button>
-                      </div>
-                    </div>
+              {municipalitySubView === 'GOV' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold font-black">MUNICIPALITY DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-title">MyGov - Espace Municipal</h3>
                   </div>
-                </div>
-              )}
-              {transverseSubTab === 'PARTNER' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold font-black">TRANSVERSAL CORE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCity Partner Space</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-[#00ffcc] uppercase font-bold tracking-widest bg-[#00ffcc]/10 px-2.5 py-1 rounded font-bold">B2B SaaS</span>
-                  </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">Espace partenaire dédié aux PME locales, agences immobilières d'Anfa, prestataires de travaux certifiés, et syndics professionnels de Casablanca.</p>
-
-                  <div className="bg-black/35 p-5 border border-white/5 rounded-2xl space-y-3">
-                    <div className="flex justify-between text-xs border-b border-white/5 pb-2">
-                      <span className="text-gray-400 font-medium">Bannière Publicitaire Promouvoir</span>
-                      <span className="text-emerald-400 font-bold font-mono">Bientôt En Ligne</span>
-                    </div>
-                    <div className="flex justify-between text-xs border-b border-white/5 pb-2">
-                      <span className="text-gray-400 font-medium">Fiches Agences Immobilères</span>
-                      <span className="text-white font-bold font-mono">12 Agréées</span>
-                    </div>
-                    <div className="flex justify-between text-xs pb-1">
-                      <span className="text-gray-400 font-medium">Badge de labellisation MyCity</span>
-                      <span className="text-[#a16eff] font-black font-mono">MyCity Certifié ★</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {transverseSubTab === 'AI' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-pink-500/10 text-pink-400 font-mono text-[9px] font-bold font-black">TRANSVERSAL CORE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCity AI Sémantique</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-pink-300 uppercase font-bold tracking-widest bg-pink-300/10 px-2.5 py-1 rounded">INTELLIGENCE</span>
-                  </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">Algorithmes d'auto-classification et de priorisation. Tri contextuel automatique des réclamations routées vers la communes de Casablanca.</p>
-
-                  <div className="bg-black/35 p-4 rounded-xl border border-white/5 space-y-3">
-                    <h4 className="text-xs font-bold text-white font-title">Simulateur de Classification Sémantique</h4>
-                    <p className="text-[10px] text-gray-400 leading-relaxed">Entrez un signalement citoyen pour simuler son extraction d'entités, attribution de priorité d'urgence et routage d'astreinte automatiques.</p>
-                    
-                    <div className="flex flex-col md:flex-row gap-2 pt-1">
-                      <input id="ai-classification-box" defaultValue="Fuite d'eau abondante qui menace d'inonder le cellier de la copropriété" className="flex-grow bg-black/45 border border-white/10 rounded-xl px-3.5 py-2 text-xs focus:outline-none focus:border-pink-500/50 text-white font-sans" />
-                      <button onClick={() => alert("CLASSIFICATION IA SOUVERAINE :\n\n🏷️ SERVICE : VOIRIE & INCIDENT TECHNIQUE (URGENT)\n🔥 SEVERITÉ : ÉLEVÉE (Fuite d'eau active)\n🤖 ASTREINTE : Envoyer à l'équipe locale de la Lydec Maârif\n📝 ANALYSE : Identification 'Fuite d'eauabondante' & 'Inondation'")} className="px-5 py-2.5 bg-pink-600 hover:bg-pink-500 text-white font-bold font-title text-xs rounded-xl cursor-pointer whitespace-nowrap">
-                        Visualiser Dispatcher IA
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              {transverseSubTab === 'TRUST' && (
-                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                    <div className="space-y-1">
-                      <span className="p-1 px-2.5 rounded bg-emerald-500/10 text-emerald-400 font-mono text-[9px] font-bold font-black">TRANSVERSAL CORE</span>
-                      <h3 className="text-sm font-bold text-white uppercase tracking-wide">MyCity Trust & Data Security</h3>
-                    </div>
-                    <span className="font-mono text-[9px] text-emerald-400 uppercase font-bold tracking-widest bg-emerald-400/10 px-2.5 py-1 rounded">CNDP COMPLIANT</span>
-                  </div>
-                  <p className="text-xs text-gray-300 leading-relaxed">Journal d'audit cryptographique souverain de MyCity. Assure le respect strict du consentement de géolocalisation et le droit d'asphyxie réglementaire des empreintes (loi CNDP 09-08).</p>
-
-                  <div className="bg-black/35 p-5 border border-white/5 rounded-2xl space-y-4 text-left">
-                    <h4 className="text-xs font-bold text-white flex items-center gap-1.5 uppercase">
-                      🔒 Actions Droits à l'Oubli & Consentements loi 09-08
-                    </h4>
-                    <p className="text-[11px] text-gray-400 leading-relaxed">Conformément à la législation nationale sur la protection des données personnelles, l'utilisateur possède à tout moment le droit de révoquer ses consentements granulaires ou de purger instantanément sa session.</p>
-                    <div className="flex flex-wrap gap-2.5 pt-1">
-                      <button 
-                        onClick={() => {
-                          setDbSpecInitialTab('CNDP_COMPLIANCE');
-                          setIsSqlSpecOpen(true);
-                        }} 
-                        className="py-2 px-4 bg-emerald-600 hover:bg-emerald-500 text-neutral-950 transition-all text-xs font-bold font-title rounded-xl cursor-pointer"
-                      >
-                        🔒 Ouvrir le CNDP Compliance Panel
-                      </button>
-                      <button 
-                        onClick={handleClearCitizenData} 
-                        className="py-2 px-4 bg-red-950/40 hover:bg-red-950 border border-red-500/20 hover:border-red-500/60 text-red-200 hover:text-white transition-all text-xs font-bold font-title rounded-xl cursor-pointer"
-                      >
-                        🚨 Activer le Droit à l'Oubli (Effacer tout)
-                      </button>
-                    </div>
-                  </div>
+                  <MairiePortal
+                    claims={claims}
+                    pharmacies={INITIAL_PHARMACIES}
+                    hospitals={INITIAL_HOSPITALS}
+                    privacyLogs={privacyLogs}
+                    onUpdateClaimStatus={handleUpdateClaimStatus}
+                    onAddLog={handleAddPrivacyLog}
+                    currentLang={currentLang}
+                    onChangeUserRole={setUserRole}
+                    onChangeActiveModule={setActiveMainModule}
+                    onOpenSqlSpec={() => setIsSqlSpecOpen(true)}
+                    currentUserRole={userRole}
+                  />
                 </div>
               )}
             </div>
