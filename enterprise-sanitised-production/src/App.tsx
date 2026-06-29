@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Shield, User, Building, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download, Palette } from 'lucide-react';
+import { ShieldCheck, Shield, User, Building, Building2, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download, Palette, Sparkles, DollarSign, X } from 'lucide-react';
 import { UserRole, CityEvent, CitizenClaim, CitizenConsent, CNDPPrivacyLog } from './types';
 import { INITIAL_EVENTS, INITIAL_CLAIMS, INITIAL_PHARMACIES, INITIAL_HOSPITALS } from './data/mockData';
 import { LanguageCode, translations } from './data/translations';
-import { cndpMarkdown, ecosystemMarkdown, ctoAuditReportMarkdown } from './data/downloadCode';
+import { ecosystemMarkdown } from './data/downloadCode';
 
 // Modular Component Imports
 import MapSimulation from './components/MapSimulation';
@@ -18,6 +18,12 @@ import SecurityAuditIntegrale from './components/SecurityAuditIntegrale';
 import UserProfileDashboard from './components/UserProfileDashboard';
 import GithubDataRoom from './components/GithubDataRoom';
 import BrandCharterExplorer from './components/BrandCharterExplorer';
+import DataWarehouseCockpit from './components/DataWarehouseCockpit';
+import FigmaDemoGenerator from './components/FigmaDemoGenerator';
+import StrategicScreensHub from './components/StrategicScreensHub';
+import MySyndicPricingAndCRM from './components/MySyndicPricingAndCRM';
+import DistrictManagerDashboard from './components/DistrictManagerDashboard';
+import SyndicAdminConsole from './components/SyndicAdminConsole';
 
 import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
@@ -122,6 +128,13 @@ export default function App() {
   const [isSecurityAuditOpen, setIsSecurityAuditOpen] = useState(false);
   const [isGithubRoomOpen, setIsGithubRoomOpen] = useState(false);
   const [isBrandCharterOpen, setIsBrandCharterOpen] = useState(false);
+  const [isDataWarehouseOpen, setIsDataWarehouseOpen] = useState(false);
+  const [isFigmaDemoOpen, setIsFigmaDemoOpen] = useState(false);
+  const [isStrategicHubOpen, setIsStrategicHubOpen] = useState(false);
+  const [isMySyndicPricingOpen, setIsMySyndicPricingOpen] = useState(false);
+  const [isMasterDashboardOpen, setIsMasterDashboardOpen] = useState(false);
+  const [fitScale, setFitScale] = useState<'100%' | '90%' | '85%' | '75%'>('85%');
+  const [masterCockpitTab, setMasterCockpitTab] = useState<'BI' | 'DISTRICT' | 'SYNDIC' | 'PRICING'>('BI');
   
   // XOVIA Architecture States
   const [xoviaModule, setXoviaModule] = useState<'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE'>('HOME');
@@ -418,10 +431,11 @@ export default function App() {
   return (
     <div 
       id="main-application-shell" 
-      className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased transition-colors duration-500"
+      className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased transition-colors duration-500 origin-top"
       style={{
         '--portal-color': portalTheme.accentColor,
         '--portal-color-rgb': activeMainModule === 'URBAN' ? '125 211 252' : activeMainModule === 'MYLIFE' ? '212 175 122' : '161 110 255',
+        zoom: fitScale === '100%' ? '1' : fitScale === '90%' ? '0.9' : fitScale === '85%' ? '0.85' : '0.75',
       } as React.CSSProperties}
     >
       
@@ -499,7 +513,28 @@ export default function App() {
         </div>
 
         {/* Right Side: Active User Metadata & Language Switcher */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Fit to Size Simulator Control */}
+          <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-[#00ffcc]/30 gap-1 shrink-0" title="Ajuster le zoom du simulateur (Fit to size)">
+            <span className="text-[9px] font-mono font-bold text-[#00ffcc] px-1.5 hidden md:inline">🔍 Fit:</span>
+            {(['100%', '90%', '85%', '75%'] as const).map((scale) => (
+              <button
+                key={scale}
+                onClick={() => {
+                  setFitScale(scale);
+                  handleAddPrivacyLog("Simulator Zoom Fit", `Zoom simulateur ajusté à : ${scale}`);
+                }}
+                className={`px-1.5 sm:px-2 py-0.5 text-[9px] font-mono font-bold rounded cursor-pointer transition-all ${
+                  fitScale === scale
+                    ? 'bg-[#00ffcc] text-black shadow-sm font-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {scale}
+              </button>
+            ))}
+          </div>
+
           {/* Language Switcher Hub */}
           <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-white/5 gap-1 shrink-0">
             {(['FR', 'EN', 'AR'] as LanguageCode[]).map((lang) => (
@@ -552,8 +587,8 @@ export default function App() {
       {/* STRATEGIC CONTROL CENTER FOR SIMULATING DIFFERENT USER EXPERIENCES */}
       <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pt-6 pb-2">
         <div className="bg-[#161821] border border-white/5 p-4 rounded-[24px] flex flex-col xl:flex-row items-center justify-between gap-4 shadow-xl">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full xl:flex-1">
+            <div className="flex items-center gap-3 shrink-0">
               <div className="p-2 bg-[#6C3CFF]/10 text-[#6C3CFF] rounded-xl border border-[#6C3CFF]/10">
                 <Cpu className="w-5 h-5 animate-spin-slow" />
               </div>
@@ -563,128 +598,106 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto md:ml-4 font-sans">
-              {/* PRIMARY VISULAR TABS / LES ONGLETS DU SIMULATEUR */}
-              <div id="simulator-view-tabs" className="flex items-center gap-1 p-1 bg-[#0b0d14]/80 border border-white/5 rounded-[14px] shrink-0 overflow-x-auto scrollbar-none">
-                <button
-                  id="technical-sql-dashboard-btn"
-                  onClick={() => {
-                    setDbSpecInitialTab('ARCHITECTURE');
-                    setIsSqlSpecOpen(true);
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#4c1d95]/70 hover:bg-[#6C3CFF]/40 border border-[#6C3CFF]/20 hover:border-[#6C3CFF]/50 text-indigo-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir le Tableau des Comptes & Schémas SQL"
-                >
-                  <Database className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{t.sqlSpecBtn}</span>
-                </button>
+            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-8 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+              <button
+                id="security-audit-btn"
+                onClick={() => {
+                  setIsSecurityAuditOpen(true);
+                  handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
+              >
+                <Shield className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span className="truncate">🛡️ Audit Sécurité</span>
+              </button>
 
-                <button
-                  id="blueprint-presentation-btn"
-                  onClick={() => {
-                    setIsBlueprintOpen(true);
-                    handleAddPrivacyLog("Blueprint Presentation", "Utilisateur a ouvert le Blueprint d'écosystème sanitisé.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#1e1b4b]/80 hover:bg-[#1e1b4b]/95 border border-blue-500/20 hover:border-blue-500/50 text-blue-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Présentation du Blueprint Sanitisé"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                  <span>🗺️ Blueprint Écosystème</span>
-                </button>
+              <button
+                id="brand-charter-explorer-btn"
+                onClick={() => {
+                  setIsBrandCharterOpen(true);
+                  handleAddPrivacyLog("Brand Charter Board", "Utilisateur a ouvert la charte graphique officielle de l'app MyCity.");
+                }}
+                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 hover:from-purple-950/70 hover:to-indigo-950/70 border border-purple-500/30 hover:border-[#00ffcc]/60 text-indigo-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Charte Graphique Officielle (Normes, Courriers, Rapports & Correspondances)"
+              >
+                <Palette className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">🎨 Charte & Corresp.</span>
+              </button>
 
-                <button
-                  id="security-audit-btn"
-                  onClick={() => {
-                    setIsSecurityAuditOpen(true);
-                    handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
-                >
-                  <Shield className="w-3.5 h-3.5 text-red-400" />
-                  <span>🛡️ Audit de Sécurité</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsGithubRoomOpen(true);
+                  handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
+                }}
+                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Tech Data Room (GitHub) de MyCity"
+              >
+                <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                <span className="truncate">🐙 GitHub Data Room</span>
+              </button>
 
-                <button
-                  id="cndp-compliance-dashboard-btn"
-                  onClick={() => {
-                    setDbSpecInitialTab('CNDP_COMPLIANCE');
-                    setIsSqlSpecOpen(true);
-                    handleAddPrivacyLog("CNDP Tab Open", "Utilisateur a cliqué sur le bouton de conformité CNDP pour ouvrir l'espace CNDP.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#064e3b]/70 hover:bg-[#10b981]/40 border border-[#10b981]/20 hover:border-[#10b981]/50 text-emerald-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Conformité Réglementaire CNDP"
-                >
-                  <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>🔒 Conformité CNDP</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsDataWarehouseOpen(true);
+                  handleAddPrivacyLog("OLAP Cockpit Open", "Ouverture du Data Warehouse & Cockpit Analytique ClickHouse.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#1c142c] hover:bg-[#a16eff]/30 border border-[#a16eff]/30 hover:border-[#a16eff] text-[#d8b4fe] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir le Cockpit Data Warehouse OLAP (ClickHouse & BigQuery)"
+              >
+                <Database className="w-3.5 h-3.5 text-[#a16eff] animate-pulse shrink-0" />
+                <span className="truncate">📊 Data Warehouse</span>
+              </button>
 
-                <button
-                  id="rag-vector-redis-dashboard-btn"
-                  onClick={() => {
-                    setDbSpecInitialTab('VECTOR_RAG');
-                    setIsSqlSpecOpen(true);
-                    handleAddPrivacyLog("RAG Tab Open", "Utilisateur a ouvert le panneau RAG, pgvector et queues BullMQ/Redis.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-slate-900/90 hover:bg-slate-800 border border-emerald-500/30 hover:border-emerald-500/60 text-emerald-300 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir le panneau Moteur RAG & Files Redis"
-                >
-                  <Cpu className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
-                  <span>🧠 RAG, pgvector & Redis</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsFigmaDemoOpen(true);
+                  handleAddPrivacyLog("Figma Hub Open", "Ouverture du Générateur de Maquettes & Démo Figma.");
+                }}
+                className="shrink-0 min-w-[130px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-pink-950/30 hover:bg-pink-900/40 border border-pink-500/30 hover:border-pink-400 text-pink-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Générer & Télécharger la Démo Maquettes sur FIGMA"
+              >
+                <Palette className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                <span className="truncate">🎨 Démo Figma</span>
+              </button>
 
-                <button
-                  id="brand-charter-explorer-btn"
-                  onClick={() => {
-                    setIsBrandCharterOpen(true);
-                    handleAddPrivacyLog("Brand Charter Board", "Utilisateur a ouvert la charte graphique officielle de l'app MyCity.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 hover:from-purple-950/70 hover:to-indigo-950/70 border border-purple-500/30 hover:border-[#00ffcc]/60 text-indigo-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Charte Graphique Officielle (Normes, Courriers, Rapports & Correspondances)"
-                >
-                  <Palette className="w-3.5 h-3.5 text-[#00ffcc]" />
-                  <span>🎨 Charte & Correspondance</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setIsStrategicHubOpen(true);
+                  handleAddPrivacyLog("Strategic Hub Open", "Ouverture du Showcase des 7 écrans stratégiques intégrés.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-emerald-500/20 hover:from-sky-500/30 hover:to-emerald-500/30 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-[#00ffcc]/10 animate-pulse"
+                title="Ouvrir le Hub Showcase des 7 Pièces Maîtresses et Écrans Stratégiques"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">🚀 Écrans Strat. (8)</span>
+              </button>
 
-              {/* SECONDARY CODE EXPORTS / LES BOUTONS D'EXPORTATION D'CODE */}
-              <div id="simulator-export-actions" className="flex items-center gap-1 p-1 bg-[#0b0d14]/40 border border-white/5 border-dashed rounded-[14px] shrink-0 overflow-x-auto scrollbar-none">
-                <button
-                  onClick={() => {
-                    handleAddPrivacyLog("Download CNDP Code", "Téléchargement du code complet d'intégration CNDP loi 09-08.");
-                    triggerClientDownload(cndpMarkdown, "cndp_integration_codebase.md");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-purple-950/20 hover:bg-purple-950/50 border border-purple-500/20 hover:border-purple-500/60 text-purple-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Télécharger l'intégralité du code CNDP au format MD exportable"
-                >
-                  <Download className="w-3.5 h-3.5 text-purple-400" />
-                  <span>📥 Exp. CNDP (.md)</span>
-                </button>
+              <button
+                id="mysyndic-pricing-crm-btn"
+                onClick={() => {
+                  setIsMySyndicPricingOpen(true);
+                  handleAddPrivacyLog("MySyndic Pricing CRM", "Ouverture de la grille tarifaire Immeubles et du CRM commercial intégré MySyndic.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/40 hover:border-purple-400 text-purple-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-purple-500/10"
+                title="Consulter le Modèle de Pricing MySyndic et le CRM Commercial Intégré"
+              >
+                <DollarSign className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">💎 Pricing & CRM</span>
+              </button>
 
-                <button
-                  onClick={() => {
-                    handleAddPrivacyLog("Download Ecosystem Code", "Téléchargement de l'intégralité du code structuré MyCity.");
-                    triggerClientDownload(ecosystemMarkdown, "mycity_ecosystem_codebase.md");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-indigo-950/20 hover:bg-indigo-950/50 border border-indigo-500/20 hover:border-indigo-500/60 text-indigo-300 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Télécharger l'intégralité du code structuré de l'écosystème MyCity au format MD"
-                >
-                  <Download className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>📥 Exp. Écosystème (.md)</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    setIsGithubRoomOpen(true);
-                    handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
-                  }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 md:px-3 md:py-2 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Tech Data Room (GitHub) de MyCity"
-                >
-                  <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                  <span>🐙 GitHub Data Room</span>
-                </button>
-              </div>
+              <button
+                id="master-dashboard-explorer-btn"
+                onClick={() => {
+                  setIsMasterDashboardOpen(true);
+                  handleAddPrivacyLog("Master Dashboard Open", "Ouverture du Cockpit Executive Dashboard (Fit to size).");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-950/40 via-teal-950/40 to-indigo-950/40 hover:from-emerald-950/70 hover:to-indigo-950/70 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/10 animate-pulse"
+                title="Ouvrir le Cockpit Master Dashboard (Sovereign BI & Arrondissements)"
+              >
+                <Activity className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">📈 Master Dashboard</span>
+              </button>
             </div>
           </div>
 
@@ -695,6 +708,19 @@ export default function App() {
                 id={`global-role-switch-${role}`}
                 onClick={() => {
                   setUserRole(role);
+                  if (role === 'DATA_TEAM') {
+                    setActiveDomain('MUNICIPALITY');
+                    setMunicipalitySubView('MAP');
+                  } else if (role === 'MAIRIE') {
+                    setActiveDomain('MUNICIPALITY');
+                    setMunicipalitySubView('GOV');
+                  } else if (role === 'PARTENAIRES') {
+                    setActiveDomain('COMMERCE');
+                    setCommerceSubView('REVENUE');
+                  } else if (role === 'PUBLIC') {
+                    setActiveDomain('CITIZEN');
+                    setCitizenSubView('PROFILE');
+                  }
                   handleAddPrivacyLog("Role Toggle", `Utilisateur a basculé vers le rôle : ${role}`);
                 }}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
@@ -1252,6 +1278,173 @@ export default function App() {
         onClose={() => setIsBrandCharterOpen(false)}
         onAddLog={handleAddPrivacyLog}
       />
+
+      {/* DATA WAREHOUSE COCKPIT MODAL */}
+      <DataWarehouseCockpit
+        isOpen={isDataWarehouseOpen}
+        onClose={() => setIsDataWarehouseOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+        currentLang={currentLang}
+      />
+
+      {/* FIGMA DEMO GENERATOR MODAL */}
+      <FigmaDemoGenerator
+        isOpen={isFigmaDemoOpen}
+        onClose={() => setIsFigmaDemoOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+        currentLang={currentLang}
+      />
+
+      {/* STRATEGIC SCREENS HUB SHOWCASE MODAL */}
+      <StrategicScreensHub
+        isOpen={isStrategicHubOpen}
+        onClose={() => setIsStrategicHubOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+      />
+
+      {/* MYSYNDIC PRICING & CRM COMMERCIAL MODAL */}
+      <MySyndicPricingAndCRM
+        isOpen={isMySyndicPricingOpen}
+        onClose={() => setIsMySyndicPricingOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+      />
+
+      {/* MASTER EXECUTIVE DASHBOARD COCKPIT MODAL */}
+      {isMasterDashboardOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-[#00ffcc]/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#00ffcc]/10 text-[#00ffcc] rounded-xl border border-[#00ffcc]/20">
+                  <Activity className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    📈 Master Executive Dashboard & Cockpit
+                    <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded uppercase">À jour • Fit to size</span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Supervision Centrale MyCity • Casablanca • Agrégation Séquentielle</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-white/10 gap-1">
+                  <span className="text-[9px] font-mono text-gray-400 px-2 hidden sm:inline">🔍 Zoom Fit:</span>
+                  {(['100%', '90%', '85%', '75%'] as const).map((sc) => (
+                    <button
+                      key={sc}
+                      onClick={() => setFitScale(sc)}
+                      className={`px-2 py-0.5 text-[9px] font-mono font-bold rounded transition-all cursor-pointer ${
+                        fitScale === sc ? 'bg-[#00ffcc] text-black font-black' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {sc}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setIsMasterDashboardOpen(false)}
+                  className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                  title="Fermer le Cockpit"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 py-3 bg-[#12141e] border-b border-white/5 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+              <button
+                onClick={() => setMasterCockpitTab('BI')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'BI' ? 'bg-[#6C3CFF] text-white shadow-lg shadow-[#6c3cff]/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Database className="w-4 h-4 text-sky-300" />
+                1. Sovereign Data & BI Dashboard
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('DISTRICT')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'DISTRICT' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Building className="w-4 h-4 text-blue-300" />
+                2. District Manager KPIs
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('SYNDIC')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'SYNDIC' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Building2 className="w-4 h-4 text-purple-300" />
+                3. Console Admin Syndic
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('PRICING')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'PRICING' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <DollarSign className="w-4 h-4 text-[#00ffcc]" />
+                4. Pricing & CRM Commercial
+              </button>
+              <button
+                onClick={() => {
+                  setIsMasterDashboardOpen(false);
+                  setIsUserDashboardOpen(true);
+                }}
+                className="px-4 py-2 text-xs font-mono font-bold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ml-auto"
+              >
+                <User className="w-4 h-4" />
+                👤 Mon Profil & Portabilité CNDP
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              {masterCockpitTab === 'BI' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">SLA Ingestion PostGIS</span>
+                      <p className="text-xl font-mono font-black text-emerald-400 mt-1">99.98% OK</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">Citoyens Séquencés</span>
+                      <p className="text-xl font-mono font-black text-sky-400 mt-1">4,280 Pings</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">MRR Réseau SaaS</span>
+                      <p className="text-xl font-mono font-black text-[#00ffcc] mt-1">+432,350 MAD</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">Conformité CNDP</span>
+                      <p className="text-xl font-mono font-black text-purple-400 mt-1">Loi 09-08 Certifiée</p>
+                    </div>
+                  </div>
+                  <DataTeamDashboard events={events} onAddLog={handleAddPrivacyLog} currentLang={currentLang} />
+                </div>
+              )}
+              {masterCockpitTab === 'DISTRICT' && (
+                <div className="animate-fade-in">
+                  <DistrictManagerDashboard onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+              {masterCockpitTab === 'SYNDIC' && (
+                <div className="animate-fade-in">
+                  <SyndicAdminConsole onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+              {masterCockpitTab === 'PRICING' && (
+                <div className="animate-fade-in">
+                  <MySyndicPricingAndCRM isStandaloneTab={true} onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* BEAUTIFUL NON-BLOCKING CUSTOM NOTIFICATION TOAST OVERLAY */}
       {activeToast && (
