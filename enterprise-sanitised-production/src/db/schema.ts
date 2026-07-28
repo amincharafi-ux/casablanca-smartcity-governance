@@ -209,6 +209,7 @@ export const flashMessages = pgTable("flash_messages", {
   targetLng: doublePrecision("target_lng"),
   targetRadiusM: integer("target_radius_m").default(1000),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   createdByInstitution: boolean("created_by_institution").default(false),
 });
@@ -261,6 +262,7 @@ export const auditLogs = pgTable("audit_logs", {
   targetType: varchar("target_type", { length: 50 }),
   targetId: uuid("target_id"),
   metadata: jsonb("metadata"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
   timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow(),
 });
 
@@ -287,6 +289,7 @@ export const syndics = pgTable("syndics", {
   status: varchar("status", { length: 20 }).default("ACTIVE"), // ACTIVE, SUSPENDED, EXPIRED
   mandateStart: timestamp("mandate_start", { withTimezone: true }),
   mandateEnd: timestamp("mandate_end", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
 
@@ -589,5 +592,16 @@ export const cityDistricts = pgTable("city_districts", {
     index("idx_city_districts_geom").using("gist", table.geomPolygon),
   ];
 });
+
+// ============================================================================
+// 25. CRYPTO SHREDDING KEY VAULT ENTRIES
+// ============================================================================
+export const keyVaultEntries = pgTable("key_vault_entries", {
+  userId: uuid("user_id").primaryKey().references(() => userProfiles.id, { onDelete: "cascade" }),
+  encryptedDEK: text("encrypted_dek").notNull(),
+  shreddedAt: timestamp("shredded_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
 
 
