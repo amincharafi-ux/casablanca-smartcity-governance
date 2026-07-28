@@ -31,7 +31,6 @@ import {
   ArrowRight
 } from 'lucide-react';
 
-import MyHome from '../MyHome';
 
 // Define TS Interfaces
 interface BuildingGroup {
@@ -126,7 +125,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
   const activeBuilding = buildings.find(b => b.id === activeBuildingId) || buildings[0];
 
   // Tab Selection
-  const [activeTab, setActiveTab] = useState<'FORUM' | 'LAWS' | 'TRADES' | 'BUDGET' | 'ASSISTANT' | 'ADMIN_MOD' | 'MYHOME'>('MYHOME');
+  const [activeTab, setActiveTab] = useState<'FORUM' | 'LAWS' | 'TRADES' | 'BUDGET' | 'ASSISTANT' | 'ADMIN_MOD'>('FORUM');
 
   // Co-ownership verification states for current user
   // This satisfies the /deepthink core requirement to allow authenticating residents through document upload or syndic code
@@ -153,6 +152,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
   const [uploadedDocType, setUploadedDocType] = useState('Facture Lydec');
   const [apartmentNumber, setApartmentNumber] = useState('');
   const [authRoleSelection, setAuthRoleSelection] = useState<'RESIDENT' | 'SYNDIC'>('RESIDENT');
+  const [showAvocatModal, setShowAvocatModal] = useState(false);
 
   // New building registration inputs
   const [showNewBuildingModal, setShowNewBuildingModal] = useState(false);
@@ -676,7 +676,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
       {/* Main Core Section Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-white/5 pb-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="p-3 bg-[#6C3CFF]/10 text-[#6C3CFF] rounded-2xl border border-[#6C3CFF]/20">
+          <div className="p-3 bg-[#a16eff]/10 text-[#a16eff] rounded-2xl border border-[#a16eff]/20">
             <Building className="w-6 h-6 animate-pulse" />
           </div>
           <div>
@@ -694,7 +694,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
             <select
               value={activeBuildingId}
               onChange={(e) => setActiveBuildingId(e.target.value)}
-              className="appearance-none bg-[#1a1d29] border border-white/10 hover:border-[#6C3CFF]/50 text-white text-xs rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#6C3CFF] cursor-pointer"
+              className="appearance-none bg-[#1a1d29] border border-white/10 hover:border-[#a16eff]/50 text-white text-xs rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#a16eff] cursor-pointer"
             >
               {buildings.map(b => (
                 <option key={b.id} value={b.id}>{b.name}</option>
@@ -705,7 +705,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
 
           <button
             onClick={() => setShowNewBuildingModal(true)}
-            className="p-2.5 bg-[#6C3CFF]/20 hover:bg-[#6C3CFF] text-[#6C3CFF] hover:text-white rounded-xl border border-[#6C3CFF]/10 transition-colors cursor-pointer"
+            className="p-2.5 bg-[#a16eff]/20 hover:bg-[#a16eff] text-[#a16eff] hover:text-white rounded-xl border border-[#a16eff]/10 transition-colors cursor-pointer"
             title={tStr.createNewBldGroupBtn}
           >
             <Plus className="w-4 h-4" />
@@ -756,7 +756,6 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
       {/* Internal Navigation tabs mapping */}
       <div className="flex border-b border-white/5 pb-2 mb-6 gap-2 overflow-x-auto scroller-hidden">
         {[
-          { id: 'MYHOME', label: 'MyHome 🏠', icon: Home },
           { id: 'FORUM', label: tStr.tabForum, icon: MessageSquare },
           { id: 'ASSISTANT', label: tStr.tabAssistant, icon: Scale },
           { id: 'LAWS', label: tStr.tabLaws, icon: FileText },
@@ -771,7 +770,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
               onClick={() => setActiveTab(tab.id as any)}
               className={`flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-[#6C3CFF] text-white shadow shadow-[#6C3CFF]/30'
+                  ? 'bg-[#a16eff] text-white shadow shadow-[#a16eff]/30'
                   : 'text-gray-400 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -783,11 +782,6 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
       </div>
 
       {/* RENDER ACTIVE TAB BODY WITH SECURITY GUARDS FOR THE FORUM */}
-
-      {/* TAB MYHOME: REAL ESTATE LISTINGS */}
-      {activeTab === 'MYHOME' && (
-        <MyHome currentLang={currentLang} />
-      )}
 
       {/* TAB 1: GENERAL FORUM */}
       {activeTab === 'FORUM' && (
@@ -811,7 +805,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                   <button
                     type="button"
                     onClick={() => setAuthRoleSelection('RESIDENT')}
-                    className={`p-2 rounded-lg border transition-colors cursor-pointer text-center ${authRoleSelection === 'RESIDENT' ? 'border-[#6C3CFF] bg-[#6C3CFF]/10 text-white' : 'border-white/5 text-gray-400'}`}
+                    className={`p-2 rounded-lg border transition-colors cursor-pointer text-center ${authRoleSelection === 'RESIDENT' ? 'border-[#a16eff] bg-[#a16eff]/10 text-white' : 'border-white/5 text-gray-400'}`}
                   >
                     {tStr.roleResidentOption}
                   </button>
@@ -833,7 +827,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       value={apartmentNumber}
                       onChange={(e) => setApartmentNumber(e.target.value)}
                       required
-                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs"
+                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs"
                     />
                   </div>
 
@@ -844,7 +838,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       placeholder={tStr.codePlaceholder}
                       value={invitedCode}
                       onChange={(e) => setInvitedCode(e.target.value)}
-                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs placeholder:text-gray-600"
+                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs placeholder:text-gray-600"
                     />
                   </div>
 
@@ -857,7 +851,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                     <select
                       value={uploadedDocType}
                       onChange={(e) => setUploadedDocType(e.target.value)}
-                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-2.5 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs mb-2"
+                      className="w-full bg-[#161822] border border-white/10 rounded-lg px-2.5 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs mb-2"
                     >
                       {authRoleSelection === 'RESIDENT' ? (
                         <>
@@ -887,7 +881,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                 <div className="flex gap-2 pt-2">
                   <button
                     type="submit"
-                    className="flex-1 py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/95 text-white text-xs font-bold rounded-lg transition-all cursor-pointer font-title shadow-lg"
+                    className="flex-1 py-2 bg-[#a16eff] hover:bg-[#a16eff]/95 text-white text-xs font-bold rounded-lg transition-all cursor-pointer font-title shadow-lg"
                   >
                     {tStr.submitAccessBtn}
                   </button>
@@ -919,7 +913,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       placeholder={tStr.forumSearchPlaceholder}
                       value={forumSearch}
                       onChange={(e) => setForumSearch(e.target.value)}
-                      className="w-full bg-[#1a1d29] border border-white/5 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#6C3CFF]/70"
+                      className="w-full bg-[#1a1d29] border border-white/5 rounded-xl py-2.5 pl-9 pr-4 text-xs text-white focus:outline-none focus:border-[#a16eff]/70"
                     />
                   </div>
 
@@ -949,7 +943,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                         <div>
                           <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold bg-[#6C3CFF]/10 text-[#6C3CFF] border border-[#6C3CFF]/15">
+                              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded font-bold bg-[#a16eff]/10 text-[#a16eff] border border-[#a16eff]/15">
                                 {post.category}
                               </span>
                               <span className="text-[10px] text-gray-500 font-mono">
@@ -971,7 +965,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                             onClick={() => setActiveCommentPostId(activeCommentPostId === post.id ? null : post.id)}
                             className="text-xs text-gray-400 hover:text-white flex items-center gap-1.5"
                           >
-                            <MessageSquare className="w-3.5 h-3.5 text-[#6C3CFF]" />
+                            <MessageSquare className="w-3.5 h-3.5 text-[#a16eff]" />
                             <span className="font-mono">{post.commentsCount} {post.commentsCount > 1 ? tStr.commentsCountLabelPlural : tStr.commentsCountLabelOne}</span>
                           </button>
 
@@ -998,7 +992,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                                 />
                                 <button
                                   onClick={() => handleCreateComment(post.id)}
-                                  className="p-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/80 text-white rounded-xl transition-all cursor-pointer shadow"
+                                  className="p-2 bg-[#a16eff] hover:bg-[#a16eff]/80 text-white rounded-xl transition-all cursor-pointer shadow"
                                 >
                                   <Send className="w-3.5 h-3.5" />
                                 </button>
@@ -1064,7 +1058,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
 
                   <button
                     type="submit"
-                    className="w-full py-2.5 bg-gradient-to-r from-[#6C3CFF] to-[#ff3c83] text-white text-xs font-bold rounded-xl transition-all hover:opacity-95 shadow cursor-pointer uppercase tracking-wider"
+                    className="w-full py-2.5 bg-gradient-to-r from-[#a16eff] to-[#ff3c83] text-white text-xs font-bold rounded-xl transition-all hover:opacity-95 shadow cursor-pointer uppercase tracking-wider"
                   >
                     {tStr.publishPostBtn}
                   </button>
@@ -1081,7 +1075,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
         <div className="space-y-4">
           <div className="bg-[#1a1d29]/40 border border-white/5 rounded-2xl p-4">
             <div className="flex gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-tr from-purple-500/10 to-indigo-500/10 text-[#6C3CFF] rounded-xl border border-white/5 self-start">
+              <div className="p-2 bg-gradient-to-tr from-purple-500/10 to-indigo-500/10 text-[#a16eff] rounded-xl border border-white/5 self-start">
                 <Scale className="w-5 h-5" />
               </div>
               <div>
@@ -1106,7 +1100,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                         <button
                           key={idx}
                           onClick={() => handleSendChatMessage(q.q)}
-                          className="px-3 py-1.5 bg-[#1a1d29] hover:bg-[#6C3CFF]/15 border border-white/5 text-gray-300 hover:text-white rounded-full text-xs transition-all cursor-pointer shadow font-mono"
+                          className="px-3 py-1.5 bg-[#1a1d29] hover:bg-[#a16eff]/15 border border-white/5 text-gray-300 hover:text-white rounded-full text-xs transition-all cursor-pointer shadow font-mono"
                         >
                           {q.label}
                         </button>
@@ -1118,7 +1112,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                     <div key={idx} className={`flex ${item.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                       <div className={`max-w-[85%] rounded-2xl px-4 py-3 text-xs leading-relaxed ${
                         item.role === 'user' 
-                          ? 'bg-[#6C3CFF] text-white rounded-br-none' 
+                          ? 'bg-[#a16eff] text-white rounded-br-none' 
                           : 'bg-[#1a1d29] border border-white/5 text-gray-200 rounded-bl-none format-markdown whitespace-pre-line'
                       }`}>
                         {item.text}
@@ -1129,7 +1123,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                 {isChatLoading && (
                   <div className="flex justify-start">
                     <div className="bg-[#1a1d29] border border-white/5 rounded-2xl rounded-bl-none px-4 py-3 text-xs text-gray-400 flex items-center gap-2">
-                      <span className="flex h-2 w-2 rounded-full bg-[#6C3CFF] animate-ping"></span>
+                      <span className="flex h-2 w-2 rounded-full bg-[#a16eff] animate-ping"></span>
                       <span>{tStr.aiAssistantConsultingText}</span>
                     </div>
                   </div>
@@ -1144,11 +1138,11 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                   value={chatMessage}
                   onChange={(e) => setChatMessage(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSendChatMessage()}
-                  className="flex-1 bg-[#161822] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#6C3CFF]"
+                  className="flex-1 bg-[#161822] border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-[#a16eff]"
                 />
                 <button
                   onClick={() => handleSendChatMessage()}
-                  className="px-4 py-2.5 bg-[#6C3CFF] hover:bg-[#6C3CFF]/90 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
+                  className="px-4 py-2.5 bg-[#a16eff] hover:bg-[#a16eff]/90 text-white rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center"
                 >
                   <Send className="w-4 h-4" />
                 </button>
@@ -1221,7 +1215,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                   <div key={law.id} className="bg-[#1a1d29]/40 border border-white/5 p-4 rounded-2xl hover:border-white/10 transition-all flex flex-col justify-between">
                     <div>
                       <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
-                        <span className="font-mono text-xs text-[#6C3CFF] uppercase font-bold">{law.source} • {law.article}</span>
+                        <span className="font-mono text-xs text-[#a16eff] uppercase font-bold">{law.source} • {law.article}</span>
                         {law.majorityRequired && (
                           <span className="text-[9px] font-mono bg-indigo-500/10 text-indigo-300 px-2 py-0.5 rounded border border-indigo-500/20">
                             {law.majorityRequired.substring(0, 20)}...
@@ -1267,7 +1261,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
               {/* Steps grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-[#1a1d29]/40 border border-white/5 p-4 rounded-2xl space-y-1.5">
-                  <span className="text-[10px] font-mono font-bold text-[#6C3CFF] uppercase tracking-widest block">Étape 1 • Convocations</span>
+                  <span className="text-[10px] font-mono font-bold text-[#a16eff] uppercase tracking-widest block">Étape 1 • Convocations</span>
                   <h5 className="font-semibold text-xs text-white uppercase">Délai minimum de 15 jours</h5>
                   <p className="text-xs text-gray-400 leading-relaxed">
                     Le syndic en place ou un groupe représentant au moins 10% des parts de l'immeuble doit envoyer les convocations écrites contenant l'ordre du jour au moins 15 jours à l'avance.
@@ -1316,7 +1310,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="checkbox" 
                       checked={electionChecklist.noticeSent} 
                       onChange={(e) => setElectionChecklist(prev => ({ ...prev, noticeSent: e.target.checked }))}
-                      className="mt-0.5 accent-[#6C3CFF]"
+                      className="mt-0.5 accent-[#a16eff]"
                     />
                     <div>
                       <span className="font-bold text-white block">Convocations à J-15</span>
@@ -1329,7 +1323,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="checkbox" 
                       checked={electionChecklist.agendaSet} 
                       onChange={(e) => setElectionChecklist(prev => ({ ...prev, agendaSet: e.target.checked }))}
-                      className="mt-0.5 accent-[#6C3CFF]"
+                      className="mt-0.5 accent-[#a16eff]"
                     />
                     <div>
                       <span className="font-bold text-white block">Ordre du jour formalisé</span>
@@ -1342,7 +1336,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="checkbox" 
                       checked={electionChecklist.quorumMet} 
                       onChange={(e) => setElectionChecklist(prev => ({ ...prev, quorumMet: e.target.checked }))}
-                      className="mt-0.5 accent-[#6C3CFF]"
+                      className="mt-0.5 accent-[#a16eff]"
                     />
                     <div>
                       <span className="font-bold text-white block">Quorum et Majorité validés</span>
@@ -1355,7 +1349,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="checkbox" 
                       checked={electionChecklist.pvDrafted} 
                       onChange={(e) => setElectionChecklist(prev => ({ ...prev, pvDrafted: e.target.checked }))}
-                      className="mt-0.5 accent-[#6C3CFF]"
+                      className="mt-0.5 accent-[#a16eff]"
                     />
                     <div>
                       <span className="font-bold text-white block">Procès-verbal rédigé & signé</span>
@@ -1368,7 +1362,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="checkbox" 
                       checked={electionChecklist.legalizedMoqataa} 
                       onChange={(e) => setElectionChecklist(prev => ({ ...prev, legalizedMoqataa: e.target.checked }))}
-                      className="mt-0.5 accent-[#6C3CFF]"
+                      className="mt-0.5 accent-[#a16eff]"
                     />
                     <div>
                       <span className="font-bold text-white block text-teal-400">🔥 Légalisation administrative (Moqataa locale)</span>
@@ -1410,7 +1404,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="text" 
                       value={pvGenBuildingName} 
                       onChange={(e) => setPvGenBuildingName(e.target.value)}
-                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF]"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#a16eff]"
                     />
                   </div>
                   <div>
@@ -1419,7 +1413,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="text" 
                       value={pvGenCity} 
                       onChange={(e) => setPvGenCity(e.target.value)}
-                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF]"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#a16eff]"
                     />
                   </div>
                   <div>
@@ -1428,7 +1422,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="text" 
                       value={pvGenPresidentName} 
                       onChange={(e) => setPvGenPresidentName(e.target.value)}
-                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF]"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#a16eff]"
                     />
                   </div>
                   <div>
@@ -1437,7 +1431,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       type="date" 
                       value={pvGenDate} 
                       onChange={(e) => setPvGenDate(e.target.value)}
-                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF]"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-xl px-3 py-2 text-white focus:outline-none focus:border-[#a16eff]"
                     />
                   </div>
                 </div>
@@ -1445,7 +1439,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                 <button
                   type="button"
                   onClick={() => setPvGenIsGenerated(true)}
-                  className="w-full py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/80 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow"
+                  className="w-full py-2 bg-[#a16eff] hover:bg-[#a16eff]/80 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 shadow"
                 >
                   <FileText className="w-4 h-4" />
                   Générer le projet de PV Légalisable
@@ -1456,7 +1450,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                     <div className="absolute top-4 right-4 bg-[#1a1d29] px-2 py-1 rounded text-[9px] text-gray-500 uppercase border border-white/5 select-none">MODÈLE OFFICIEL</div>
                     <p className="text-center font-bold text-white">ROYAUME DU MAROC<br />PRÉFECTURE DE {pvGenCity.toUpperCase()}<br />SYNDICAT DES COPROPRIÉTAIRES DE LA COPROPRIÉTÉ : {pvGenBuildingName.toUpperCase()}</p>
                     <p className="text-center">----------------------------------------------------</p>
-                    <p className="font-bold text-[#6C3CFF] text-xs">PROCÈS-VERBAL DE L'ASSEMBLÉE GÉNÉRALE ORDINAIRE</p>
+                    <p className="font-bold text-[#a16eff] text-xs">PROCÈS-VERBAL DE L'ASSEMBLÉE GÉNÉRALE ORDINAIRE</p>
                     <p>En date du <strong>{pvGenDate}</strong>, s'est tenue dans les locaux communs ou hall principal du bâtiment l'Assemblée Générale Ordinaire des copropriétaires de la copropriété <strong>{pvGenBuildingName}</strong>, sise à <strong>{pvGenCity}</strong>.</p>
                     <p>Était représentée par procuration ou présence physique : la majorité qualifiée requise prévue par l'<strong>Article 25 de la Loi 106-12</strong>.</p>
                     <p><strong>RÉSOLUTION N°1 : ÉLECTION DU SYNDIC ET MANDAT DIRECTEUR</strong><br />
@@ -1494,7 +1488,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="bg-[#12141c]/50 border border-white/5 p-4 rounded-xl text-center space-y-2">
-                    <div className="w-8 h-8 rounded-full bg-[#6C3CFF]/10 text-[#6C3CFF] flex items-center justify-center font-mono font-bold text-xs mx-auto">1</div>
+                    <div className="w-8 h-8 rounded-full bg-[#a16eff]/10 text-[#a16eff] flex items-center justify-center font-mono font-bold text-xs mx-auto">1</div>
                     <span className="font-bold text-xs text-white block">Dépôt du PV Moqataa</span>
                     <p className="text-[11px] text-gray-400">Le syndic dépose le scan PDF du Procès-Verbal muni du tampon officiel et des signatures légalisées.</p>
                   </div>
@@ -1551,7 +1545,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                           setPvSimulationSuccess(`CONFORME : PV d'élection de M. ${pvGenPresidentName} légalisé par l'arrondissement communal de Casablanca validated.`);
                         }, 2200);
                       }}
-                      className="w-full py-2.5 bg-gradient-to-r from-[#6C3CFF] to-purple-600 hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
+                      className="w-full py-2.5 bg-gradient-to-r from-[#a16eff] to-purple-600 hover:opacity-90 text-white text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2"
                     >
                       {isSimulatingAuth ? (
                         <div className="flex items-center gap-2 text-xs">
@@ -1626,7 +1620,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                 onClick={() => setActiveTradeFilter(trade)}
                 className={`px-3 py-1.5 rounded-full text-[10px] font-mono font-bold transition-all cursor-pointer whitespace-nowrap ${
                   activeTradeFilter === trade 
-                    ? 'bg-[#6C3CFF]/20 text-white border border-[#6C3CFF]' 
+                    ? 'bg-[#a16eff]/20 text-white border border-[#a16eff]' 
                     : 'bg-[#1a1d29] text-gray-400 hover:text-white border border-white/5'
                 }`}
               >
@@ -1634,6 +1628,140 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
               </button>
             ))}
           </div>
+
+          {/* Institution banner for Avocats if filter is ALL or AVOCAT */}
+          {(activeTradeFilter === 'ALL' || activeTradeFilter === 'AVOCAT') && (
+            <>
+              <div 
+                onClick={() => setShowAvocatModal(true)}
+                className="p-4 bg-indigo-950/40 border border-[#a16eff]/25 rounded-2xl space-y-2 cursor-pointer hover:border-[#a16eff]/60 hover:bg-[#a16eff]/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+                title="Cliquez pour consulter le rôle, les recours en cas de malpratique et les coordonnées"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">🏛️</span>
+                    <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Ordre des Avocats de Casablanca</span>
+                  </div>
+                  <span className="text-[9px] bg-[#a16eff]/30 text-indigo-300 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-[#a16eff] group-hover:text-white transition-colors">
+                    📖 Guide des Droits & Recours
+                  </span>
+                </div>
+                <p className="text-[9.5px] text-indigo-300 leading-normal">
+                  Bâtonnier de Casablanca & Conseil de l'Ordre — Organe représentatif légal répertoriant le tableau officiel des avocats et veillant aux règles d'éthique. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal complet</span>.
+                </p>
+              </div>
+
+              {/* Avocat Detailed Malpractice & Rights Modal */}
+              {showAvocatModal && (
+                <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+                  <div className="bg-[#11131e] border border-indigo-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                    {/* Header */}
+                    <div className="p-6 border-b border-indigo-500/15 flex items-start justify-between bg-indigo-950/20">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">🏛️</span>
+                        <div>
+                          <h3 className="font-title font-bold text-base text-white">Ordre des Avocats de Casablanca</h3>
+                          <p className="text-xs text-indigo-300 font-mono">Bâtonnier de Casablanca & Protection Déontologique</p>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setShowAvocatModal(false)}
+                        className="p-1 px-2.5 bg-indigo-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                      >
+                        ✕ Fermer
+                      </button>
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                      {/* Section 1: Rôle Légal */}
+                      <div className="space-y-2">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>⚖️</span> Rôle Légal & Prérogatives Publiques
+                        </h4>
+                        <p>
+                          Conformément à la <b>Loi n° 28-08</b> régissant la profession d'avocat au Maroc, l'Ordre des Avocats est l'institution régulatrice officielle de la profession de défenseur. Il dresse le tableau officiel des avocats autorisés à plaider à Casablanca, certifie les compétences professionnelles, et s'impose comme garant indéfectible du secret professionnel, du respect des règles déontologiques et de l'accès constitutionnel à la défense pour tous les citoyens.
+                        </p>
+                      </div>
+
+                      {/* Section 2: Protection face aux maladresses / malpratiques */}
+                      <div className="space-y-2">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>🛡️</span> Protection contre les Malpratiques des Praticiens (Abus & Négligences)
+                        </h4>
+                        <p className="mb-2">
+                          L'Ordre des Avocats a mis en place des mécanismes coercitifs et protecteurs pour réparer et arbitrer les cas d'abus :
+                        </p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-indigo-950/20 p-3.5 rounded-xl border border-indigo-500/10">
+                          <div className="space-y-1">
+                            <h5 className="font-bold text-white">💼 Contestation d'Honoraires</h5>
+                            <p className="text-gray-400 text-[10.5px]">En cas de surfacturation ou d'honoraires sans rapport avec les tâches réelles, le Bureau du Bâtonnier est la seule autorité compétente pour recalculer de force le montant équitable et ordonner un remboursement.</p>
+                          </div>
+                          <div className="space-y-1">
+                            <h5 className="font-bold text-white">⚠️ Erreurs de Procédure</h5>
+                            <p className="text-gray-400 text-[10.5px]">Négligence fatale (ex: dépassement d'un délai de recours entraînant la déchéance de vos droits). Le Conseil de l'Ordre mène des enquêtes débouchant sur des sanctions disciplinaires rigoureuses pouvant aller jusqu'à l'exclusion définitive (radiation).</p>
+                          </div>
+                          <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                            <h5 className="font-bold text-white">💰 Abus de Confiance & Détournement</h5>
+                            <p className="text-gray-400 text-[10.5px]">Tout encaissement direct de fonds destinés au client sans passer par la Caisse Spéciale de l'Ordre (Secrétariat des Consignations CARPA) est une infraction grave. L'Ordre intervient pour restituer de plein droit l'argent légitime.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Section 3: Vos Droits & Comment les obtenir */}
+                      <div className="space-y-3">
+                        <h4 className="font-mono text-indigo-400 font-bold uppercase tracking-wider border-b border-indigo-500/10 pb-1 flex items-center gap-1.5">
+                          <span>📋</span> Vos Droits Légitimes & Démarches d'Action (Étape par Étape)
+                        </h4>
+                        <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                          <li>
+                            <b className="text-white">Demander l'état complet du dossier à l'avocat :</b> Vous avez le droit absolu d'obtenir à tout moment l'ensemble des conclusions écrites déposées, les notifications officielles des tribunaux et l'état détaillé de ses démarches.
+                          </li>
+                          <li>
+                            <b className="text-white">Saisine du Bâtonnier (Dépôt de plainte) :</b> Si un avocat manque à ses obligations déontologiques, adressez une lettre recommandée ou déposez contre décharge un pli écrit au secrétariat permanent du Bâtonnier. Mentionnez l'historique détaillé, le nom de l'avocat en cause, sa juridiction d'exercice et l'objet précis du grief.
+                          </li>
+                          <li>
+                            <b className="text-white">La commission d'Assistance Judiciaire :</b> Si vous êtes confronté à un avocat indélicat dans une cause vitale et sans ressources matérielles, l'Ordre vous garantit la désignation immédiate et gratuite d'un avocat d'office pour sauvegarder vos intérêts.
+                          </li>
+                          <li>
+                            <b className="text-white">Voie d'Appel des Arbitrages :</b> Si la décision du Bâtonnier concernant des honoraires ou un différend déontologique ne vous satisfait pas, la législation vous attribue un délai de 15 jours francs pour faire appel devant la cour d'appel locale.
+                          </li>
+                        </ol>
+                      </div>
+
+                      {/* Section 4: Contact Officiel */}
+                      <div className="space-y-3 bg-[#11131e] border border-[#a16eff]/15 p-4 rounded-2xl">
+                        <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                          <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                          <div>
+                            <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">Maison de l'Avocat, Boulevard Moulay Youssef (à côté de la Cour d'Appel), Casablanca, Maroc</span></p>
+                            <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-indigo-400">contact@barreau-casablanca.ma</span></p>
+                          </div>
+                          <div>
+                            <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-26 23 04</span></p>
+                            <p><span className="text-gray-500">📠 Copieur / Fax :</span> <span className="text-gray-400 font-sans">+212 (0) 522-22 40 55</span></p>
+                            <p className="mt-1"><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 08:30 - 16:30</span></p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Footer */}
+                    <div className="p-4 bg-indigo-950/20 border-t border-indigo-500/15 flex justify-end">
+                      <button 
+                        onClick={() => setShowAvocatModal(false)}
+                        className="px-5 py-2 bg-[#a16eff] hover:bg-[#5329df] text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-indigo-500/10"
+                      >
+                        J'ai bien compris mes droits
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {filteredTrades.map(t => (
@@ -1648,7 +1776,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                   <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest">{t.trade}</div>
                   <h5 className="font-semibold text-xs text-white">{t.name}</h5>
                   <p className="text-[11px] text-gray-400 font-mono">{t.company}</p>
-                  <p className="text-[11px] text-[#6C3CFF] font-sans font-bold">{t.recentCostRange}</p>
+                  <p className="text-[11px] text-[#a16eff] font-sans font-bold">{t.recentCostRange}</p>
 
                   <div className="flex items-center gap-1.5 text-[11px]">
                     <span className="text-yellow-400">★ {t.rating}</span>
@@ -1675,7 +1803,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                     </button>
                     <a
                       href={`tel:${t.contact.replace(/\s+/g, '')}`}
-                      className="px-2.5 py-1.5 bg-[#6C3CFF]/10 text-[#6C3CFF] hover:bg-[#6C3CFF] hover:text-white transition-all rounded-xl text-[10px] font-bold font-mono text-center flex items-center justify-center gap-1 cursor-pointer border border-[#6C3CFF]/20"
+                      className="px-2.5 py-1.5 bg-[#a16eff]/10 text-[#a16eff] hover:bg-[#a16eff] hover:text-white transition-all rounded-xl text-[10px] font-bold font-mono text-center flex items-center justify-center gap-1 cursor-pointer border border-[#a16eff]/20"
                     >
                       📞 {tStr.callBtn}
                     </a>
@@ -1787,8 +1915,8 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
               </div>
 
               {/* Reserve Warning according to Loi 106-12 Article 36 */}
-              <div className="bg-[#1a1d29]/40 border border-[#6C3CFF]/20 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-gray-400">
-                <FileCheck className="w-5 h-5 text-[#6C3CFF] shrink-0" />
+              <div className="bg-[#1a1d29]/40 border border-[#a16eff]/20 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-gray-400">
+                <FileCheck className="w-5 h-5 text-[#a16eff] shrink-0" />
                 <div>
                   <span className="font-bold text-white block mb-0.5">{tStr.reserveFundTitle}</span>
                   {tStr.reserveFundPrefix} <b className="text-white">{reserveFundEstimate.toLocaleString('fr-FR')} MAD</b> {tStr.reserveFundSuffix}
@@ -1799,7 +1927,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
             {/* Right Column: Add transaction entry sheet (Only for Syndics or validated residents) */}
             <div className="bg-[#1a1d29]/40 border border-white/5 p-4 rounded-2xl self-start space-y-4">
               <div className="flex items-center gap-2">
-                <Sliders className="w-4 h-4 text-[#6C3CFF]" />
+                <Sliders className="w-4 h-4 text-[#a16eff]" />
                 <h5 className="text-xs font-bold text-white uppercase tracking-wider">{tStr.addTransactionTitle}</h5>
               </div>
 
@@ -1838,7 +1966,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       value={newBudgetLabel}
                       onChange={(e) => setNewBudgetLabel(e.target.value)}
                       required
-                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs"
                     />
                   </div>
 
@@ -1850,7 +1978,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       value={newBudgetCategory}
                       onChange={(e) => setNewBudgetCategory(e.target.value)}
                       required
-                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs"
                     />
                   </div>
 
@@ -1862,13 +1990,13 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
                       value={newBudgetAmount}
                       onChange={(e) => setNewBudgetAmount(e.target.value)}
                       required
-                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#6C3CFF] text-xs"
+                      className="w-full bg-[#12141c] border border-white/10 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-[#a16eff] text-xs"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/80 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow"
+                    className="w-full py-2 bg-[#a16eff] hover:bg-[#a16eff]/80 text-white text-xs font-bold rounded-xl transition-all cursor-pointer shadow"
                   >
                     {tStr.ledgerSubmitBtn}
                   </button>
@@ -2056,7 +2184,7 @@ export default function MyResidence({ currentLang = 'FR' }: MyResidenceProps) {
 
               <button
                 type="submit"
-                className="w-full py-2.5 bg-[#6C3CFF] hover:bg-[#6C3CFF]/80 text-white text-xs font-bold rounded-xl transition-all font-title uppercase tracking-wider"
+                className="w-full py-2.5 bg-[#a16eff] hover:bg-[#a16eff]/80 text-white text-xs font-bold rounded-xl transition-all font-title uppercase tracking-wider"
               >
                 {tStr.bldSubmitBtn}
               </button>
