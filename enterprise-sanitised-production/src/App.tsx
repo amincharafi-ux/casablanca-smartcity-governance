@@ -454,16 +454,24 @@ export default function App() {
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-base font-bold leading-tight tracking-tight text-white font-title">
-              MyCity
+              {currentLang === 'AR' ? 'مدينتي' : 'MyCity'}
             </h1>
             <div className="relative">
               <button 
                 onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
                 className="flex items-center gap-1 text-[11px] font-medium leading-none text-gray-400 hover:text-white transition-colors py-0.5"
-                title="Changer de ville"
+                title={currentLang === 'AR' ? 'تغيير المدينة' : currentLang === 'EN' ? 'Change city' : 'Changer de ville'}
               >
-                <span className="text-gray-400 font-semibold">{currentCity}</span>
-                <span className={`${portalTheme.textColor} font-black transition-colors duration-300`}>{currentLang === 'AR' ? 'Companion' : 'Companion'}</span>
+                <span className="text-gray-400 font-semibold">
+                  {currentLang === 'AR' && currentCity === 'Casablanca' ? 'الدار البيضاء' :
+                   currentLang === 'AR' && currentCity === 'Rabat' ? 'الرباط' :
+                   currentLang === 'AR' && currentCity === 'Tanger' ? 'طنجة' :
+                   currentLang === 'AR' && currentCity === 'Marrakech' ? 'مراكش' :
+                   currentLang === 'AR' && currentCity === 'Agadir' ? 'أكادير' :
+                   currentLang === 'AR' && currentCity === 'Fes' ? 'فاس' :
+                   currentCity}
+                </span>
+                <span className={`${portalTheme.textColor} font-black transition-colors duration-300`}>{currentLang === 'AR' ? 'الرفيق' : 'Companion'}</span>
                 <svg className={`w-2.5 h-2.5 ml-0.5 ${portalTheme.textColor} transition-all duration-300 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -748,10 +756,10 @@ export default function App() {
         <div className="bg-[#12141c]/90 border border-[#a16eff]/20 p-2 rounded-2xl md:p-3 shadow-2xl flex flex-col space-y-3">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/5 pb-2.5 gap-2">
             <div>
-              <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">TERRITORIAL BUSINESS DOMAINS (DDD)</span>
-              <h2 className="text-xs font-bold text-white uppercase mt-0.5">Souverain Territorial Operating System (OS)</h2>
+              <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">{t.dddTitle}</span>
+              <h2 className="text-xs font-bold text-white uppercase mt-0.5">{t.dddSub}</h2>
             </div>
-            <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-2.5 py-1 rounded border border-white/5 uppercase">Architecture : micro-services & event streams</span>
+            <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-2.5 py-1 rounded border border-white/5 uppercase">{t.dddArch}</span>
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -765,8 +773,8 @@ export default function App() {
               }`}
             >
               <span className="text-lg">👤</span>
-              <span className="font-bold">Citizen Domain</span>
-              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Profiles & Consent</span>
+              <span className="font-bold">{t.domainCitizen}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainCitizenSub}</span>
             </button>
 
             {/* RESIDENCE DOMAIN */}
@@ -779,8 +787,8 @@ export default function App() {
               }`}
             >
               <span className="text-lg">🏢</span>
-              <span className="font-bold">Residence Domain</span>
-              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Co-op & Smart Immo</span>
+              <span className="font-bold">{t.domainResidence}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainResidenceSub}</span>
             </button>
 
             {/* COMMERCE DOMAIN */}
@@ -793,8 +801,8 @@ export default function App() {
               }`}
             >
               <span className="text-lg">🛍️</span>
-              <span className="font-bold">Commerce Domain</span>
-              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Market & FinTech</span>
+              <span className="font-bold">{t.domainCommerce}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainCommerceSub}</span>
             </button>
 
             {/* MUNICIPALITY DOMAIN */}
@@ -807,8 +815,8 @@ export default function App() {
               }`}
             >
               <span className="text-lg">🏛️</span>
-              <span className="font-bold">Municipality Domain</span>
-              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">Mairie & Telemetry</span>
+              <span className="font-bold">{t.domainMunicipality}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainMunicipalitySub}</span>
             </button>
           </div>
         </div>
@@ -823,7 +831,7 @@ export default function App() {
                   citizenSubView === 'PROFILE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                👤 Mon Profil & Consentement CNDP
+                {t.subtabProfile}
               </button>
               <button
                 onClick={() => setCitizenSubView('JOURNEYS')}
@@ -831,7 +839,7 @@ export default function App() {
                   citizenSubView === 'JOURNEYS' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🔄 Parcours & Démarches Citoyennes
+                {t.subtabJourneys}
               </button>
             </>
           )}
@@ -844,7 +852,7 @@ export default function App() {
                   residenceSubView === 'SYNDIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🏘️ Copropriété & Syndic Virtuel
+                {t.subtabSyndic}
               </button>
               <button
                 onClick={() => setResidenceSubView('HOST')}
@@ -852,7 +860,7 @@ export default function App() {
                   residenceSubView === 'HOST' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                ✈️ MRE Gestion Locative (Host)
+                {t.subtabHost}
               </button>
               <button
                 onClick={() => setResidenceSubView('IMMO')}
@@ -860,7 +868,7 @@ export default function App() {
                   residenceSubView === 'IMMO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🔑 Immobilier Direct (MyImmo)
+                {t.subtabImmo}
               </button>
             </>
           )}
@@ -873,7 +881,7 @@ export default function App() {
                   commerceSubView === 'REVENUE' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                💰 Fintech Revenue Engine (Monétisation)
+                {t.subtabFintech}
               </button>
               <button
                 onClick={() => setCommerceSubView('DECO')}
@@ -881,7 +889,7 @@ export default function App() {
                   commerceSubView === 'DECO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🪴 Showrooms Déco & Domotique
+                {t.subtabShowrooms}
               </button>
               <button
                 onClick={() => setCommerceSubView('SERVICES')}
@@ -889,7 +897,7 @@ export default function App() {
                   commerceSubView === 'SERVICES' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🛠️ Services de Proximité (Quotidien)
+                {t.subtabLocalServices}
               </button>
               <button
                 onClick={() => setCommerceSubView('MARKETPLACE')}
@@ -897,7 +905,7 @@ export default function App() {
                   commerceSubView === 'MARKETPLACE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🛒 Marketplace & Événements
+                {t.subtabMarketplace}
               </button>
             </>
           )}
@@ -910,7 +918,7 @@ export default function App() {
                   municipalitySubView === 'MAP' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                📊 Télémétrie Urbaine (Map)
+                {t.subtabTelemetry}
               </button>
               <button
                 onClick={() => setMunicipalitySubView('CIVIC')}
@@ -918,7 +926,7 @@ export default function App() {
                   municipalitySubView === 'CIVIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🌿 Bureau des Signalements (MyCivic)
+                {t.subtabClaims}
               </button>
               <button
                 onClick={() => setMunicipalitySubView('GOV')}
@@ -926,7 +934,7 @@ export default function App() {
                   municipalitySubView === 'GOV' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
                 }`}
               >
-                🏛️ Mairie Administration (MyGov)
+                {t.subtabGov}
               </button>
             </>
           )}
