@@ -1,25 +1,40 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Shield, User, Building, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download } from 'lucide-react';
+import { ShieldCheck, Shield, User, Building, Building2, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download, Palette, Sparkles, DollarSign, X } from 'lucide-react';
 import { UserRole, CityEvent, CitizenClaim, CitizenConsent, CNDPPrivacyLog } from './types';
 import { INITIAL_EVENTS, INITIAL_CLAIMS, INITIAL_PHARMACIES, INITIAL_HOSPITALS } from './data/mockData';
 import { LanguageCode, translations } from './data/translations';
-import { cndpMarkdown, ecosystemMarkdown, ctoAuditReportMarkdown } from './data/downloadCode';
+import { ecosystemMarkdown } from './data/downloadCode';
 
 // Modular Component Imports
 import MapSimulation from './components/MapSimulation';
 import ChatCompanion from './components/ChatCompanion';
 import BLEMeshSim from './components/BLEMeshSim';
 import CitizenPortal from './components/CitizenPortal';
-import BusinessPortal from './components/BusinessPortal';
 import MairiePortal from './components/MairiePortal';
+import DataTeamDashboard from './components/DataTeamDashboard';
 import DatabaseSpecExplorer from './components/DatabaseSpecExplorer';
 import SouverainBlueprint from './components/SouverainBlueprint';
 import SecurityAuditIntegrale from './components/SecurityAuditIntegrale';
 import UserProfileDashboard from './components/UserProfileDashboard';
 import GithubDataRoom from './components/GithubDataRoom';
+import BrandCharterExplorer from './components/BrandCharterExplorer';
+import DataWarehouseCockpit from './components/DataWarehouseCockpit';
+import FigmaDemoGenerator from './components/FigmaDemoGenerator';
+import StrategicScreensHub from './components/StrategicScreensHub';
+import MySyndicPricingAndCRM from './components/MySyndicPricingAndCRM';
+import DistrictManagerDashboard from './components/DistrictManagerDashboard';
+import SyndicAdminConsole from './components/SyndicAdminConsole';
 
 import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
+import MyHome from './components/MyHome';
+import HostModule from './components/MyHome/HostModule';
+import MyWorkflowsAndJourneys from './components/MyWorkflowsAndJourneys';
+
+// Sovereign DDD Core Modular Components
+import AICityDispatcher from './components/AICityDispatcher';
+import ObservabilityPanel from './components/ObservabilityPanel';
+import RevenueEngine from './components/RevenueEngine';
 
 // @ts-ignore
 import cityLogo from './assets/images/city_logo_1779750911433-1.png';
@@ -97,6 +112,7 @@ export default function App() {
       if (data.token) {
         // Enregistrer dans le cookie pour être transmis automatiquement sur toutes les requêtes subséquentes
         document.cookie = `session_jwt=${data.token}; path=/; max-age=86400; SameSite=Strict; Secure`;
+        localStorage.setItem("session_jwt", data.token);
         console.log(`[SECURE SOUVERAIN] JWT cryptographique synchronisé pour le rôle : ${userRole}`);
       }
     })
@@ -107,11 +123,66 @@ export default function App() {
 
   const [isSqlSpecOpen, setIsSqlSpecOpen] = useState(false);
   const [isUserDashboardOpen, setIsUserDashboardOpen] = useState(false);
-  const [dbSpecInitialTab, setDbSpecInitialTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE'>('ARCHITECTURE');
+  const [dbSpecInitialTab, setDbSpecInitialTab] = useState<'ARCHITECTURE' | 'DATABASE' | 'SQL_CONSOLE' | 'ENV_CONFIG' | 'CNDP_COMPLIANCE' | 'EVENT_STORE' | 'VECTOR_RAG'>('ARCHITECTURE');
   const [isBlueprintOpen, setIsBlueprintOpen] = useState(false);
   const [isSecurityAuditOpen, setIsSecurityAuditOpen] = useState(false);
   const [isGithubRoomOpen, setIsGithubRoomOpen] = useState(false);
-  const [activeMainModule, setActiveMainModule] = useState<'URBAN' | 'MYHOME' | 'MYLIFE'>('URBAN');
+  const [isBrandCharterOpen, setIsBrandCharterOpen] = useState(false);
+  const [isDataWarehouseOpen, setIsDataWarehouseOpen] = useState(false);
+  const [isFigmaDemoOpen, setIsFigmaDemoOpen] = useState(false);
+  const [isStrategicHubOpen, setIsStrategicHubOpen] = useState(false);
+  const [isMySyndicPricingOpen, setIsMySyndicPricingOpen] = useState(false);
+  const [isMasterDashboardOpen, setIsMasterDashboardOpen] = useState(false);
+  const [fitScale, setFitScale] = useState<'100%' | '90%' | '85%' | '75%'>('85%');
+  const [masterCockpitTab, setMasterCockpitTab] = useState<'BI' | 'DISTRICT' | 'SYNDIC' | 'PRICING'>('BI');
+  
+  // XOVIA Architecture States
+  const [xoviaModule, setXoviaModule] = useState<'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE'>('HOME');
+  const [activeMainModule, setActiveMainModule] = useState<'URBAN' | 'MYHOME' | 'MYLIFE'>('MYHOME');
+  const [homeSubTab, setHomeSubTab] = useState<'RESIDENCE' | 'HOST' | 'IMMO' | 'SERVICES'>('RESIDENCE');
+  const [lifeSubTab, setLifeSubTab] = useState<'EVENTS' | 'MARKETPLACE' | 'COMMUNITY'>('EVENTS');
+  const [urbanSubTab, setUrbanSubTab] = useState<'CIVIC' | 'ALERT' | 'GOV' | 'DATA'>('DATA');
+  const [transverseSubTab, setTransverseSubTab] = useState<'PAY' | 'MANAGER' | 'PARTNER' | 'AI' | 'TRUST' | 'WORKFLOWS'>('WORKFLOWS');
+
+  // Domain Driven Design (DDD) Sovereign OS States
+  const [activeDomain, setActiveDomain] = useState<'CITIZEN' | 'RESIDENCE' | 'COMMERCE' | 'MUNICIPALITY'>('RESIDENCE');
+  const [citizenSubView, setCitizenSubView] = useState<'PROFILE' | 'JOURNEYS'>('PROFILE');
+  const [residenceSubView, setResidenceSubView] = useState<'SYNDIC' | 'HOST' | 'IMMO'>('SYNDIC');
+  const [commerceSubView, setCommerceSubView] = useState<'DECO' | 'SERVICES' | 'MARKETPLACE' | 'REVENUE'>('REVENUE');
+  const [municipalitySubView, setMunicipalitySubView] = useState<'CIVIC' | 'GOV' | 'MAP'>('MAP');
+
+  const selectDomain = (domain: 'CITIZEN' | 'RESIDENCE' | 'COMMERCE' | 'MUNICIPALITY') => {
+    setActiveDomain(domain);
+    handleAddPrivacyLog("DDD Domain Select", `Passage au domaine métier : ${domain} Domain`);
+    if (domain === 'CITIZEN') {
+      setXoviaModule('TRANSVERSE');
+      setTransverseSubTab('WORKFLOWS');
+    } else if (domain === 'RESIDENCE') {
+      setXoviaModule('HOME');
+      setHomeSubTab('RESIDENCE');
+    } else if (domain === 'COMMERCE') {
+      setXoviaModule('LIFE');
+      setLifeSubTab('MARKETPLACE');
+    } else if (domain === 'MUNICIPALITY') {
+      setXoviaModule('URBAN');
+      setUrbanSubTab('DATA');
+    }
+  };
+
+  const navigateXovia = (module: 'HOME' | 'LIFE' | 'URBAN' | 'TRANSVERSE') => {
+    setXoviaModule(module);
+    if (module === 'HOME') {
+      setActiveMainModule('MYHOME');
+      setActiveDomain('RESIDENCE');
+    } else if (module === 'LIFE') {
+      setActiveMainModule('MYLIFE');
+      setActiveDomain('COMMERCE');
+    } else {
+      setActiveMainModule('URBAN');
+      setActiveDomain('MUNICIPALITY');
+    }
+  };
+
   const [events, setEvents] = useState<CityEvent[]>(INITIAL_EVENTS);
   const [claims, setClaims] = useState<CitizenClaim[]>(INITIAL_CLAIMS);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<string>('ALL');
@@ -276,12 +347,12 @@ export default function App() {
     switch (role) {
       case 'PUBLIC':
         return { name: 'Sara Belghiti', roleLabel: 'Citoyen Souverain', initials: 'SB', color: 'text-emerald-400' };
-      case 'BUSINESS_CAT1':
-        return { name: 'Omar Kabbaj', roleLabel: 'Partenaire Basique', initials: 'OK', color: 'text-gray-400' };
-      case 'BUSINESS_CAT2':
-        return { name: 'Ilyas El Omari', roleLabel: 'Business Partner Cat. 2', initials: 'IE', color: 'text-[#3ccfff]' };
+      case 'PARTENAIRES':
+        return { name: 'Ilyas El Omari', roleLabel: 'Partenaire Affilié (SaaS)', initials: 'IO', color: 'text-[#00ffcc]' };
       case 'MAIRIE':
         return { name: 'Mme. Fatim-Zahra', roleLabel: 'Conseil Municipal', initials: 'FZ', color: 'text-[#ff3c83]' };
+      case 'DATA_TEAM':
+        return { name: 'Yassine Alami', roleLabel: 'Directeur Data & BI', initials: 'YA', color: 'text-indigo-400' };
       default:
         return { name: 'Sara Belghiti', roleLabel: 'Citoyen', initials: 'SB', color: 'text-gray-400' };
     }
@@ -289,8 +360,84 @@ export default function App() {
 
   const currentUser = getDynamicUser(userRole);
 
+  // Color configuration according to the 3 portals/universes
+  const getPortalTheme = () => {
+    switch (activeMainModule) {
+      case 'URBAN':
+        return {
+          textColor: 'text-[#7dd3fc]',                     // MyCity: RGB 125, 211, 252 (#7dd3fc)
+          borderColor: 'border-[#7dd3fc]',
+          borderAlpha: 'border-[#7dd3fc]/20',
+          hoverBorderColor: 'hover:border-[#7dd3fc]/50',
+          bgAccent: 'bg-[#7dd3fc]',
+          bgHover: 'hover:bg-[#7dd3fc]/90',
+          bgLight: 'bg-[#7dd3fc]/10',
+          textMuted: 'text-[#7dd3fc]/80',
+          glowShadow: 'shadow-[#7dd3fc]/35',
+          activeTabClass: 'bg-[#7dd3fc] text-slate-950 font-black shadow-lg shadow-[#7dd3fc]/35',
+          accentColor: '#7dd3fc',
+          bgGradient: 'from-[#7dd3fc]/15 to-transparent',
+        };
+      case 'MYLIFE':
+        return {
+          textColor: 'text-[#d4af7a]',                     // MyLife: RGB 212, 175, 122 (#d4af7a)
+          borderColor: 'border-[#d4af7a]',
+          borderAlpha: 'border-[#d4af7a]/20',
+          hoverBorderColor: 'hover:border-[#d4af7a]/50',
+          bgAccent: 'bg-[#d4af7a]',
+          bgHover: 'hover:bg-[#d4af7a]/90',
+          bgLight: 'bg-[#d4af7a]/15',
+          textMuted: 'text-[#d4af7a]/80',
+          glowShadow: 'shadow-[#d4af7a]/35',
+          activeTabClass: 'bg-[#d4af7a] text-[#1c140a] font-black shadow-lg shadow-[#d4af7a]/35',
+          accentColor: '#d4af7a',
+          bgGradient: 'from-[#d4af7a]/15 to-transparent',
+        };
+      case 'MYHOME':
+        return {
+          textColor: 'text-[#a16eff]',                     // MyHome: RGB 161, 110, 255 (#a16eff)
+          borderColor: 'border-[#a16eff]',
+          borderAlpha: 'border-[#a16eff]/20',
+          hoverBorderColor: 'hover:border-[#a16eff]/50',
+          bgAccent: 'bg-[#a16eff]',
+          bgHover: 'hover:bg-[#a16eff]/90',
+          bgLight: 'bg-[#a16eff]/15',
+          textMuted: 'text-[#a16eff]/80',
+          glowShadow: 'shadow-[#a16eff]/35',
+          activeTabClass: 'bg-[#a16eff] text-white font-black shadow-lg shadow-[#a16eff]/35',
+          accentColor: '#a16eff',
+          bgGradient: 'from-[#a16eff]/15 to-transparent',
+        };
+      default:
+        return {
+          textColor: 'text-[#7dd3fc]',
+          borderColor: 'border-[#7dd3fc]',
+          borderAlpha: 'border-[#7dd3fc]/20',
+          hoverBorderColor: 'hover:border-[#7dd3fc]/50',
+          bgAccent: 'bg-[#7dd3fc]',
+          bgHover: 'hover:bg-[#7dd3fc]/90',
+          bgLight: 'bg-[#7dd3fc]/10',
+          textMuted: 'text-[#7dd3fc]/80',
+          glowShadow: 'shadow-[#7dd3fc]/35',
+          activeTabClass: 'bg-[#7dd3fc] text-slate-950 font-black shadow-lg shadow-[#7dd3fc]/35',
+          accentColor: '#7dd3fc',
+          bgGradient: 'from-[#7dd3fc]/15 to-transparent',
+        };
+    }
+  };
+
+  const portalTheme = getPortalTheme();
+
   return (
-    <div id="main-application-shell" className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased">
+    <div 
+      id="main-application-shell" 
+      className="min-h-screen bg-[#0b0d14] text-gray-200 flex flex-col antialiased transition-colors duration-500 origin-top"
+      style={{
+        '--portal-color': portalTheme.accentColor,
+        '--portal-color-rgb': activeMainModule === 'URBAN' ? '125 211 252' : activeMainModule === 'MYLIFE' ? '212 175 122' : '161 110 255',
+        zoom: fitScale === '100%' ? '1' : fitScale === '90%' ? '0.9' : fitScale === '85%' ? '0.85' : '0.75',
+      } as React.CSSProperties}
+    >
       
       {/* GLOBAL HEADER BLOCK (ELEGANT DARK PATTERN WITH RED PULSATING BANNER) */}
       <header className="sticky top-0 z-50 h-16 flex items-center justify-between px-6 lg:px-8 bg-[#161821]/80 backdrop-blur-md border-b border-white/5 shadow-lg shadow-black/20">
@@ -301,22 +448,31 @@ export default function App() {
               src={cityLogo}
               alt="MyCity Logo"
               className="w-full h-full object-contain pointer-events-none drop-shadow-[0_4px_12px_rgba(108,60,255,0.3)]"
+              style={{ filter: `drop-shadow(0 4px 12px ${portalTheme.accentColor}4D)` }}
               referrerPolicy="no-referrer"
             />
           </div>
           <div className="flex flex-col justify-center">
             <h1 className="text-base font-bold leading-tight tracking-tight text-white font-title">
-              MyCity
+              {currentLang === 'AR' ? 'مدينتي' : 'MyCity'}
             </h1>
             <div className="relative">
               <button 
                 onClick={() => setIsCityDropdownOpen(!isCityDropdownOpen)}
                 className="flex items-center gap-1 text-[11px] font-medium leading-none text-gray-400 hover:text-white transition-colors py-0.5"
-                title="Changer de ville"
+                title={currentLang === 'AR' ? 'تغيير المدينة' : currentLang === 'EN' ? 'Change city' : 'Changer de ville'}
               >
-                <span className="text-gray-400 font-semibold">{currentCity}</span>
-                <span className="text-[#6C3CFF] font-black">{currentLang === 'AR' ? 'Companion' : 'Companion'}</span>
-                <svg className={`w-2.5 h-2.5 ml-0.5 text-[#6C3CFF] transition-transform duration-200 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <span className="text-gray-400 font-semibold">
+                  {currentLang === 'AR' && currentCity === 'Casablanca' ? 'الدار البيضاء' :
+                   currentLang === 'AR' && currentCity === 'Rabat' ? 'الرباط' :
+                   currentLang === 'AR' && currentCity === 'Tanger' ? 'طنجة' :
+                   currentLang === 'AR' && currentCity === 'Marrakech' ? 'مراكش' :
+                   currentLang === 'AR' && currentCity === 'Agadir' ? 'أكادير' :
+                   currentLang === 'AR' && currentCity === 'Fes' ? 'فاس' :
+                   currentCity}
+                </span>
+                <span className={`${portalTheme.textColor} font-black transition-colors duration-300`}>{currentLang === 'AR' ? 'الرفيق' : 'Companion'}</span>
+                <svg className={`w-2.5 h-2.5 ml-0.5 ${portalTheme.textColor} transition-all duration-300 ${isCityDropdownOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
@@ -365,7 +521,28 @@ export default function App() {
         </div>
 
         {/* Right Side: Active User Metadata & Language Switcher */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Fit to Size Simulator Control */}
+          <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-[#00ffcc]/30 gap-1 shrink-0" title="Ajuster le zoom du simulateur (Fit to size)">
+            <span className="text-[9px] font-mono font-bold text-[#00ffcc] px-1.5 hidden md:inline">🔍 Fit:</span>
+            {(['100%', '90%', '85%', '75%'] as const).map((scale) => (
+              <button
+                key={scale}
+                onClick={() => {
+                  setFitScale(scale);
+                  handleAddPrivacyLog("Simulator Zoom Fit", `Zoom simulateur ajusté à : ${scale}`);
+                }}
+                className={`px-1.5 sm:px-2 py-0.5 text-[9px] font-mono font-bold rounded cursor-pointer transition-all ${
+                  fitScale === scale
+                    ? 'bg-[#00ffcc] text-black shadow-sm font-black'
+                    : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {scale}
+              </button>
+            ))}
+          </div>
+
           {/* Language Switcher Hub */}
           <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-white/5 gap-1 shrink-0">
             {(['FR', 'EN', 'AR'] as LanguageCode[]).map((lang) => (
@@ -418,8 +595,8 @@ export default function App() {
       {/* STRATEGIC CONTROL CENTER FOR SIMULATING DIFFERENT USER EXPERIENCES */}
       <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pt-6 pb-2">
         <div className="bg-[#161821] border border-white/5 p-4 rounded-[24px] flex flex-col xl:flex-row items-center justify-between gap-4 shadow-xl">
-          <div className="flex flex-col md:flex-row items-start md:items-center gap-4 w-full xl:w-auto">
-            <div className="flex items-center gap-3">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center gap-4 w-full xl:flex-1">
+            <div className="flex items-center gap-3 shrink-0">
               <div className="p-2 bg-[#6C3CFF]/10 text-[#6C3CFF] rounded-xl border border-[#6C3CFF]/10">
                 <Cpu className="w-5 h-5 animate-spin-slow" />
               </div>
@@ -429,176 +606,338 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-3 w-full md:w-auto md:ml-4 font-sans">
-              {/* PRIMARY VISULAR TABS / LES ONGLETS DU SIMULATEUR */}
-              <div id="simulator-view-tabs" className="flex items-center gap-1 p-1 bg-[#0b0d14]/80 border border-white/5 rounded-[14px] shrink-0 overflow-x-auto scrollbar-none">
-                <button
-                  id="technical-sql-dashboard-btn"
-                  onClick={() => {
-                    setDbSpecInitialTab('ARCHITECTURE');
-                    setIsSqlSpecOpen(true);
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#4c1d95]/70 hover:bg-[#6C3CFF]/40 border border-[#6C3CFF]/20 hover:border-[#6C3CFF]/50 text-indigo-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir le Tableau des Comptes & Schémas SQL"
-                >
-                  <Database className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>{t.sqlSpecBtn}</span>
-                </button>
+            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-8 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+              <button
+                id="security-audit-btn"
+                onClick={() => {
+                  setIsSecurityAuditOpen(true);
+                  handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
+              >
+                <Shield className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span className="truncate">🛡️ Audit Sécurité</span>
+              </button>
 
-                <button
-                  id="blueprint-presentation-btn"
-                  onClick={() => {
-                    setIsBlueprintOpen(true);
-                    handleAddPrivacyLog("Blueprint Presentation", "Utilisateur a ouvert le Blueprint d'écosystème sanitisé.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#1e1b4b]/80 hover:bg-[#1e1b4b]/95 border border-blue-500/20 hover:border-blue-500/50 text-blue-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Présentation du Blueprint Sanitisé"
-                >
-                  <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
-                  <span>🗺️ Blueprint Écosystème</span>
-                </button>
+              <button
+                id="brand-charter-explorer-btn"
+                onClick={() => {
+                  setIsBrandCharterOpen(true);
+                  handleAddPrivacyLog("Brand Charter Board", "Utilisateur a ouvert la charte graphique officielle de l'app MyCity.");
+                }}
+                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 hover:from-purple-950/70 hover:to-indigo-950/70 border border-purple-500/30 hover:border-[#00ffcc]/60 text-indigo-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Charte Graphique Officielle (Normes, Courriers, Rapports & Correspondances)"
+              >
+                <Palette className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">🎨 Charte & Corresp.</span>
+              </button>
 
-                <button
-                  id="security-audit-btn"
-                  onClick={() => {
-                    setIsSecurityAuditOpen(true);
-                    handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
-                >
-                  <Shield className="w-3.5 h-3.5 text-red-400" />
-                  <span>🛡️ Audit de Sécurité</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsGithubRoomOpen(true);
+                  handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
+                }}
+                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Tech Data Room (GitHub) de MyCity"
+              >
+                <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                <span className="truncate">🐙 GitHub Data Room</span>
+              </button>
 
-                <button
-                  id="cndp-compliance-dashboard-btn"
-                  onClick={() => {
-                    setDbSpecInitialTab('CNDP_COMPLIANCE');
-                    setIsSqlSpecOpen(true);
-                    handleAddPrivacyLog("CNDP Tab Open", "Utilisateur a cliqué sur le bouton de conformité CNDP pour ouvrir l'espace CNDP.");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-[#064e3b]/70 hover:bg-[#10b981]/40 border border-[#10b981]/20 hover:border-[#10b981]/50 text-emerald-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Conformité Réglementaire CNDP"
-                >
-                  <Lock className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>🔒 Conformité CNDP</span>
-                </button>
-              </div>
+              <button
+                onClick={() => {
+                  setIsDataWarehouseOpen(true);
+                  handleAddPrivacyLog("OLAP Cockpit Open", "Ouverture du Data Warehouse & Cockpit Analytique ClickHouse.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#1c142c] hover:bg-[#a16eff]/30 border border-[#a16eff]/30 hover:border-[#a16eff] text-[#d8b4fe] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir le Cockpit Data Warehouse OLAP (ClickHouse & BigQuery)"
+              >
+                <Database className="w-3.5 h-3.5 text-[#a16eff] animate-pulse shrink-0" />
+                <span className="truncate">📊 Data Warehouse</span>
+              </button>
 
-              {/* SECONDARY CODE EXPORTS / LES BOUTONS D'EXPORTATION D'CODE */}
-              <div id="simulator-export-actions" className="flex items-center gap-1 p-1 bg-[#0b0d14]/40 border border-white/5 border-dashed rounded-[14px] shrink-0 overflow-x-auto scrollbar-none">
-                <button
-                  onClick={() => {
-                    handleAddPrivacyLog("Download CNDP Code", "Téléchargement du code complet d'intégration CNDP loi 09-08.");
-                    triggerClientDownload(cndpMarkdown, "cndp_integration_codebase.md");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-purple-950/20 hover:bg-purple-950/50 border border-purple-500/20 hover:border-purple-500/60 text-purple-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Télécharger l'intégralité du code CNDP au format MD exportable"
-                >
-                  <Download className="w-3.5 h-3.5 text-purple-400" />
-                  <span>📥 Exp. CNDP (.md)</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsFigmaDemoOpen(true);
+                  handleAddPrivacyLog("Figma Hub Open", "Ouverture du Générateur de Maquettes & Démo Figma.");
+                }}
+                className="shrink-0 min-w-[130px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-pink-950/30 hover:bg-pink-900/40 border border-pink-500/30 hover:border-pink-400 text-pink-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Générer & Télécharger la Démo Maquettes sur FIGMA"
+              >
+                <Palette className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                <span className="truncate">🎨 Démo Figma</span>
+              </button>
 
-                <button
-                  onClick={() => {
-                    handleAddPrivacyLog("Download Ecosystem Code", "Téléchargement de l'intégralité du code structuré MyCity.");
-                    triggerClientDownload(ecosystemMarkdown, "mycity_ecosystem_codebase.md");
-                  }}
-                  className="flex items-center gap-1 px-2.5 py-1.5 md:px-3 md:py-2 bg-indigo-950/20 hover:bg-indigo-950/50 border border-indigo-500/20 hover:border-indigo-500/60 text-indigo-300 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Télécharger l'intégralité du code structuré de l'écosystème MyCity au format MD"
-                >
-                  <Download className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>📥 Exp. Écosystème (.md)</span>
-                </button>
+              <button
+                onClick={() => {
+                  setIsStrategicHubOpen(true);
+                  handleAddPrivacyLog("Strategic Hub Open", "Ouverture du Showcase des 7 écrans stratégiques intégrés.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-emerald-500/20 hover:from-sky-500/30 hover:to-emerald-500/30 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-[#00ffcc]/10 animate-pulse"
+                title="Ouvrir le Hub Showcase des 7 Pièces Maîtresses et Écrans Stratégiques"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">🚀 Écrans Strat. (8)</span>
+              </button>
 
-                <button
-                  onClick={() => {
-                    setIsGithubRoomOpen(true);
-                    handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
-                  }}
-                  className="flex items-center gap-1.5 px-2.5 py-1.5 md:px-3 md:py-2 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-lg cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap"
-                  title="Ouvrir la Tech Data Room (GitHub) de MyCity"
-                >
-                  <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-                  <span>🐙 GitHub Data Room</span>
-                </button>
-              </div>
+              <button
+                id="mysyndic-pricing-crm-btn"
+                onClick={() => {
+                  setIsMySyndicPricingOpen(true);
+                  handleAddPrivacyLog("MySyndic Pricing CRM", "Ouverture de la grille tarifaire Immeubles et du CRM commercial intégré MySyndic.");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/40 hover:border-purple-400 text-purple-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-purple-500/10"
+                title="Consulter le Modèle de Pricing MySyndic et le CRM Commercial Intégré"
+              >
+                <DollarSign className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">💎 Pricing & CRM</span>
+              </button>
+
+              <button
+                id="master-dashboard-explorer-btn"
+                onClick={() => {
+                  setIsMasterDashboardOpen(true);
+                  handleAddPrivacyLog("Master Dashboard Open", "Ouverture du Cockpit Executive Dashboard (Fit to size).");
+                }}
+                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-950/40 via-teal-950/40 to-indigo-950/40 hover:from-emerald-950/70 hover:to-indigo-950/70 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/10 animate-pulse"
+                title="Ouvrir le Cockpit Master Dashboard (Sovereign BI & Arrondissements)"
+              >
+                <Activity className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">📈 Master Dashboard</span>
+              </button>
             </div>
           </div>
 
           <div className="flex bg-[#0b0d14] p-1 rounded-2xl border border-white/5 gap-1 text-[10px] font-mono font-bold w-full xl:w-auto overflow-x-auto">
-            {(['PUBLIC', 'BUSINESS_CAT1', 'BUSINESS_CAT2', 'MAIRIE'] as UserRole[]).map((role) => (
+            {(['PUBLIC', 'PARTENAIRES', 'MAIRIE', 'DATA_TEAM'] as UserRole[]).map((role) => (
               <button
                 key={role}
                 id={`global-role-switch-${role}`}
                 onClick={() => {
                   setUserRole(role);
+                  if (role === 'DATA_TEAM') {
+                    setActiveDomain('MUNICIPALITY');
+                    setMunicipalitySubView('MAP');
+                  } else if (role === 'MAIRIE') {
+                    setActiveDomain('MUNICIPALITY');
+                    setMunicipalitySubView('GOV');
+                  } else if (role === 'PARTENAIRES') {
+                    setActiveDomain('COMMERCE');
+                    setCommerceSubView('REVENUE');
+                  } else if (role === 'PUBLIC') {
+                    setActiveDomain('CITIZEN');
+                    setCitizenSubView('PROFILE');
+                  }
                   handleAddPrivacyLog("Role Toggle", `Utilisateur a basculé vers le rôle : ${role}`);
                 }}
                 className={`flex-1 md:flex-none px-4 py-2 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   userRole === role
-                    ? 'bg-[#6C3CFF] text-white shadow shadow-[#6C3CFF]/35'
+                    ? portalTheme.activeTabClass
                     : 'text-gray-400 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {role === 'PUBLIC' && <User className="w-3.5 h-3.5" />}
-                {role === 'BUSINESS_CAT1' && <Building className="w-3.5 h-3.5" />}
-                {role === 'BUSINESS_CAT2' && <Building className="w-3.5 h-3.5 text-yellow-400" />}
+                {role === 'PARTENAIRES' && <Building className="w-3.5 h-3.5 text-[#00ffcc]" />}
                 {role === 'MAIRIE' && <Landmark className="w-3.5 h-3.5" />}
+                {role === 'DATA_TEAM' && <Database className="w-3.5 h-3.5 text-indigo-400 animate-pulse" />}
                 
                 {role === 'PUBLIC' && t.publicCitoyen}
-                {role === 'BUSINESS_CAT1' && t.businessBasic}
-                {role === 'BUSINESS_CAT2' && t.businessPremium}
+                {role === 'PARTENAIRES' && (currentLang === 'FR' ? "PARTENAIRES (SaaS)" : currentLang === 'AR' ? "شركاء الأعمال" : "PARTNERS (SaaS)")}
                 {role === 'MAIRIE' && t.mairieLabel}
+                {role === 'DATA_TEAM' && (currentLang === 'FR' ? "Équipe Data" : currentLang === 'AR' ? "تحليل البيانات" : "Data Team")}
               </button>
             ))}
           </div>
         </div>
       </div>
+      <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pt-2 pb-3">
+        {/* CTO COMPLIANT DOMAIN DRIVEN DESIGN COCKPIT SWITCHER */}
+        <div className="bg-[#12141c]/90 border border-[#a16eff]/20 p-2 rounded-2xl md:p-3 shadow-2xl flex flex-col space-y-3">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-white/5 pb-2.5 gap-2">
+            <div>
+              <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">{t.dddTitle}</span>
+              <h2 className="text-xs font-bold text-white uppercase mt-0.5">{t.dddSub}</h2>
+            </div>
+            <span className="text-[9px] font-mono text-gray-500 bg-white/5 px-2.5 py-1 rounded border border-white/5 uppercase">{t.dddArch}</span>
+          </div>
 
-      {/* SECTOR SWITCHER HUB: MYCITY VS MYHOME (MERGED) VS MYLIFE (INTEGRATED & DECOUPLED) */}
-      <div className="w-full max-w-7xl mx-auto px-4 lg:px-6 pt-2 pb-2">
-        <div className="bg-[#161821]/80 border border-white/5 p-1 rounded-2xl flex w-full gap-1 shadow-md">
-          <button
-            onClick={() => {
-              setActiveMainModule('MYLIFE');
-              handleAddPrivacyLog("Navigate MyLife", "Navigation vers le Portail MyLife de Casablanca (Sport, Santé, Lifestyle).");
-            }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              activeMainModule === 'MYLIFE'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            🌱 {currentLang === 'AR' ? 'ماي لايف' : 'MyLife'}
-          </button>
-          <button
-            onClick={() => {
-              setActiveMainModule('MYHOME');
-              handleAddPrivacyLog("Navigate MyHome", "Navigation vers l'Espace Fusionné de Copropriété et Logement MyHome.");
-            }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              activeMainModule === 'MYHOME'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            🏠 {currentLang === 'AR' ? 'ماي هوم' : 'MyHome'}
-          </button>
-          <button
-            onClick={() => {
-              setActiveMainModule('URBAN');
-              handleAddPrivacyLog("Navigate Urban", "Navigation vers le Portail Urbain, Carte de Casablanca.");
-            }}
-            className={`flex-1 py-2 px-3 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-              activeMainModule === 'URBAN'
-                ? 'bg-[#6C3CFF] text-white shadow'
-                : 'text-gray-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            🏙️ {currentLang === 'AR' ? 'ماي سيتي' : 'Mycity'}
-          </button>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {/* CITIZEN DOMAIN */}
+            <button
+              onClick={() => selectDomain('CITIZEN')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'CITIZEN'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">👤</span>
+              <span className="font-bold">{t.domainCitizen}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainCitizenSub}</span>
+            </button>
+
+            {/* RESIDENCE DOMAIN */}
+            <button
+              onClick={() => selectDomain('RESIDENCE')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'RESIDENCE'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">🏢</span>
+              <span className="font-bold">{t.domainResidence}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainResidenceSub}</span>
+            </button>
+
+            {/* COMMERCE DOMAIN */}
+            <button
+              onClick={() => selectDomain('COMMERCE')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'COMMERCE'
+                  ? 'bg-gradient-to-br from-[#a16eff]/20 to-[#a16eff]/5 text-white border-[#a16eff]/60 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">🛍️</span>
+              <span className="font-bold">{t.domainCommerce}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainCommerceSub}</span>
+            </button>
+
+            {/* MUNICIPALITY DOMAIN */}
+            <button
+              onClick={() => selectDomain('MUNICIPALITY')}
+              className={`py-3 px-4 text-xs font-title font-black rounded-xl transition-all flex flex-col items-center justify-center gap-1 cursor-pointer border ${
+                activeDomain === 'MUNICIPALITY'
+                  ? 'bg-gradient-to-br from-[#a16eff]/15 to-[#a16eff]/5 text-white border-[#a16eff]/55 shadow-lg shadow-[#a16eff]/10'
+                  : 'text-gray-400 hover:text-white hover:bg-[#a16eff]/5 border-transparent'
+              }`}
+            >
+              <span className="text-lg">🏛️</span>
+              <span className="font-bold">{t.domainMunicipality}</span>
+              <span className="text-[8px] font-mono text-gray-500 uppercase tracking-widest leading-none mt-0.5">{t.domainMunicipalitySub}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* SUBTAB BAR WITH NO DUPLICATES (PORTFOLIO ACTIONS) */}
+        <div className="mt-3 bg-[#161821]/50 border border-white/5 rounded-xl p-1 flex gap-2 overflow-x-auto scrollbar-none">
+          {activeDomain === 'CITIZEN' && (
+            <>
+              <button
+                onClick={() => setCitizenSubView('PROFILE')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  citizenSubView === 'PROFILE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabProfile}
+              </button>
+              <button
+                onClick={() => setCitizenSubView('JOURNEYS')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  citizenSubView === 'JOURNEYS' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabJourneys}
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'RESIDENCE' && (
+            <>
+              <button
+                onClick={() => setResidenceSubView('SYNDIC')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'SYNDIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabSyndic}
+              </button>
+              <button
+                onClick={() => setResidenceSubView('HOST')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'HOST' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabHost}
+              </button>
+              <button
+                onClick={() => setResidenceSubView('IMMO')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  residenceSubView === 'IMMO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabImmo}
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'COMMERCE' && (
+            <>
+              <button
+                onClick={() => setCommerceSubView('REVENUE')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'REVENUE' ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabFintech}
+              </button>
+              <button
+                onClick={() => setCommerceSubView('DECO')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'DECO' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabShowrooms}
+              </button>
+              <button
+                onClick={() => setCommerceSubView('SERVICES')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'SERVICES' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabLocalServices}
+              </button>
+              <button
+                onClick={() => setCommerceSubView('MARKETPLACE')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  commerceSubView === 'MARKETPLACE' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabMarketplace}
+              </button>
+            </>
+          )}
+
+          {activeDomain === 'MUNICIPALITY' && (
+            <>
+              <button
+                onClick={() => setMunicipalitySubView('MAP')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'MAP' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabTelemetry}
+              </button>
+              <button
+                onClick={() => setMunicipalitySubView('CIVIC')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'CIVIC' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabClaims}
+              </button>
+              <button
+                onClick={() => setMunicipalitySubView('GOV')}
+                className={`flex-grow md:flex-initial py-1 px-3.5 text-[11px] font-mono font-bold rounded-lg transition-all whitespace-nowrap cursor-pointer ${
+                  municipalitySubView === 'GOV' ? 'bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/30' : 'text-gray-400 hover:text-white'
+                }`}
+              >
+                {t.subtabGov}
+              </button>
+            </>
+          )}
         </div>
       </div>
 
@@ -607,66 +946,230 @@ export default function App() {
         
         {/* LEFT COLUMN: ACTIVE INTERACTIVE CITY MAP OR MYRESIDENCE HUB */}
         <div className="lg:col-span-2 space-y-6">
-          {activeMainModule === 'URBAN' && (
-            <>
-              {/* Section Heading */}
-              <div className="flex items-center justify-between">
-                <h2 className="text-xs font-mono text-white/40 uppercase tracking-widest flex items-center gap-2">
-                  🗺️ Simulateur de Télémétrie Urbaine
-                  <span className="font-mono text-[9px] text-[#00f0ff] uppercase bg-indigo-950/40 border border-indigo-700/30 px-2 py-0.5 rounded tracking-widest">Temps Réel</span>
-                </h2>
-                <div className="text-[10px] font-mono text-gray-500">
-                  Coordonnées de Casablanca : <strong className="text-gray-300">33.57° N, -7.63° W</strong>
+          
+          {/* CITIZEN DOMAIN WORKSPACE */}
+          {activeDomain === 'CITIZEN' && (
+            <div className="space-y-6 animate-fade-in">
+              {citizenSubView === 'PROFILE' && (
+                <div className="space-y-6 animate-fade-in text-sans">
+                  {/* Inline Profile Overview Card */}
+                  <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 font-bold text-xl">
+                        {currentUser.initials}
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-white">{currentUser.name}</h3>
+                        <p className="text-xs text-gray-400">{"citoyen@casablanca.ma"}</p>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="text-[10px] bg-[#a16eff]/10 text-[#a16eff] font-mono px-2 py-0.5 rounded uppercase font-bold">
+                            {userRole}
+                          </span>
+                          <span className="text-[10px] bg-emerald-500/10 text-emerald-400 font-mono px-2 py-0.5 rounded font-bold uppercase">
+                            Souveraineté Validée CNDP
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <p className="text-xs text-gray-300 leading-normal">
+                      Votre identité numérique territoriale est cryptographiée et gérée de manière souveraine. Vous pouvez mettre à jour vos consentements et réclamer vos droits CNDP.
+                    </p>
+
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <button
+                        onClick={() => setIsUserDashboardOpen(true)}
+                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      >
+                        ⚙️ Ouvrir la Console CNDP & Préférences
+                      </button>
+                      <button
+                        onClick={() => setIsBlueprintOpen(true)}
+                        className="px-4 py-2 bg-[#1b1c26] border border-white/10 hover:bg-white/5 text-gray-300 hover:text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+                      >
+                        🧬 Consulter le Blueprint d'Architecture
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Active Consent Checklist inline */}
+                  <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
+                    <h3 className="text-xs font-mono text-white/40 uppercase tracking-widest">📋 État d'Assentiment des Données</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center bg-black/20 p-3 rounded-2xl border border-white/5 text-xs">
+                        <div>
+                          <span className="font-bold text-gray-200 block">Géolocalisation Résidentielle</span>
+                          <span className="text-[10px] text-gray-500">Filtrage géospatial national sans tracking continu</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded">ACTIF</span>
+                      </div>
+                      <div className="flex justify-between items-center bg-black/20 p-3 rounded-2xl border border-white/5 text-xs">
+                        <div>
+                          <span className="font-bold text-gray-200 block">IA Sémantique Locale</span>
+                          <span className="text-[10px] text-gray-500">Auto-priorisation et classification des incidents</span>
+                        </div>
+                        <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-1 rounded">ACTIF</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              <MapSimulation
-                userRole={userRole}
-                events={events}
-                claims={claims}
-                pharmacies={INITIAL_PHARMACIES}
-                activeCategoryFilter={activeCategoryFilter}
-                onSelectEvent={handleSelectEventOnMap}
-                onSelectMyHome={() => {
-                  setActiveMainModule('MYHOME');
-                  handleAddPrivacyLog("Map Navigate Home", "Redirection depuis la carte vers MyHome (Espace immobilier).");
-                }}
-                currentLang={currentLang}
-              />
+              {citizenSubView === 'JOURNEYS' && (
+                <MyWorkflowsAndJourneys
+                  currentLang={currentLang}
+                  userRole={userRole}
+                  onAddLog={handleAddPrivacyLog}
+                />
+              )}
+            </div>
+          )}
 
-              {/* ACTIVE PORTAL WORKSPACE CONTENT IN BRAND ROUNDED GRID TILES */}
-              <div className="bg-[#161821] rounded-3xl p-5 border border-white/5 shadow-xl space-y-3">
-                <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                  <h3 className="font-title font-bold text-sm text-white flex items-center gap-1.5 uppercase tracking-wide">
-                    {userRole === 'PUBLIC' && "👤 COMPAGNON PUBLIC (CITOYEN GRATUIT)"}
-                    {userRole === 'BUSINESS_CAT1' && "🏢 COMPAGNON COMMERCE (BASIC formule 299 MAD)"}
-                    {userRole === 'BUSINESS_CAT2' && "✨ PORTAIL COMMERCE PREMIUM ( formule 799 MAD)"}
-                    {userRole === 'MAIRIE' && "🏛️ PORTAIL CONSEIL DE LA MAIRIE DE CASABLANCA"}
-                  </h3>
-                  <span className="font-mono text-[9px] text-[#6C3CFF] uppercase font-bold tracking-widest">Console Intégrée</span>
+          {/* RESIDENCE DOMAIN WORKSPACE */}
+          {activeDomain === 'RESIDENCE' && (
+            <div className="space-y-6 animate-fade-in">
+              {residenceSubView === 'SYNDIC' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold pb-0.5">RESIDENCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Copropriété & Syndic Virtuel</h3>
+                  </div>
+                  <MyResidence currentLang={currentLang} />
                 </div>
+              )}
 
+              {residenceSubView === 'HOST' && (
+                <div className="bg-[#161821] border border-white/5 p-6 rounded-3xl shadow-xl space-y-4">
+                  <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">RESIDENCE DOMAIN</span>
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">MRE Gestion Locative (Host)</h3>
+                    </div>
+                    <span className="font-mono text-[9px] text-gray-500 uppercase">Gestion Locative Court Terme</span>
+                  </div>
+                  <HostModule currentLang={currentLang} />
+                </div>
+              )}
 
+              {residenceSubView === 'IMMO' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">RESIDENCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">Immobilier Direct (MyImmo)</h3>
+                  </div>
+                  <MyHome currentLang={currentLang} defaultSubTab="IMMO" />
+                </div>
+              )}
+            </div>
+          )}
 
-                {/* Sub-panels switcher body */}
-                {userRole === 'PUBLIC' && (
-                  <CitizenPortal
-                    claims={claims}
-                    onSubmitClaim={handleAddClaim}
-                    currentLang={currentLang}
-                  />
-                )}
+          {/* COMMERCE DOMAIN WORKSPACE */}
+          {activeDomain === 'COMMERCE' && (
+            <div className="space-y-6 animate-fade-in">
+              {commerceSubView === 'REVENUE' && (
+                <RevenueEngine currentLang={currentLang} />
+              )}
 
-                {(userRole === 'BUSINESS_CAT1' || userRole === 'BUSINESS_CAT2') && (
-                  <BusinessPortal
+              {commerceSubView === 'DECO' && (
+                <div className="bg-[#161821] border border-[#a16eff]/10 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4 font-sans">
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold pb-0.5">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">🪴 Showrooms Déco & Domotique</h3>
+                  </div>
+                  {/* Shows Deco decoration center inside MyServices (which is a sub-module of MyHome concierge listings) */}
+                  <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
+                </div>
+              )}
+
+              {commerceSubView === 'SERVICES' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#a16eff]/10 text-[#a16eff] font-mono text-[9px] font-bold">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">🛠️ Services de Proximité (Quotidien)</h3>
+                  </div>
+                  <MyHome currentLang={currentLang} defaultSubTab="CONCIERGE" />
+                </div>
+              )}
+
+              {commerceSubView === 'MARKETPLACE' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-amber-500/10 text-amber-500 font-mono text-[9px] font-bold">COMMERCE DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-sans">🛒 Marketplace & Événements</h3>
+                  </div>
+                  <MyLife 
+                    currentLang={currentLang} 
                     events={events}
-                    onAddEvent={handleAddevent}
-                    onAddLog={handleAddPrivacyLog}
+                    defaultLifeTab="PROVIDERS"
+                    defaultCategoryId={5}
+                    onPostReview={handlePostReview}
+                    onPostLike={handlePostLike}
+                    onSelectEventOnMap={handleSelectEventOnMap}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* MUNICIPALITY DOMAIN WORKSPACE */}
+          {activeDomain === 'MUNICIPALITY' && (
+            <div className="space-y-6 animate-fade-in">
+              {municipalitySubView === 'MAP' && (
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xs font-mono text-white/40 uppercase tracking-widest flex items-center gap-2">
+                      🗺️ Simulateur de Télémétrie Urbaine
+                      <span className="font-mono text-[9px] text-[#00f0ff] uppercase bg-indigo-950/40 border border-indigo-700/30 px-2 py-0.5 rounded tracking-widest font-black">Temps Réel</span>
+                    </h2>
+                    <div className="text-[10px] font-mono text-gray-500">
+                      Coordonnées de Casablanca : <strong className="text-gray-300">33.57° N, -7.63° W</strong>
+                    </div>
+                  </div>
+
+                  <MapSimulation
+                    userRole={userRole}
+                    events={events}
+                    claims={claims}
+                    pharmacies={INITIAL_PHARMACIES}
+                    activeCategoryFilter={activeCategoryFilter}
+                    onSelectEvent={handleSelectEventOnMap}
+                    onSelectMyHome={() => {
+                      selectDomain('RESIDENCE');
+                      handleAddPrivacyLog("Map Navigate Residence", "Redirection depuis la carte vers Residence Domain (Copropriété).");
+                    }}
                     currentLang={currentLang}
                   />
-                )}
 
-                {userRole === 'MAIRIE' && (
+                  <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl">
+                    <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                      <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">MUNICIPALITY DOMAIN</span>
+                      <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyUrban Data Dashboard</h3>
+                    </div>
+                    <DataTeamDashboard
+                      events={events}
+                      onAddLog={handleAddPrivacyLog}
+                      currentLang={currentLang}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {municipalitySubView === 'CIVIC' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold">MUNICIPALITY DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider">MyCivic - Signalements Urbains</h3>
+                  </div>
+                  <CitizenPortal claims={claims} onSubmitClaim={handleAddClaim} currentLang={currentLang} />
+                </div>
+              )}
+
+              {municipalitySubView === 'GOV' && (
+                <div className="bg-[#161821] border border-white/5 p-4 rounded-3xl shadow-xl font-sans">
+                  <div className="flex items-center gap-2 border-b border-white/5 pb-3 mb-4">
+                    <span className="p-1 px-2.5 rounded bg-[#4fc3f7]/10 text-[#4fc3f7] font-mono text-[9px] font-bold font-black">MUNICIPALITY DOMAIN</span>
+                    <h3 className="text-xs font-bold text-white uppercase tracking-wider font-title">MyGov - Espace Municipal</h3>
+                  </div>
                   <MairiePortal
                     claims={claims}
                     pharmacies={INITIAL_PHARMACIES}
@@ -680,24 +1183,11 @@ export default function App() {
                     onOpenSqlSpec={() => setIsSqlSpecOpen(true)}
                     currentUserRole={userRole}
                   />
-                )}
-              </div>
-            </>
+                </div>
+              )}
+            </div>
           )}
 
-          {activeMainModule === 'MYHOME' && (
-            <MyResidence currentLang={currentLang} />
-          )}
-
-          {activeMainModule === 'MYLIFE' && (
-            <MyLife 
-              currentLang={currentLang} 
-              events={events}
-              onPostReview={handlePostReview}
-              onPostLike={handlePostLike}
-              onSelectEventOnMap={handleSelectEventOnMap}
-            />
-          )}
         </div>
 
         {/* RIGHT COLUMN: INTEGRATED PERSISTENT SIDEBAR UTILITIES WITH MONO TITLES */}
@@ -789,6 +1279,180 @@ export default function App() {
         onAddLog={handleAddPrivacyLog}
         currentCity={currentCity}
       />
+
+      {/* BRAND CHARTER AND CORRESPONDENCE EXPLORER */}
+      <BrandCharterExplorer
+        isOpen={isBrandCharterOpen}
+        onClose={() => setIsBrandCharterOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+      />
+
+      {/* DATA WAREHOUSE COCKPIT MODAL */}
+      <DataWarehouseCockpit
+        isOpen={isDataWarehouseOpen}
+        onClose={() => setIsDataWarehouseOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+        currentLang={currentLang}
+      />
+
+      {/* FIGMA DEMO GENERATOR MODAL */}
+      <FigmaDemoGenerator
+        isOpen={isFigmaDemoOpen}
+        onClose={() => setIsFigmaDemoOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+        currentLang={currentLang}
+      />
+
+      {/* STRATEGIC SCREENS HUB SHOWCASE MODAL */}
+      <StrategicScreensHub
+        isOpen={isStrategicHubOpen}
+        onClose={() => setIsStrategicHubOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+      />
+
+      {/* MYSYNDIC PRICING & CRM COMMERCIAL MODAL */}
+      <MySyndicPricingAndCRM
+        isOpen={isMySyndicPricingOpen}
+        onClose={() => setIsMySyndicPricingOpen(false)}
+        onAddLog={handleAddPrivacyLog}
+      />
+
+      {/* MASTER EXECUTIVE DASHBOARD COCKPIT MODAL */}
+      {isMasterDashboardOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-[#00ffcc]/30 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-[#00ffcc]/10 text-[#00ffcc] rounded-xl border border-[#00ffcc]/20">
+                  <Activity className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    📈 Master Executive Dashboard & Cockpit
+                    <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded uppercase">À jour • Fit to size</span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Supervision Centrale MyCity • Casablanca • Agrégation Séquentielle</p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="flex items-center bg-[#0b0d14] p-1 rounded-xl border border-white/10 gap-1">
+                  <span className="text-[9px] font-mono text-gray-400 px-2 hidden sm:inline">🔍 Zoom Fit:</span>
+                  {(['100%', '90%', '85%', '75%'] as const).map((sc) => (
+                    <button
+                      key={sc}
+                      onClick={() => setFitScale(sc)}
+                      className={`px-2 py-0.5 text-[9px] font-mono font-bold rounded transition-all cursor-pointer ${
+                        fitScale === sc ? 'bg-[#00ffcc] text-black font-black' : 'text-gray-400 hover:text-white'
+                      }`}
+                    >
+                      {sc}
+                    </button>
+                  ))}
+                </div>
+
+                <button
+                  onClick={() => setIsMasterDashboardOpen(false)}
+                  className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                  title="Fermer le Cockpit"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            <div className="px-6 py-3 bg-[#12141e] border-b border-white/5 flex gap-2 overflow-x-auto scrollbar-none shrink-0">
+              <button
+                onClick={() => setMasterCockpitTab('BI')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'BI' ? 'bg-[#6C3CFF] text-white shadow-lg shadow-[#6c3cff]/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Database className="w-4 h-4 text-sky-300" />
+                1. Sovereign Data & BI Dashboard
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('DISTRICT')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'DISTRICT' ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Building className="w-4 h-4 text-blue-300" />
+                2. District Manager KPIs
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('SYNDIC')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'SYNDIC' ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <Building2 className="w-4 h-4 text-purple-300" />
+                3. Console Admin Syndic
+              </button>
+              <button
+                onClick={() => setMasterCockpitTab('PRICING')}
+                className={`px-4 py-2 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  masterCockpitTab === 'PRICING' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'bg-white/5 text-gray-400 hover:text-white'
+                }`}
+              >
+                <DollarSign className="w-4 h-4 text-[#00ffcc]" />
+                4. Pricing & CRM Commercial
+              </button>
+              <button
+                onClick={() => {
+                  setIsMasterDashboardOpen(false);
+                  setIsUserDashboardOpen(true);
+                }}
+                className="px-4 py-2 text-xs font-mono font-bold rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ml-auto"
+              >
+                <User className="w-4 h-4" />
+                👤 Mon Profil & Portabilité CNDP
+              </button>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
+              {masterCockpitTab === 'BI' && (
+                <div className="space-y-6 animate-fade-in">
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">SLA Ingestion PostGIS</span>
+                      <p className="text-xl font-mono font-black text-emerald-400 mt-1">99.98% OK</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">Citoyens Séquencés</span>
+                      <p className="text-xl font-mono font-black text-sky-400 mt-1">4,280 Pings</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">MRR Réseau SaaS</span>
+                      <p className="text-xl font-mono font-black text-[#00ffcc] mt-1">+432,350 MAD</p>
+                    </div>
+                    <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 shadow">
+                      <span className="text-[10px] font-mono text-gray-400 uppercase">Conformité CNDP</span>
+                      <p className="text-xl font-mono font-black text-purple-400 mt-1">Loi 09-08 Certifiée</p>
+                    </div>
+                  </div>
+                  <DataTeamDashboard events={events} onAddLog={handleAddPrivacyLog} currentLang={currentLang} />
+                </div>
+              )}
+              {masterCockpitTab === 'DISTRICT' && (
+                <div className="animate-fade-in">
+                  <DistrictManagerDashboard onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+              {masterCockpitTab === 'SYNDIC' && (
+                <div className="animate-fade-in">
+                  <SyndicAdminConsole onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+              {masterCockpitTab === 'PRICING' && (
+                <div className="animate-fade-in">
+                  <MySyndicPricingAndCRM isStandaloneTab={true} onAddLog={handleAddPrivacyLog} />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* BEAUTIFUL NON-BLOCKING CUSTOM NOTIFICATION TOAST OVERLAY */}
       {activeToast && (
