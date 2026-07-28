@@ -594,7 +594,7 @@ export const cityDistricts = pgTable("city_districts", {
 });
 
 // ============================================================================
-// 25. CRYPTO SHREDDING KEY VAULT ENTRIES
+// 25. CRYPTO SHREDDING KEY VAULT ENTRIES & COMPLIANCE AUDIT LOGS
 // ============================================================================
 export const keyVaultEntries = pgTable("key_vault_entries", {
   userId: uuid("user_id").primaryKey().references(() => userProfiles.id, { onDelete: "cascade" }),
@@ -602,6 +602,17 @@ export const keyVaultEntries = pgTable("key_vault_entries", {
   shreddedAt: timestamp("shredded_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
 });
+
+export const complianceAuditLogs = pgTable("compliance_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  anonymizedSubjectHash: varchar("anonymized_subject_hash", { length: 64 }).notNull(),
+  action: varchar("action", { length: 100 }).notNull(),
+  actorId: varchar("actor_id", { length: 255 }).notNull(),
+  status: varchar("status", { length: 20 }).notNull(),
+  metadata: jsonb("metadata"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow().notNull(),
+});
+
 
 
 
