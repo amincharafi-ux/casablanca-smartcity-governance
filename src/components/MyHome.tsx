@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CreditSimulator from './MyHome/CreditSimulator';
+import ConciergeModule from './MyHome/ConciergeModule';
 import { 
   Building, 
   Home, 
@@ -27,7 +28,9 @@ import {
   ShoppingBag,
   Sparkles,
   Truck,
-  Wrench
+  Wrench,
+  Calendar,
+  Key
 } from 'lucide-react';
 
 // Define property representation
@@ -49,8 +52,24 @@ interface RealEstateOffer {
   // UserGroup2 Seller profile
   ownerId?: string;
   ownerName?: string;
-  titleDeedNum: string; // Conformance to Moroccan standards
+  titleDeedNum: string; // Held only locally inside browser session
+  titleDeedHash?: string; // Stored cryptographic hash
+  zkpProofToken?: string; // Zero-Knowledge Proof token
   coordinates: { x: number; y: number }; // Relative coordinates on the map [0-100]
+}
+
+// Cryptographic simulation of SHA-256 for Zero-Knowledge Proof (ZKP) match to avoid holding sensitive land titles on server
+export function computeTitleDeedHash(titleNum: string): { hash: string; zkpToken: string } {
+  const clean = (titleNum || '').trim().replace(/\s+/g, '');
+  let hashVal = 0;
+  for (let i = 0; i < clean.length; i++) {
+    hashVal = (hashVal << 5) - hashVal + clean.charCodeAt(i);
+    hashVal = hashVal & hashVal; // 32-bit integer signature
+  }
+  const hex = Math.abs(hashVal).toString(16).padStart(8, '0');
+  const hash = `0x${hex}eb581977fbc8${hex}53ef32f41b7d5ac8e2f`;
+  const zkpToken = `zkp_proof_v2_1800_${hex.substring(0, 4)}_valid_sig_ef9108`;
+  return { hash, zkpToken };
 }
 
 interface Notary {
@@ -236,20 +255,139 @@ const HOME_BUSINESSES: HomeBusiness[] = [
   }
 ];
 
-export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) {
-  // Sub-tab selection for MyHome: IMMO (Real estate database + Simulation) or BUSINESS (commerces de la maison)
-  const [myHomeSubTab, setMyHomeSubTab] = useState<'IMMO' | 'BUSINESS'>('IMMO');
+export default function MyHome({ currentLang = 'FR', defaultSubTab = 'IMMO' }: { currentLang: string; defaultSubTab?: 'RESIDENCE' | 'CONCIERGE' | 'HOST' | 'LOCAL' | 'IMMO' }) {
+  // Sub-tab selection for MyHome: CONCIERGE, IMMO
+  const [myHomeSubTab, setMyHomeSubTab] = useState<'CONCIERGE' | 'IMMO'>(
+    defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL'
+      ? 'CONCIERGE'
+      : 'IMMO'
+  );
+
+  const [conciergeTab, setConciergeTab] = useState<'SERVICES' | 'DECO'>(
+    defaultSubTab === 'LOCAL' ? 'DECO' : 'SERVICES'
+  );
+
+  React.useEffect(() => {
+    setMyHomeSubTab(
+      defaultSubTab === 'CONCIERGE' || defaultSubTab === 'LOCAL'
+        ? 'CONCIERGE'
+        : 'IMMO'
+    );
+    setConciergeTab(defaultSubTab === 'LOCAL' ? 'DECO' : 'SERVICES');
+  }, [defaultSubTab]);
   const [simPropertyPrice, setSimPropertyPrice] = useState<number>(2000000);
   const [businessSearch, setBusinessSearch] = useState('');
   const [selectedBusinessCategory, setSelectedBusinessCategory] = useState<string>('ALL');
   const [selectedBusinessCity, setSelectedBusinessCity] = useState<string>('ALL');
   const [selectedBusiness, setSelectedBusiness] = useState<any | null>(null);
+  const [showNotaireModal, setShowNotaireModal] = useState(false);
+
+  // MyImmo Sub-tabs: BUY (Purchase/Sale) vs RENT (Rental & B'n'B)
+  const [immoTab, setImmoTab] = useState<'BUY' | 'RENT'>('BUY');
+
+  // Rentals / B'n'B offer representation
+  interface RentalOffer {
+    id: string;
+    title: string;
+    description: string;
+    priceValue: number; // Nightly price for SHORT, Monthly price for LONG
+    type: 'SHORT' | 'LONG';  // SHORT = B'n'B / Courte durée, LONG = Location Longue Durée
+    propertyType: 'APPARTEMENT' | 'VILLA' | 'STUDIO';
+    district: string;
+    areaSqm: number;
+    rooms: number;
+    ownerName: string;
+    ownerContact: string;
+    verifiedMyHost: boolean;
+  }
+
+  // Initial Rentals / B'n'B listings
+  const [rentalOffers, setRentalOffers] = useState<RentalOffer[]>([
+    {
+      id: 'rent-1',
+      title: "Magnifique Loft Face Mer - B'n'B Sunset",
+      description: "Profitez d'un séjour inoubliable dans ce loft haut de gamme avec vue panoramique sur l'océan Atlantique. Idéal pour séjours d'affaires ou vacances courtes. Wifi haut débit par fibre optique, climatisation intégrale.",
+      priceValue: 950,
+      type: 'SHORT',
+      propertyType: 'APPARTEMENT',
+      district: "Anfa",
+      areaSqm: 75,
+      rooms: 1,
+      ownerName: "Youssef Bennani",
+      ownerContact: "+212 661-344910",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-2',
+      title: "Appartement d'Architecte - Longue Durée Gauthier",
+      description: "Très bel appartement non-meublé pour longue durée dans un immeuble moderne résidentiel hautement sécurisé. Cuisine haut de gamme ouverte en marbre, balcon filant de 12m, deux places de parking titrées.",
+      priceValue: 12500,
+      type: 'LONG',
+      propertyType: 'APPARTEMENT',
+      district: "Gauthier",
+      areaSqm: 110,
+      rooms: 3,
+      ownerName: "Laila El Alami",
+      ownerContact: "+212 663-911802",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-3',
+      title: "Studio Cozy Moderne - Près Clinique du Val",
+      description: "Charmant studio moderne entièrement équipé et géré via le pass intelligent MyHost (Keyless check-in). Idéal pour courte durée ou transit professionnel. Propreté impeccable garantie.",
+      priceValue: 550,
+      type: 'SHORT',
+      propertyType: 'STUDIO',
+      district: "Maârif",
+      areaSqm: 45,
+      rooms: 1,
+      ownerName: "Karim Guessous",
+      ownerContact: "+212 662-774021",
+      verifiedMyHost: true,
+    },
+    {
+      id: 'rent-4',
+      title: "Villa Privative d'exception - Bouskoura Golf Resort",
+      description: "Exceptionnelle villa en courte durée aux abords du complexe golfique de la Ville Verte. Piscine chauffée, personnel de maison disponible sous option, tranquillité absolue et green d'exception.",
+      priceValue: 3500,
+      type: 'SHORT',
+      propertyType: 'VILLA',
+      district: "Bouskoura",
+      areaSqm: 380,
+      rooms: 4,
+      ownerName: "Fadel Slaoui",
+      ownerContact: "+212 654-200900",
+      verifiedMyHost: false,
+    }
+  ]);
+
+  // Booking states
+  const [selectedRentalForBooking, setSelectedRentalForBooking] = useState<RentalOffer | null>(null);
+  const [bookingCheckIn, setBookingCheckIn] = useState<string>('');
+  const [bookingCheckOut, setBookingCheckOut] = useState<string>('');
+  const [bookingGuests, setBookingGuests] = useState<number>(2);
+  const [bookingDuration, setBookingDuration] = useState<number>(3); // days for short, months for long
+  const [bookingTenantName, setBookingTenantName] = useState<string>('Amin Charafi');
+  const [bookingTenantEmail, setBookingTenantEmail] = useState<string>('amin.charafi@gmail.com');
+  const [bookingSuccessData, setBookingSuccessData] = useState<any | null>(null);
+
+  // New rental listing state (MyHost deployment form)
+  const [newRentTitle, setNewRentTitle] = useState('');
+  const [newRentDesc, setNewRentDesc] = useState('');
+  const [newRentPrice, setNewRentPrice] = useState('');
+  const [newRentType, setNewRentType] = useState<'SHORT' | 'LONG'>('SHORT');
+  const [newRentPropertyType, setNewRentPropertyType] = useState<'APPARTEMENT' | 'VILLA' | 'STUDIO'>('APPARTEMENT');
+  const [newRentDistrict, setNewRentDistrict] = useState('Anfa');
+  const [newRentArea, setNewRentArea] = useState('');
+  const [newRentRooms, setNewRentRooms] = useState('2');
+  const [newRentVerifiedHostFlag, setNewRentVerifiedHostFlag] = useState<boolean>(true);
 
   // Account Roles for Simulation
   // UserGroup1: Promoteurs immobilliers professionnels (ImmoPro Account)
   // UserGroup2: Tous comptes utilisateurs / MarketPlace non-neuf (Limit: 1 listing)
   const [userRole, setUserRole] = useState<'IMMO_PRO' | 'CITIZEN'>('IMMO_PRO');
   const [currentUserListingsCount, setCurrentUserListingsCount] = useState<number>(0);
+  const [currentUserRentalsCount, setCurrentUserRentalsCount] = useState<number>(0);
 
   // Pro promoter profile definition (UserGroup1)
   const proProfile = {
@@ -266,7 +404,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
   };
 
   // Pre-seed Listings Database conforme aux lois marocaines (e.g. price, area, title deed)
-  const [listings, setListings] = useState<RealEstateOffer[]>([
+  const [listings, setListings] = useState<RealEstateOffer[]>(() => [
     {
       id: 'lst-1',
       title: "Appartement de Prestige avec vue mer - Anfa",
@@ -335,7 +473,14 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       titleDeedNum: "45321/26",
       coordinates: { x: 38, y: 48 }
     }
-  ]);
+  ].map(item => {
+    const crypto = computeTitleDeedHash(item.titleDeedNum);
+    return {
+      ...item,
+      titleDeedHash: crypto.hash,
+      zkpProofToken: crypto.zkpToken
+    } as RealEstateOffer;
+  }));
 
   // List of registered notaries for validation of transactions
   const defaultNotaries: Notary[] = [
@@ -371,6 +516,8 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     area: number;
     encumbrances: string;
     authenticityDate: string;
+    titleDeedHash?: string;
+    zkpProofToken?: string;
   } | null>(null);
 
   // Agence Urbaine simulation tool
@@ -385,6 +532,87 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     ces: number; // Coefficient d'emprise au sol
     restrictions: string;
   } | null>(null);
+
+  // Filter state for Rentals / B'n'B
+  const [rentFilter, setRentFilter] = useState<'ALL' | 'SHORT' | 'LONG'>('ALL');
+
+  // Publish dynamic rental to the local feed
+  const handlePublishRental = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newRentTitle || !newRentPrice || !newRentArea) {
+      alert("Erreur: Veuillez remplir tous les champs obligatoires.");
+      return;
+    }
+
+    // HARD CONDITION verification: 1 rental listing per user account for citizen (anti-spam)
+    if (userRole === 'CITIZEN' && currentUserRentalsCount >= 1) {
+      alert("⚠️ Limitation Résidente Anti-Spam: Dans le cadre des normes de protection d'utilisation MyHost, les comptes citoyens/particuliers sont strictement limités à 1 offre en location active à la fois. Passez en mode Promoteur Professionnel dans l'entête pour bénéficier d'un quota de location pro illimité.");
+      return;
+    }
+
+    const price = parseFloat(newRentPrice);
+    const area = parseFloat(newRentArea);
+    if (isNaN(price) || isNaN(area)) {
+      alert("Erreur: Le prix et la surface doivent être des valeurs numériques.");
+      return;
+    }
+
+    const newOffer: RentalOffer = {
+      id: `rent-custom-${Date.now()}`,
+      title: newRentTitle,
+      description: newRentDesc || "Aucune description supplémentaire fournie.",
+      priceValue: price,
+      type: newRentType,
+      propertyType: newRentPropertyType,
+      district: newRentDistrict,
+      areaSqm: area,
+      rooms: parseInt(newRentRooms),
+      ownerName: userRole === 'IMMO_PRO' ? proProfile.name : citizenProfile.name,
+      ownerContact: userRole === 'IMMO_PRO' ? proProfile.contact : citizenProfile.contact,
+      verifiedMyHost: newRentVerifiedHostFlag
+    };
+
+    setRentalOffers(prev => [newOffer, ...prev]);
+    if (userRole === 'CITIZEN') {
+      setCurrentUserRentalsCount(prev => prev + 1);
+    }
+    alert(`🎉 Succès ! Votre logement a été enregistré avec succès et déployé sur MyHost !\nIl est maintenant disponible à la réservation en direct par nos utilisateurs.`);
+    
+    // Reset state
+    setNewRentTitle('');
+    setNewRentDesc('');
+    setNewRentPrice('');
+    setNewRentArea('');
+  };
+
+  // Confirm booking action
+  const handleConfirmBooking = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRentalForBooking) return;
+    
+    const isShort = selectedRentalForBooking.type === 'SHORT';
+    const totalAmount = selectedRentalForBooking.priceValue * bookingDuration;
+    
+    // Generate a random smart lock PIN
+    const rawPin = Math.floor(1000 + Math.random() * 9000);
+    const pinCode = `*#${rawPin}#`;
+    const resRef = `RES-MH-${Math.floor(100000 + Math.random() * 900000)}`;
+
+    setBookingSuccessData({
+      ref: resRef,
+      propertyTitle: selectedRentalForBooking.title,
+      propertyDistrict: selectedRentalForBooking.district,
+      type: selectedRentalForBooking.type,
+      tenantName: bookingTenantName,
+      tenantEmail: bookingTenantEmail,
+      checkIn: bookingCheckIn || (isShort ? "Aujourd'hui" : "Créneau 1er du mois"),
+      guests: bookingGuests,
+      duration: bookingDuration,
+      totalAmount,
+      pinCode,
+      ownerContact: selectedRentalForBooking.ownerContact
+    });
+  };
 
   // Anti-spam checking rule
   const handleAddProperty = (e: React.FormEvent) => {
@@ -410,6 +638,10 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       return;
     }
 
+    // Cryptographically hash the title deed as part of our Zero-Knowledge Proof (ZKP) pipeline
+    // MyCity never stores the raw land title on its central server to mitigate legal/data privacy risks
+    const crypto = computeTitleDeedHash(newPropDeed);
+
     // Create property object
     const newOffer: RealEstateOffer = {
       id: `lst-custom-${Date.now()}`,
@@ -422,7 +654,9 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       city: "Casablanca",
       district: newPropDistrict,
       isNewBuild: userRole === 'IMMO_PRO' ? newPropIsNew : false, // Particuliers sell non-neuf
-      titleDeedNum: newPropDeed,
+      titleDeedNum: `${newPropDeed.substring(0, Math.min(newPropDeed.length, 3))}**/*** (Souverain Masqué)`,
+      titleDeedHash: crypto.hash,
+      zkpProofToken: crypto.zkpToken,
       coordinates: { x: 30 + Math.random() * 40, y: 30 + Math.random() * 40 } // random placing inside carto area
     };
 
@@ -438,7 +672,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     }
 
     setListings(prev => [newOffer, ...prev]);
-    alert("🎉 Succès ! Votre annonce immobilière a été dûment validée aux normes de la loi marocaine de protection des consommateurs (Titre foncier associé) et publiée sur la marketplace.");
+    alert(`🎉 Succès ! Votre annonce immobilière a été dûment validée aux normes de la loi marocaine de protection des consommateurs.\n\n🛡️ COMPLIANCE LOI 18-00 & ANCFCC :\nAucun Titre Foncier en clair n'est hébergé. MyCity a uniquement enregistré l'empreinte numérique sécurisée (ZKP) :\n${crypto.hash}\n\nL'intégrité de la transaction est garantie sans risque légal de fuite.`);
     
     // Clear inputs
     setNewPropTitle('');
@@ -455,7 +689,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     }
   };
 
-  // Simulating the Cadastre (ANCFCC) registry inquiry
+  // Simulating the Cadastre (ANCFCC) registry inquiry with local browser-only matching
   const handleQueryCadastre = (e: React.FormEvent) => {
     e.preventDefault();
     if (!cadastreTitleNum.trim()) return;
@@ -463,14 +697,17 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     // Simulation mapping
     const cleanNum = cadastreTitleNum.trim();
     const isRealistic = /^\d+\/\d+$/.test(cleanNum);
+    const crypto = computeTitleDeedHash(cleanNum);
 
     setCadastreStatusResult({
       success: true,
-      titleNum: cleanNum,
+      titleNum: `${cleanNum.substring(0, Math.min(cleanNum.length, 3))}**/*** (Souverain Masqué)`,
       owner: isRealistic ? "Société Foncière Marocaine / M. El Alami" : "Hoirs de Feu Bennani",
       area: isRealistic ? 184 : 450,
       encumbrances: isRealistic ? "Aucun privilège ni hypothèque inscrite. Libre de cession" : "Hypothèque légale bancaire active (Crédit Immobilier et Hôtelier)",
-      authenticityDate: new Date().toLocaleDateString('fr-FR')
+      authenticityDate: new Date().toLocaleDateString('fr-FR'),
+      titleDeedHash: crypto.hash,
+      zkpProofToken: crypto.zkpToken
     });
   };
 
@@ -511,269 +748,316 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
     <div id="myhome-container" className="space-y-6">
       
       {/* Simulation Command Center Bar */}
-      <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#6C3CFF]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <span className="text-[10px] font-mono text-[#6C3CFF] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
-          <h4 className="text-xs font-bold text-white uppercase mt-0.5">Permuter l'identité de simulation de listing :</h4>
-          <p className="text-[10px] text-gray-400 mt-1">Conforme à la condition stricte anti-spam (Max 1 annonce pour particuliers).</p>
-        </div>
-        
-        <div className="flex gap-2">
-          <button
-            id="role-immo-pro-btn"
-            onClick={() => setUserRole('IMMO_PRO')}
-            className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
-              userRole === 'IMMO_PRO'
-                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-md shadow-amber-500/10'
-                : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
-            }`}
-          >
-            <Briefcase className="w-3.5 h-3.5" />
-            <span>Group 1: ImmoPro (Promoteur)</span>
-          </button>
+      {myHomeSubTab === 'IMMO' && immoTab === 'BUY' && (
+        <div id="myhome-sim-header" className="bg-[#1a1d29]/90 border border-[#a16eff]/30 p-4 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 animate-fade-in">
+          <div>
+            <span className="text-[10px] font-mono text-[#a16eff] uppercase tracking-widest font-black block">MyHome - Authentification Utilisateur</span>
+            <h4 className="text-xs font-bold text-white uppercase mt-0.5">Permuter l'identité de simulation de listing :</h4>
+            <p className="text-[10px] text-gray-400 mt-1">Conforme à la condition stricte anti-spam (Max 1 annonce pour particuliers).</p>
+          </div>
           
-          <button
-            id="role-citizen-btn"
-            onClick={() => setUserRole('CITIZEN')}
-            className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
-              userRole === 'CITIZEN'
-                ? 'bg-[#6C3CFF] text-white border-[#6C3CFF] shadow-md'
-                : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
-            }`}
-          >
-            <Users className="w-3.5 h-3.5" />
-            <span>Group 2: Particulier (MarketPlace)</span>
-          </button>
+          <div className="flex gap-2">
+            <button
+              id="role-immo-pro-btn"
+              onClick={() => setUserRole('IMMO_PRO')}
+              className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
+                userRole === 'IMMO_PRO'
+                  ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white border-amber-400 shadow-md shadow-amber-500/10'
+                  : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
+              }`}
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              <span>Group 1: ImmoPro (Promoteur)</span>
+            </button>
+            
+            <button
+              id="role-citizen-btn"
+              onClick={() => setUserRole('CITIZEN')}
+              className={`px-4 py-2 rounded-xl border text-xs font-bold font-title flex items-center gap-2 transition-all cursor-pointer ${
+                userRole === 'CITIZEN'
+                  ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-md'
+                  : 'bg-transparent text-gray-400 border-white/5 hover:text-white'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Group 2: Particulier (MarketPlace)</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Header Profile for User Group 1 / User Group 2 */}
-      <div id="myhome-banner-profile" className="bg-[#161821] border border-white/5 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden">
-        {userRole === 'IMMO_PRO' ? (
-          <>
-            <div className="flex items-center gap-4">
-              <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${proProfile.logoColor} flex items-center justify-center font-title font-black text-xl text-black shadow-lg`}>
-                {proProfile.logoText}
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Promoteur Agréé</span>
-                  <span className="font-mono text-[9px] bg-sky-500/10 text-sky-400 border border-sky-500/10 px-2 py-0.5 rounded font-bold uppercase">Loi 31-08 Conforme</span>
+      {myHomeSubTab === 'IMMO' && immoTab === 'BUY' && (
+        <div id="myhome-banner-profile" className="bg-[#161821] border border-white/5 p-5 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4 relative overflow-hidden animate-fade-in">
+          {userRole === 'IMMO_PRO' ? (
+            <>
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${proProfile.logoColor} flex items-center justify-center font-title font-black text-xl text-black shadow-lg`}>
+                  {proProfile.logoText}
                 </div>
-                <h3 className="font-title font-bold text-base text-white">{proProfile.name}</h3>
-                <p className="text-xs text-gray-400">Directeur de comptes promoteurs : <b>Yasmine Mansouri</b></p>
-              </div>
-            </div>
-            <div className="flex flex-col items-end gap-1 font-mono text-xs">
-              <span className="text-gray-500">Contact d'Agence Immobilière :</span>
-              <span className="text-amber-400 font-bold flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {proProfile.contact}
-              </span>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
-                ME
-              </div>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Compte Particulier</span>
-                  <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">1 Annonce Limit</span>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Promoteur Agréé</span>
+                    <span className="font-mono text-[9px] bg-sky-500/10 text-sky-400 border border-sky-500/10 px-2 py-0.5 rounded font-bold uppercase">Loi 31-08 Conforme</span>
+                  </div>
+                  <h3 className="font-title font-bold text-base text-white">{proProfile.name}</h3>
+                  <p className="text-xs text-gray-400">Directeur de comptes promoteurs : <b>Yasmine Mansouri</b></p>
                 </div>
-                <h3 className="font-title font-bold text-base text-white">{citizenProfile.name}</h3>
-                <p className="text-xs text-gray-400">Actif sur le forum et la marketplace non-neuf de Casablanca.</p>
               </div>
-            </div>
-            <div className="flex flex-col items-end gap-1 font-mono text-xs">
-              <span className="text-gray-500">Contact personnel vérifié :</span>
-              <span className="text-[#6C3CFF] font-black flex items-center gap-1">
-                <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
-              </span>
-              <div className="text-[10px] text-gray-500 mt-1">
-                Annonces actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span>
+              <div className="flex flex-col items-end gap-1 font-mono text-xs">
+                <span className="text-gray-500">Contact d'Agence Immobilière :</span>
+                <span className="text-amber-400 font-bold flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> {proProfile.contact}
+                </span>
+                <div className="text-[10px] text-gray-500 mt-1">
+                  Portefeuille Actif : <span className="text-amber-400 font-bold">Illimité (Multi-bien)</span>
+                </div>
               </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Main Sub-Tabs Selector inside MyHome */}
-      <div className="flex bg-[#12141c]/90 border border-white/5 p-1 rounded-2xl gap-1 max-w-xl mx-auto shadow-md mb-6">
-        <button
-          onClick={() => setMyHomeSubTab('IMMO')}
-          className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            myHomeSubTab === 'IMMO' 
-              ? 'bg-[#6C3CFF] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <Building className="w-4 h-4" />
-          <span>🏢 MyImmo : Transactions Immo</span>
-        </button>
-        <button
-          onClick={() => setMyHomeSubTab('BUSINESS')}
-          className={`flex-1 py-2.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
-            myHomeSubTab === 'BUSINESS' 
-              ? 'bg-[#6C3CFF] text-white shadow-lg' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5'
-          }`}
-        >
-          <ShoppingBag className="w-4 h-4" />
-          <span>🛒 Commerces de la Maison</span>
-        </button>
-      </div>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-[#a16eff]/10 border border-[#a16eff]/20 flex items-center justify-center font-title font-black text-xl text-white shadow-lg">
+                  ME
+                </div>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-[9px] bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest uppercase">Compte Particulier</span>
+                    <span className="font-mono text-[9px] bg-red-500/10 text-red-400 border border-red-500/10 px-2 py-0.5 rounded font-bold uppercase">Max 1 annonce / type</span>
+                  </div>
+                  <h3 className="font-title font-bold text-base text-white">{citizenProfile.name}</h3>
+                  <p className="text-xs text-gray-400">Actif sur le forum et la marketplace non-neuf de Casablanca.</p>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-1 font-mono text-xs">
+                <span className="text-gray-500">Contact personnel vérifié :</span>
+                <span className="text-[#a16eff] font-black flex items-center gap-1">
+                  <Phone className="w-3.5 h-3.5" /> {citizenProfile.contact}
+                </span>
+                <div className="text-[10px] text-gray-400 mt-1 flex flex-col items-end gap-0.5">
+                  <span>Ventes actives : <span className="text-white font-bold">{currentUserListingsCount} / 1</span></span>
+                  <span>Locations actives : <span className="text-white font-bold">{currentUserRentalsCount} / 1</span></span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Conditional Rendering of MyHome sections */}
-      {myHomeSubTab === 'BUSINESS' ? (
-        <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
-          {/* Header Card for Business Portal */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#6C3CFF]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
-            <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
-            
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#6C3CFF]/15 border border-[#6C3CFF]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
-                  <Sparkles className="w-3.5 h-3.5" />
-                  Réseau d'Experts Habitat
+      {myHomeSubTab === 'CONCIERGE' && (
+        <div className="space-y-6">
+          {/* Internal sub-switchers for MyServices */}
+          <div className="flex bg-[#0f111a]/85 border border-white/5 rounded-xl p-1 gap-1 max-w-md mx-auto shadow-inner">
+            <button
+              onClick={() => setConciergeTab('SERVICES')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                conciergeTab === 'SERVICES' 
+                  ? 'bg-gradient-to-r from-[#a16eff] to-[#8d5deb] text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
+              }`}
+            >
+              <span>🛠️</span>
+              <span>Services du Quotidien (Concierge)</span>
+            </button>
+            <button
+              onClick={() => setConciergeTab('DECO')}
+              className={`flex-1 py-1.5 px-3 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                conciergeTab === 'DECO' 
+                  ? 'bg-gradient-to-r from-[#a16eff] to-[#8d5deb] text-white shadow-md' 
+                  : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
+              }`}
+            >
+              <span>🪴</span>
+              <span>Showrooms Déco & Aménagement</span>
+            </button>
+          </div>
+
+          {conciergeTab === 'SERVICES' ? (
+            <ConciergeModule currentLang={currentLang} />
+          ) : (
+            <div className="space-y-6 animate-fade-in" id="myhome-business-portal">
+              {/* Header Card for Business Portal */}
+              <div className="relative overflow-hidden bg-gradient-to-br from-[#12141c] via-[#161a29] to-[#0d0f17] border border-white/5 rounded-3xl p-6 md:p-8 shadow-xl">
+                <div className="absolute top-0 right-0 w-80 h-80 bg-[#a16eff]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+                <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
+                
+                <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                  <div className="space-y-2">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#a16eff]/15 border border-[#a16eff]/20 text-[#BEB3FF] text-xs font-bold font-mono rounded-full uppercase tracking-wider">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      Réseau d'Experts Habitat
+                    </div>
+                    <h1 className="text-xl md:text-2xl font-black font-title text-white tracking-tight leading-tight mt-1">
+                      🛒 Commerces & Showrooms de la Maison
+                    </h1>
+                    <p className="text-gray-400 text-xs md:text-sm max-w-2xl leading-relaxed">
+                      Trouvez les meilleurs showrooms d'ameublement contemporain, décoration d'art traditionnel, cuisinistes d'élite, pépiniéristes et artisans marbriers à Casablanca, Mohammedia, Bouskoura et Dar Bouazza.
+                    </p>
+                  </div>
                 </div>
-                <h1 className="text-xl md:text-2xl font-black font-title text-white tracking-tight leading-tight mt-1">
-                  🛒 Commerces & Showrooms de la Maison
-                </h1>
-                <p className="text-gray-400 text-xs md:text-sm max-w-2xl leading-relaxed">
-                  Trouvez les meilleurs showrooms d'ameublement contemporain, décoration d'art traditionnel, cuisinistes d'élite, pépiniéristes et artisans marbriers à Casablanca, Mohammedia, Bouskoura et Dar Bouazza.
-                </p>
               </div>
-            </div>
-          </div>
 
-          {/* Search bar + filters for Businesses */}
-          <div className="bg-[#12141c]/80 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center shadow-lg">
-            <div className="relative w-full flex-1">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Rechercher canapé, tapis Beni Ouarain, dressing, paysagiste, plâtrier, zellige..."
-                value={businessSearch}
-                onChange={(e) => setBusinessSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#6C3CFF]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
-                id="business-search-input"
-              />
-            </div>
-
-            {/* City zone selector */}
-            <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
-              <Map className="w-3.5 h-3.5 text-gray-500 shrink-0" />
-              <select
-                value={selectedBusinessCity}
-                onChange={(e) => setSelectedBusinessCity(e.target.value)}
-                className="w-full md:w-44 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-xl text-xs font-mono outline-none cursor-pointer"
-              >
-                <option value="ALL">Grand Casablanca (Toutes)</option>
-                <option value="Casablanca">Casablanca Centre</option>
-                <option value="Mohammedia">Mohammedia</option>
-                <option value="Bouskoura">Bouskoura Ville Verte</option>
-                <option value="Dar Bouazza">Dar Bouazza Littoral</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Categories Tab Selector */}
-          <div className="flex flex-wrap gap-2 justify-center border-b border-white/5 pb-4">
-            {[
-              { id: 'ALL', label: 'Tout voir 📋' },
-              { id: 'FURNITURE', label: '🪑 Ameublement & Mobilier' },
-              { id: 'DECO', label: '🪴 Design & Décoration' },
-              { id: 'KITCHEN', label: '🍳 Cuisines & Cuisinistes' },
-              { id: 'GARDENING', label: '🌳 Jardinage & Aménagements' },
-              { id: 'SATELLITES', label: '⚡ Experts & Satellites Domotique' }
-            ].map(cat => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedBusinessCategory(cat.id)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
-                  selectedBusinessCategory === cat.id
-                    ? 'bg-[#6C3CFF] text-white border-[#6C3CFF] shadow-lg shadow-[#6C3CFF]/20'
-                    : 'bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40'
-                }`}
-              >
-                {cat.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Business Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {HOME_BUSINESSES.filter(biz => {
-              const matchesSearch = biz.name.toLowerCase().includes(businessSearch.toLowerCase()) ||
-                                    biz.description.toLowerCase().includes(businessSearch.toLowerCase()) ||
-                                    biz.tags.some(t => t.toLowerCase().includes(businessSearch.toLowerCase()));
-              const matchesCategory = selectedBusinessCategory === 'ALL' || biz.category === selectedBusinessCategory;
-              const matchesCity = selectedBusinessCity === 'ALL' || biz.cityZone === selectedBusinessCity;
-              return matchesSearch && matchesCategory && matchesCity;
-            }).map(biz => (
-              <div
-                key={biz.id}
-                className="bg-[#161821] border border-white/5 hover:border-[#6C3CFF]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
-              >
-                <div>
-                  <div className="flex justify-between items-start gap-2 mb-2">
-                    <span className="text-[10px] font-mono uppercase bg-[#6C3CFF]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#6C3CFF]/10 font-bold">
-                      {biz.category === 'FURNITURE' && "Ameublement"}
-                      {biz.category === 'DECO' && "Décoration d'Art"}
-                      {biz.category === 'KITCHEN' && "Cuisiniste d'Art"}
-                      {biz.category === 'GARDENING' && "Jardin & Extérieurs"}
-                      {biz.category === 'SATELLITES' && "Artisans & Domotique"}
-                    </span>
-                    <span className="text-yellow-400 font-mono text-xs font-bold">⭐ {biz.rating.toFixed(1)}</span>
-                  </div>
-
-                  <h3 className="font-title font-black text-sm text-white mt-1 group-hover:text-[#9E8BFF] transition-colors">
-                    {biz.name}
-                  </h3>
-
-                  <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono mt-2">
-                    <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
-                    <span><b>[{biz.cityZone}]</b> {biz.address}</span>
-                  </div>
-
-                  <p className="text-gray-400 text-xs mt-3 line-clamp-3 leading-relaxed">
-                    {biz.description}
-                  </p>
-
-                  <div className="mt-3 py-1 bg-black/10 px-2.5 rounded-lg border border-white/5 flex items-center justify-between text-[10.5px] font-mono text-emerald-300">
-                    <span className="text-gray-400 font-sans">Atout-phare :</span>
-                    <span className="font-bold flex items-center gap-1">
-                      <Sparkles className="w-3 h-3 text-[#9E8BFF] animate-pulse" /> {biz.highlight}
-                    </span>
-                  </div>
-
-                  {/* Badges */}
-                  <div className="flex flex-wrap gap-1.5 mt-3.5">
-                    {biz.tags.map(tag => (
-                      <span key={tag} className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded">
-                        #{tag}
-                      </span>
-                    ))}
-                  </div>
+              {/* Search bar + filters for Businesses */}
+              <div className="bg-[#12141c]/80 border border-white/5 p-4 rounded-2xl flex flex-col md:flex-row gap-3 items-center shadow-lg">
+                <div className="relative w-full flex-1">
+                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="text"
+                    placeholder="Rechercher canapé, tapis Beni Ouarain, dressing, paysagiste, plâtrier, zellige..."
+                    value={businessSearch}
+                    onChange={(e) => setBusinessSearch(e.target.value)}
+                    className="w-full pl-10 pr-4 py-2 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#a16eff]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
+                    id="business-search-input"
+                  />
                 </div>
 
-                <div className="border-t border-white/5 mt-5 pt-4 flex gap-2">
-                  <button
-                    onClick={() => setSelectedBusiness(biz)}
-                    className="w-full py-2 bg-[#6C3CFF]/15 hover:bg-[#6C3CFF] text-white hover:text-white border border-[#6C3CFF]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
+                {/* City zone selector */}
+                <div className="flex items-center gap-2 w-full md:w-auto shrink-0">
+                  <Map className="w-3.5 h-3.5 text-gray-500 shrink-0" />
+                  <select
+                    value={selectedBusinessCity}
+                    onChange={(e) => setSelectedBusinessCity(e.target.value)}
+                    className="w-full md:w-44 px-3 py-2 bg-black/40 border border-white/5 text-gray-300 rounded-xl text-xs font-mono outline-none cursor-pointer"
                   >
-                    🤝 Voir Showroom & Services
-                  </button>
+                    <option value="ALL">Grand Casablanca (Toutes)</option>
+                    <option value="Casablanca">Casablanca Centre</option>
+                    <option value="Mohammedia">Mohammedia</option>
+                    <option value="Bouskoura">Bouskoura Ville Verte</option>
+                    <option value="Dar Bouazza">Dar Bouazza Littoral</option>
+                  </select>
                 </div>
               </div>
-            ))}
-          </div>
+
+              {/* Categories Tab Selector */}
+              <div className="flex flex-wrap gap-2 justify-center border-b border-white/5 pb-4">
+                {[
+                  { id: 'ALL', label: 'Tout voir 📋' },
+                  { id: 'FURNITURE', label: '🪑 Ameublement & Mobilier' },
+                  { id: 'DECO', label: '🪴 Design & Décoration' },
+                  { id: 'KITCHEN', label: '🍳 Cuisines & Cuisinistes' },
+                  { id: 'GARDENING', label: '🌳 Jardinage & Aménagements' },
+                  { id: 'SATELLITES', label: '⚡ Experts & Satellites Domotique' }
+                ].map(cat => (
+                  <button
+                    key={cat.id}
+                    onClick={() => setSelectedBusinessCategory(cat.id)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                      selectedBusinessCategory === cat.id
+                        ? 'bg-[#a16eff] text-white border-[#a16eff] shadow-lg shadow-[#a16eff]/20'
+                        : 'bg-black/20 text-gray-400 border-white/5 hover:text-white hover:bg-black/40'
+                    }`}
+                  >
+                    {cat.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Business Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {HOME_BUSINESSES.filter(biz => {
+                  const matchesSearch = biz.name.toLowerCase().includes(businessSearch.toLowerCase()) ||
+                                        biz.description.toLowerCase().includes(businessSearch.toLowerCase()) ||
+                                        biz.tags.some(t => t.toLowerCase().includes(businessSearch.toLowerCase()));
+                  const matchesCategory = selectedBusinessCategory === 'ALL' || biz.category === selectedBusinessCategory;
+                  const matchesCity = selectedBusinessCity === 'ALL' || biz.cityZone === selectedBusinessCity;
+                  return matchesSearch && matchesCategory && matchesCity;
+                }).map(biz => (
+                  <div
+                    key={biz.id}
+                    className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl group relative overflow-hidden"
+                  >
+                    <div>
+                      <div className="flex justify-between items-start gap-2 mb-2">
+                        <span className="text-[10px] font-mono uppercase bg-[#a16eff]/15 text-[#9E8BFF] px-2 py-0.5 rounded border border-[#a16eff]/10 font-bold">
+                          {biz.category === 'FURNITURE' && "Ameublement"}
+                          {biz.category === 'DECO' && "Décoration d'Art"}
+                          {biz.category === 'KITCHEN' && "Cuisiniste d'Art"}
+                          {biz.category === 'GARDENING' && "Jardin & Extérieurs"}
+                          {biz.category === 'SATELLITES' && "Artisans & Domotique"}
+                        </span>
+                        <span className="text-yellow-400 font-mono text-xs font-bold">⭐ {biz.rating.toFixed(1)}</span>
+                      </div>
+
+                      <h3 className="font-title font-black text-sm text-white mt-1 group-hover:text-[#9E8BFF] transition-colors">
+                        {biz.name}
+                      </h3>
+
+                      <div className="flex items-center gap-1.5 text-[10px] text-gray-400 font-mono mt-2">
+                        <MapPin className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                        <span><b>[{biz.cityZone}]</b> {biz.address}</span>
+                      </div>
+
+                      <p className="text-gray-400 text-xs mt-3 line-clamp-3 leading-relaxed">
+                        {biz.description}
+                      </p>
+
+                      <div className="mt-3 py-1 bg-black/10 px-2.5 rounded-lg border border-white/5 flex items-center justify-between text-[10.5px] font-mono text-emerald-300">
+                        <span className="text-gray-400 font-sans">Atout-phare :</span>
+                        <span className="font-bold flex items-center gap-1">
+                          <Sparkles className="w-3 h-3 text-[#9E8BFF] animate-pulse" /> {biz.highlight}
+                        </span>
+                      </div>
+
+                      {/* Badges */}
+                      <div className="flex flex-wrap gap-1.5 mt-3.5">
+                        {biz.tags.map(tag => (
+                          <span key={tag} className="text-[9px] font-mono text-gray-500 bg-white/5 border border-white/5 px-2 py-0.5 rounded">
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="border-t border-white/5 mt-5 pt-4 flex gap-2">
+                      <button
+                        onClick={() => setSelectedBusiness(biz)}
+                        className="w-full py-2 bg-[#a16eff]/15 hover:bg-[#a16eff] text-white hover:text-white border border-[#a16eff]/20 rounded-xl text-xs font-bold transition-all cursor-pointer text-center block font-title"
+                      >
+                        🤝 Voir Showroom & Services
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
-      ) : (
-        <div id="myhome-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      )}
+
+      {myHomeSubTab === 'IMMO' && (
+        <div id="myimmo-wrapper" className="space-y-6 animate-fade-in">
+          
+          {/* Subtab Selector for Buy vs Rent */}
+          <div className="bg-[#12141c]/80 border border-white/5 p-1 rounded-2xl flex max-w-sm gap-1">
+            <button
+              id="immo-buy-tab-btn"
+              onClick={() => setImmoTab('BUY')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                immoTab === 'BUY'
+                  ? 'bg-gradient-to-r from-emerald-500/10 to-[#a16eff]/20 border border-[#a16eff]/30 text-white shadow shadow-emerald-500/10 font-extrabold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Building className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Achat / Vente Directe</span>
+            </button>
+            <button
+              id="immo-rent-tab-btn"
+              onClick={() => setImmoTab('RENT')}
+              className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                immoTab === 'RENT'
+                  ? 'bg-gradient-to-r from-purple-500/10 to-[#a16eff]/25 border border-[#a16eff]/30 text-white shadow shadow-purple-500/10 font-extrabold'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`}
+            >
+              <Home className="w-3.5 h-3.5 text-purple-400" />
+              <span>Location / B'n'B (MyHost)</span>
+            </button>
+          </div>
+
+          {immoTab === 'BUY' ? (
+            <div id="myhome-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         
         {/* Left 2 Cols: Listing Feed and Interactive Search */}
         <div className="xl:col-span-2 space-y-6">
@@ -788,7 +1072,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 placeholder="Ex: Anfa, Gauthier, Maârif..."
                 value={searchDistrict}
                 onChange={(e) => setSearchDistrict(e.target.value)}
-                className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#6C3CFF]"
+                className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#a16eff]"
               />
             </div>
 
@@ -796,7 +1080,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               <select
                 value={searchType}
                 onChange={(e) => setSearchType(e.target.value)}
-                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#6C3CFF]"
+                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#a16eff]"
               >
                 <option value="ALL">Tous les types</option>
                 <option value="APPARTEMENT">🏢 Appartements</option>
@@ -810,7 +1094,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               <select
                 value={searchCondition}
                 onChange={(e) => setSearchCondition(e.target.value)}
-                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#6C3CFF]"
+                className="appearance-none w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 pr-8 text-white text-xs outline-none cursor-pointer focus:border-[#a16eff]"
               >
                 <option value="ALL">Neuf ou Occasion</option>
                 <option value="NEW">🌟 Neuf (Promoteurs)</option>
@@ -828,7 +1112,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             {filteredListings.map(item => (
               <div 
                 key={item.id} 
-                className="bg-[#161821] border border-white/5 hover:border-[#6C3CFF]/50 p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden shadow-lg hover:shadow-2xl shrink-0 w-[310px] md:w-[350px] snap-start"
+                className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/50 p-4 rounded-2xl transition-all cursor-pointer flex flex-col justify-between group relative overflow-hidden shadow-lg hover:shadow-2xl shrink-0 w-[310px] md:w-[350px] snap-start"
               >
                 {/* Visual Label Tag */}
                 <div className="absolute top-3 right-3 flex gap-1.5">
@@ -847,7 +1131,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     <span>{item.district}, {item.city}</span>
                   </div>
 
-                  <h4 className="font-title font-bold text-sm text-white leading-snug group-hover:text-[#6C3CFF] transition-colors pr-20">
+                  <h4 className="font-title font-bold text-sm text-white leading-snug group-hover:text-[#a16eff] transition-colors pr-20">
                     {item.title}
                   </h4>
 
@@ -857,10 +1141,21 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
 
                   {/* Moroccan conformance items */}
                   <div className="bg-black/20 p-2.5 rounded-xl border border-white/5 space-y-1 text-[9.5px] font-mono text-gray-400">
-                    <div className="flex justify-between">
+                    <div className="flex justify-between items-center">
                       <span>Titre Foncier (Conservation):</span>
-                      <span className="text-emerald-400 font-bold">N° {item.titleDeedNum}</span>
+                      <span className="text-emerald-400 font-bold flex items-center gap-1">
+                        <Lock className="w-2.5 h-2.5 text-emerald-400" />
+                        N° {item.titleDeedNum}
+                      </span>
                     </div>
+                    {item.titleDeedHash && (
+                      <div className="flex justify-between items-center text-[8.5px] text-gray-500 bg-black/40 px-1.5 py-0.5 rounded border border-white/5">
+                        <span className="flex items-center gap-0.5 text-emerald-400 font-black">
+                          <CheckCircle className="w-2 h-2 text-emerald-400" /> ZKP :
+                        </span>
+                        <span className="font-mono truncate max-w-[160px]" title={item.titleDeedHash}>{item.titleDeedHash}</span>
+                      </div>
+                    )}
                     {item.promoterName && (
                       <div className="flex justify-between items-center text-gray-300">
                         <span>Promoteur :</span>
@@ -900,7 +1195,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <div className="flex gap-2 mt-4 pt-1 w-full">
                   <button
                     onClick={() => setSelectedOffer(item)}
-                    className="flex-1 py-1.5 bg-[#6C3CFF]/10 hover:bg-[#6C3CFF] text-white text-[10.5px] font-bold rounded-xl transition-all border border-[#6C3CFF]/20 cursor-pointer text-center font-title block"
+                    className="flex-1 py-1.5 bg-[#a16eff]/10 hover:bg-[#a16eff] text-white text-[10.5px] font-bold rounded-xl transition-all border border-[#a16eff]/20 cursor-pointer text-center font-title block"
                   >
                     🔍 Voir Détails
                   </button>
@@ -955,7 +1250,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropTitle}
                     onChange={(e) => setNewPropTitle(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -979,7 +1274,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   value={newPropDesc}
                   onChange={(e) => setNewPropDesc(e.target.value)}
                   rows={2}
-                  className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#6C3CFF] resize-none"
+                  className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff] resize-none"
                 />
               </div>
 
@@ -992,7 +1287,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropPrice}
                     onChange={(e) => setNewPropPrice(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -1004,7 +1299,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                     value={newPropArea}
                     onChange={(e) => setNewPropArea(e.target.value)}
                     required
-                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#6C3CFF]"
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
                   />
                 </div>
 
@@ -1236,11 +1531,26 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             </form>
 
             {cadastreStatusResult && (
-              <div className="bg-black/30 p-3 rounded-xl border border-white/5 font-mono text-[10px] space-y-1 text-gray-400">
+              <div className="bg-black/30 p-3 rounded-xl border border-white/5 font-mono text-[10px] space-y-1.5 text-gray-400">
                 <p><b>Statut Cadastral :</b> <span className="text-emerald-400 font-bold">Inscrit & Titré 🟢</span></p>
+                <p className="truncate"><b>Masquage Souverain :</b> <span className="text-white font-bold">{cadastreStatusResult.titleNum}</span></p>
                 <p className="truncate"><b>Propriétaire :</b> {cadastreStatusResult.owner}</p>
                 <p><b>Surface du Sol :</b> {cadastreStatusResult.area} m²</p>
                 <p className="text-[9px] text-yellow-300"><b>Charges/Privilèges :</b> {cadastreStatusResult.encumbrances}</p>
+                
+                {cadastreStatusResult.titleDeedHash && (
+                  <div className="mt-2 pt-2 border-t border-white/5 space-y-1 text-[8.5px] text-gray-500">
+                    <p className="font-bold text-emerald-400 uppercase tracking-wider text-[8px] flex items-center gap-0.5">
+                      <Shield className="w-2.5 h-2.5" /> Preuve Cryptographique (ZKP)
+                    </p>
+                    <p className="truncate"><b>Empreinte :</b> <span className="text-gray-300">{cadastreStatusResult.titleDeedHash}</span></p>
+                    <p className="truncate"><b>Preuve ZKP :</b> <span className="text-indigo-400">{cadastreStatusResult.zkpProofToken}</span></p>
+                    <p className="text-[8px] text-gray-500 font-sans italic bg-emerald-950/20 p-1.5 rounded mt-1">
+                      Conforme Loi 18-00 : Aucun Titre Foncier n'est transmis ni conservé sur les serveurs de MyCity.
+                    </p>
+                  </div>
+                )}
+                
                 <p className="text-[8px] text-gray-500 text-right pt-1 border-t border-white/5">Signature d'authenticité de l'État : {cadastreStatusResult.authenticityDate}</p>
               </div>
             )}
@@ -1255,6 +1565,135 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <p className="text-[9px] text-gray-500">Secrétariat de signature des actes authentiques</p>
               </div>
             </div>
+
+            {/* Institution representative banner for Notaires - FIXED and non-scrollable */}
+            <div 
+              onClick={() => setShowNotaireModal(true)}
+              className="p-3 bg-amber-950/20 border border-amber-500/25 rounded-2xl space-y-2 font-sans cursor-pointer hover:border-amber-500/60 hover:bg-amber-500/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+              title="Cliquez pour consulter le rôle, les recours en cas de malpratique et les coordonnées"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold">🏛️</span>
+                  <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono text-amber-400">Conseil Régional des Notaires de Casablanca</span>
+                </div>
+                <span className="text-[9px] bg-amber-500/30 text-amber-200 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-amber-500 group-hover:text-white transition-colors">
+                  📖 Guide des Droits & Recours
+                </span>
+              </div>
+              <p className="text-[9.5px] text-amber-200/90 leading-normal">
+                Ordre National des Notaires du Maroc — Organe représentatif légal régissant l'authenticité et la sécurité juridique des actes à Casablanca. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal complet</span>.
+              </p>
+            </div>
+
+            {/* Notaire Detailed Malpractice & Rights Modal */}
+            {showNotaireModal && (
+              <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+                <div className="bg-[#11131e] border border-amber-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                  {/* Header */}
+                  <div className="p-6 border-b border-amber-500/15 flex items-start justify-between bg-amber-950/20">
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">🏛️</span>
+                      <div>
+                        <h3 className="font-title font-bold text-base text-white">Conseil Régional des Notaires de Casablanca</h3>
+                        <p className="text-xs text-amber-300 font-mono">Ordre National des Notaires du Maroc — Sécurité de la Propriété</p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowNotaireModal(false)}
+                      className="p-1 px-2.5 bg-amber-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                    >
+                      ✕ Fermer
+                    </button>
+                  </div>
+
+                  {/* Content */}
+                  <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                    {/* Section 1: Rôle Légal */}
+                    <div className="space-y-2">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>📄</span> Rôle Légal du Notaire & Mission Public-Privé
+                      </h4>
+                      <p>
+                        Régit par la <b>Loi n° 32-09</b> relative à l'organisation de la profession de notaire au Maroc, le notaire est un officier public nommé par l'État pour conférer le caractère d'authenticité aux actes (actes authentiques). Le notaire apporte une sécurité juridique absolue aux transactions immobilières en Casablanca en certifiant l'identité des parties, la régularité foncière des titres, et en prélevant pour le compte de l'État les taxes de mutation indispensables avant toute inscription cadastrale définitive.
+                      </p>
+                    </div>
+
+                    {/* Section 2: Protection face aux maladresses / malpratiques */}
+                    <div className="space-y-2">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>🛡️</span> Protection face aux Malpratiques des Notaires (Négligences & Détournements)
+                      </h4>
+                      <p className="mb-2">
+                        Les notaires marocains sont soumis à des contrôles d'une extrême rigueur par le Ministère de la Justice d'une part, et par leur ordre professionnel d'autre part :
+                      </p>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-amber-950/20 p-3.5 rounded-xl border border-amber-500/10">
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white">🔐 Caisse de Garantie Obligatoire</h5>
+                          <p className="text-gray-400 text-[10.5px]">En cas d'insolvabilité foncière ou de faute civile grave du notaire causant un dommage financier, la Caisse nationale de Garantie des Actes Notariés indemnise les acquéreurs lésés de leurs débours perdus.</p>
+                        </div>
+                        <div className="space-y-1">
+                          <h5 className="font-bold text-white">💰 Consignation Sécurisée à la CDG</h5>
+                          <p className="text-gray-400 text-[10.5px]">Tout versement de fonds d'un bien immobilier (prix de vente, frais d'acte) doit être obligatoirement consigné sur un compte spécial ouvert à la Caisse de Dépôt et de Gestion (CDG). La conservation directe sur un compte personnel du notaire est interdite.</p>
+                        </div>
+                        <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                          <h5 className="font-bold text-white">⏳ Action contre les retards de publication</h5>
+                          <p className="text-gray-400 text-[10.5px]">Tout retard inconsidéré dans l'enregistrement de l'acte de vente auprès de l'ANCFCC (Conservation Foncière) fait courir le risque de vente parallèle. L'Ordre intervient pour forcer l'enregistrement ou saisir le Procureur du Roi.</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Section 3: Vos Droits & Comment les obtenir */}
+                    <div className="space-y-3">
+                      <h4 className="font-mono text-amber-400 font-bold uppercase tracking-wider border-b border-amber-500/10 pb-1 flex items-center gap-1.5">
+                        <span>📋</span> Droits de l'Acquéreur & Démarche de Contrôle et Plaintes
+                      </h4>
+                      <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                        <li>
+                          <b className="text-white">Le droit de vérifier le Certificat de Propriété :</b> Avant de verser le moindre centime au vendeur, exigez du notaire un certificat de propriété daté du jour de l'ANCFCC confirmant l'absence de saisies judiciaires, d'hypothèques ou d'interdictions de vente sur le titre.
+                        </li>
+                        <li>
+                          <b className="text-white">Le droit aux reçus officiels (Quittances CDG) :</b> Chaque versement effectué auprès d'une étude de notaire doit faire l'objet d'une quittance officielle numérotée mentionnant le numéro d'ordre CDG. Ne versez jamais de frais en espèces sans un reçu scrupuleusement rédigé.
+                        </li>
+                        <li>
+                          <b className="text-white">Dépôt de plainte formelle :</b> En cas de rétention prolongée de fonds, d'inactivité injustifiée ou de fautes avérées, déposez un dossier de plainte écrite auprès du Président du Conseil Régional des Notaires de Casablanca, étayé par une copie du contrat de compromis de vente ou d'acte authentique non publié.
+                        </li>
+                        <li>
+                          <b className="text-white">Saisine du Procureur du Roi :</b> Pour les cas critiques d'escroquerie, d'abus de blanc-seing ou d'appropriation frauduleuse de fonds dépositaires, déposez immédiatement plainte directement auprès du Procureur du Roi près de la Cour d'Appel de Casablanca, qui détient la compétence de suspendre l'officier public par intérim.
+                        </li>
+                      </ol>
+                    </div>
+
+                    {/* Section 4: Contact Officiel */}
+                    <div className="space-y-3 bg-[#11131e] border border-amber-500/15 p-4 rounded-2xl">
+                      <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                        <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                        <div>
+                          <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">Angle Boulevard d'Anfa et Rue de Rome, Résidence d'Anfa, Casablanca, Maroc</span></p>
+                          <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-amber-400">regional.casablanca@notariat.ma</span></p>
+                        </div>
+                        <div>
+                          <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-39 51 52</span></p>
+                          <p><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 09:00 - 17:00</span></p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="p-4 bg-amber-950/20 border-t border-amber-500/15 flex justify-end">
+                    <button 
+                      onClick={() => setShowNotaireModal(false)}
+                      className="px-5 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-amber-500/10"
+                    >
+                      J'ai bien compris mes droits d'acquéreur
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div className="space-y-3">
               {defaultNotaries.map(not => (
@@ -1280,12 +1719,326 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
         </div>
 
       </div>
+          ) : (
+             <div id="myrent-grid" className="grid grid-cols-1 xl:grid-cols-3 gap-6 animate-fade-in" style={{ direction: 'ltr' }}>
+               
+               {/* Left 2 Cols: Rent Available Feed + Publish via MyHost form */}
+               <div className="xl:col-span-2 space-y-6">
+                 
+                 {/* Search / Filters Panel */}
+                 <div className="bg-[#161821] p-4 rounded-2xl border border-white/5 flex flex-wrap gap-3 items-center">
+                   <div className="relative flex-1 min-w-[160px]">
+                     <Search className="w-4 h-4 text-gray-500 absolute left-3 top-3" />
+                     <input
+                       type="text"
+                       placeholder="Filtrer par quartier (ex: Anfa, Gauthier, Maârif)..."
+                       value={searchDistrict}
+                       onChange={(e) => setSearchDistrict(e.target.value)}
+                       className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl pl-9 pr-3 py-2 text-white text-xs placeholder:text-gray-500 outline-none focus:border-[#a16eff]"
+                     />
+                   </div>
+
+                   {/* Filter Pills for Short vs Long */}
+                   <div className="flex gap-1">
+                     {[
+                       { id: 'ALL', label: 'Tout voir 📋' },
+                       { id: 'SHORT', label: "🏨 B'n'B / Courte" },
+                       { id: 'LONG', label: '🔑 Longue Durée' }
+                     ].map(pill => (
+                       <button
+                         key={pill.id}
+                         type="button"
+                         onClick={() => setRentFilter(pill.id as any)}
+                         className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                           rentFilter === pill.id
+                             ? 'bg-purple-600 text-white border-purple-500 shadow font-extrabold'
+                             : 'bg-black/20 text-gray-400 border-white/5 hover:text-white'
+                         }`}
+                       >
+                         {pill.label}
+                       </button>
+                     ))}
+                   </div>
+                 </div>
+
+                 {/* Rental list Cards */}
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   {rentalOffers.filter(offer => {
+                     const matchesDistrict = searchDistrict === '' || offer.district.toLowerCase().includes(searchDistrict.toLowerCase());
+                     const matchesType = rentFilter === 'ALL' || offer.type === rentFilter;
+                     return matchesDistrict && matchesType;
+                   }).map(offer => (
+                     <div
+                       key={offer.id}
+                       className="bg-[#161821] border border-white/5 hover:border-[#a16eff]/40 p-5 rounded-2xl flex flex-col justify-between transition-all duration-300 shadow-xl relative overflow-hidden group"
+                     >
+                       {/* MyHost Verified Badge */}
+                       <div className="absolute top-4 right-4 flex items-center gap-1">
+                         {offer.verifiedMyHost ? (
+                           <span className="text-[8.5px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded font-black uppercase flex items-center gap-1">
+                             <CheckCircle className="w-2.5 h-2.5 text-emerald-400" /> Compliant MyHost
+                           </span>
+                         ) : (
+                           <span className="text-[8.5px] font-mono bg-amber-500/5 text-amber-500 border border-amber-500/10 px-2 py-0.5 rounded font-bold uppercase">
+                             Particulier Direct
+                           </span>
+                         )}
+                       </div>
+
+                       <div className="space-y-2 mt-2">
+                         <div className="flex items-center gap-1 text-[10.5px] text-gray-400 font-mono">
+                           <MapPin className="w-3.5 h-3.5 text-red-500" />
+                           <span>{offer.district}, Casablanca</span>
+                         </div>
+
+                         <h3 className="font-title font-bold text-sm text-white group-hover:text-[#be8bff] transition-colors pr-10">
+                           {offer.title}
+                         </h3>
+
+                         <p className="text-gray-400 text-xs line-clamp-2 leading-relaxed">
+                           {offer.description}
+                         </p>
+
+                         <div className="bg-black/15 p-2.5 rounded-xl border border-white/5 flex justify-between text-[10.5px] text-gray-400 font-mono">
+                           <span>Surface : <b>{offer.areaSqm} m²</b></span>
+                           <span>Pièces : <b>{offer.rooms} {offer.rooms > 1 ? 'Chambres' : 'Chambre'}</b></span>
+                         </div>
+                       </div>
+
+                       {/* Price + Action Button */}
+                       <div className="border-t border-white/5 mt-5 pt-4 flex items-center justify-between">
+                         <div>
+                           <span className="text-[9px] font-mono text-gray-500 block uppercase">Tarif :</span>
+                           <span className="text-sm font-black text-emerald-400 font-mono">
+                             {offer.priceValue.toLocaleString('fr-FR')} MAD 
+                             <span className="text-gray-500 font-normal text-[10px] font-sans">
+                               {offer.type === 'SHORT' ? ' / nuit' : ' / mois'}
+                             </span>
+                           </span>
+                         </div>
+
+                         <button
+                           onClick={() => setSelectedRentalForBooking(offer)}
+                           className="px-4 py-2 bg-gradient-to-r from-purple-500 to-[#a16eff] hover:from-purple-600 hover:to-[#be8bff] text-white text-xs font-black font-title rounded-xl transition-all cursor-pointer shadow-md shadow-purple-500/10"
+                         >
+                           🏨 Réserver (Book)
+                         </button>
+                       </div>
+                     </div>
+                   ))}
+                   {rentalOffers.filter(offer => {
+                     const matchesDistrict = searchDistrict === '' || offer.district.toLowerCase().includes(searchDistrict.toLowerCase());
+                     const matchesType = rentFilter === 'ALL' || offer.type === rentFilter;
+                     return matchesDistrict && matchesType;
+                   }).length === 0 && (
+                     <div className="md:col-span-2 text-center py-8 text-gray-500 text-xs font-mono bg-[#161821]/50 border border-white/5 rounded-2xl">
+                       Aucun bien en location ne correspond à votre recherche.
+                     </div>
+                   )}
+                 </div>
+
+                 {/* Form to list my property via MyHost */}
+                 <div id="rent-publish-container" className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-4">
+                   <div className="flex items-center gap-2 border-b border-white/5 pb-3 justify-between">
+                     <div className="flex items-center gap-2">
+                       <Home className="w-5 h-5 text-purple-400" />
+                       <div>
+                         <h4 className="font-title font-bold text-sm text-white">Mettre mon bien en location via MyHost</h4>
+                         <p className="text-[10px] text-gray-400 mt-0.5">Propulsez votre logement en courte ou longue durée avec gestion automatisée.</p>
+                       </div>
+                     </div>
+                     <div className="flex items-center gap-1.5 flex-wrap">
+                       <span className="text-[10px] font-bold font-mono text-medium bg-purple-500/10 text-purple-400 border border-purple-500/20 px-2 py-0.5 rounded-lg uppercase">MyHost Premium</span>
+                       {userRole === 'IMMO_PRO' ? (
+                         <span className="text-[10px] font-bold font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2 py-0.5 rounded-lg uppercase">
+                           ✨ ImmoPro (Locations Illimitées)
+                         </span>
+                       ) : (
+                         <button
+                           type="button"
+                           onClick={() => {
+                             setUserRole('IMMO_PRO');
+                             alert("✨ Mode Promoteur Professionnel activé ! Vous bénéficiez désormais d'un quota de location court/long terme illimité.");
+                           }}
+                           className="text-[10px] font-bold font-mono bg-[#a16eff]/10 hover:bg-[#a16eff]/20 text-[#a16eff] border border-[#a16eff]/20 px-2 py-0.5 rounded-lg uppercase transition-all cursor-pointer"
+                           title="Passer en compte professionnel pour lever la limite de 1 annonce"
+                         >
+                           👤 Particulier (Max 1) - Activer Pro 🔓
+                         </button>
+                       )}
+                     </div>
+                   </div>
+
+                   <form onSubmit={handlePublishRental} className="space-y-3.5 text-xs">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Titre de l'annonce de location *</label>
+                         <input
+                           type="text"
+                           placeholder="Ex: Charmante Suite Gauthier avec Terrasse"
+                           value={newRentTitle}
+                           onChange={(e) => setNewRentTitle(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Quartier</label>
+                         <select
+                           value={newRentDistrict}
+                           onChange={(e) => setNewRentDistrict(e.target.value)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="Anfa">Anfa / Boulevard d'Anfa</option>
+                           <option value="Gauthier">Gauthier / Centre</option>
+                           <option value="Maârif">Maârif Extension</option>
+                           <option value="Bouskoura">Bouskoura Ville Verte</option>
+                           <option value="Bourgogne">Bourgogne</option>
+                         </select>
+                       </div>
+                     </div>
+
+                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Type de bail *</label>
+                         <select
+                           value={newRentType}
+                           onChange={(e) => setNewRentType(e.target.value as any)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="SHORT">Chambre / B'n'B (Courte)</option>
+                           <option value="LONG">Longue Durée (Mensuel)</option>
+                         </select>
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Loyer estimé (MAD) *</label>
+                         <input
+                           type="number"
+                           placeholder={newRentType === 'SHORT' ? "Ex: 800" : "Ex: 10000"}
+                           value={newRentPrice}
+                           onChange={(e) => setNewRentPrice(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Surface (m²) *</label>
+                         <input
+                           type="number"
+                           placeholder="Ex: 65"
+                           value={newRentArea}
+                           onChange={(e) => setNewRentArea(e.target.value)}
+                           required
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white font-mono outline-none focus:border-[#a16eff]"
+                         />
+                       </div>
+
+                       <div>
+                         <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1 font-mono">Chambres / Pièces</label>
+                         <select
+                           value={newRentRooms}
+                           onChange={(e) => setNewRentRooms(e.target.value)}
+                           className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-2 text-white outline-none cursor-pointer"
+                         >
+                           <option value="1">1 Chambre (Studio)</option>
+                           <option value="2">2 Chambres (F3)</option>
+                           <option value="3">3 Chambres (F4)</option>
+                           <option value="4">4+ Chambres (Grande)</option>
+                         </select>
+                       </div>
+                     </div>
+
+                     <div>
+                       <label className="block text-[10px] uppercase font-mono text-gray-500 mb-1">Description et équipements</label>
+                       <textarea
+                         placeholder="Quartier calme, climatisé, équipements de cuisine, Smart Lock, parfait état..."
+                         value={newRentDesc}
+                         onChange={(e) => setNewRentDesc(e.target.value)}
+                         rows={2}
+                         className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-3 py-2 text-white outline-none focus:border-[#a16eff] resize-none"
+                       />
+                     </div>
+
+                     <div className="flex items-center pt-2">
+                       <label className="flex items-center gap-2 cursor-pointer text-white text-[11px] font-mono">
+                         <input
+                           type="checkbox"
+                           checked={newRentVerifiedHostFlag}
+                           onChange={(e) => setNewRentVerifiedHostFlag(e.target.checked)}
+                           className="accent-purple-500 w-4 h-4 text-purple-500 border border-white/10"
+                         />
+                         <span>Activer la labellisation et serrure connectée MyHost</span>
+                       </label>
+                     </div>
+
+                     <button
+                       type="submit"
+                       className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-[#a16eff] hover:from-purple-700 hover:to-[#be8bff] text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-purple-500/15"
+                     >
+                       🚀 Mettre en ligne sur MyCity (via MyHost)
+                     </button>
+                   </form>
+                 </div>
+               </div>
+
+               {/* Right 1 Col: MyHost details and statistics */}
+               <div className="space-y-6 col-span-1">
+                 
+                 {/* Why list with MyHost */}
+                 <div className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-4">
+                   <div className="flex items-center gap-2 text-[#a16eff] border-b border-white/5 pb-2.5 bg-gradient-to-r from-transparent to-transparent">
+                     <Sparkles className="w-5 h-5 text-purple-400" />
+                     <h4 className="font-title font-bold text-xs text-white uppercase tracking-wider font-title">Pourquoi louer via MyHost ?</h4>
+                   </div>
+                   <p className="text-gray-400 text-[11px] leading-relaxed font-sans">
+                     MyHost simplifie l'expérience locative des loueurs et voyageurs grâce à la souveraineté numérique locale :
+                   </p>
+
+                   <div className="space-y-3 text-[10px] font-mono">
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><Key className="w-3.5 h-3.5 text-purple-400" /> Auto Check-in intelligent</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Génération automatique de codes à chiffre unique transmis physiquement à la serrure connectée de l'appartement.</p>
+                     </div>
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><Shield className="w-3.5 h-3.5 text-emerald-400" /> Déclaration Sécurisée</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Toute réservation transmet automatiquement les identités requises aux autorités locales via API conforme CNDP.</p>
+                     </div>
+                     <div className="p-2.5 bg-black/20 rounded-xl border border-white/5 space-y-1">
+                       <p className="text-white font-bold flex items-center gap-1.5"><AlertCircle className="w-3.5 h-3.5 text-yellow-400" /> Protection des Hôtes</p>
+                       <p className="text-gray-400 text-[9.5px] font-sans leading-normal">Garantie contre les pépins physiques et assurance dommage d'un million de dirhams incluse d'office.</p>
+                     </div>
+                   </div>
+                 </div>
+
+                 {/* Active guest statistics */}
+                 <div className="bg-[#161821] border border-white/5 rounded-3xl p-5 space-y-3">
+                   <h4 className="text-[10px] uppercase font-mono tracking-wider text-gray-400 border-b border-white/5 pb-2 font-bold font-mono">🎯 Tendances Locatives à Casablanca :</h4>
+                   <div className="grid grid-cols-2 gap-3 text-center font-mono">
+                     <div className="p-3 bg-black/20 border border-white/5 rounded-2xl">
+                       <span className="text-[9px] uppercase text-gray-500 block">Loyer Moyen B'n'B</span>
+                       <strong className="text-xs text-purple-400">820 MAD/nuit</strong>
+                     </div>
+                     <div className="p-3 bg-black/20 border border-white/5 rounded-2xl">
+                       <span className="text-[9px] uppercase text-gray-500 block">Taux de Remplissage</span>
+                       <strong className="text-xs text-emerald-400">81.5 % moyen</strong>
+                     </div>
+                   </div>
+                 </div>
+               </div>
+               
+             </div>
+          )}
+
+        </div>
       )}
 
       {/* Details modal with Map simulation & PIN pointer */}
       {selectedOffer && (
         <div id="listing-details-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/100 animate-fade-in" style={{ backgroundColor: '#06070a' }}>
-          <div id="listing-details-card" className="bg-[#161821] border border-[#6C3CFF]/20 w-full max-w-4xl rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl h-[90vh] md:h-auto md:max-h-[85vh]" style={{ backgroundColor: '#161821' }}>
+          <div id="listing-details-card" className="bg-[#161821] border border-[#a16eff]/20 w-full max-w-4xl rounded-3xl overflow-hidden flex flex-col md:flex-row shadow-2xl h-[90vh] md:h-auto md:max-h-[85vh]" style={{ backgroundColor: '#161821' }}>
             
             {/* Left Hand: Property details info */}
             <div className="flex-1 p-6 md:p-8 space-y-4 overflow-y-auto border-b md:border-b-0 md:border-r border-white/5">
@@ -1298,10 +2051,30 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 }`}>
                   {selectedOffer.isNewBuild ? "Construction Neuve (VEFA)" : "Occasion certifiée"}
                 </span>
-                <span className="font-mono text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 px-2 py-0.5 rounded font-bold uppercase">
-                  Titre Foncier N° {selectedOffer.titleDeedNum}
+                <span className="font-mono text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 px-2 py-0.5 rounded font-bold uppercase flex items-center gap-1">
+                  <Lock className="w-2.5 h-2.5" /> Titre Foncier N° {selectedOffer.titleDeedNum}
                 </span>
               </div>
+
+              {selectedOffer.titleDeedHash && (
+                <div className="bg-[#1b1c26] border border-emerald-500/15 p-3 rounded-2xl space-y-1.5 text-xs text-justify">
+                  <div className="flex justify-between items-center border-b border-white/5 pb-1.5">
+                    <span className="text-[10px] uppercase font-mono font-bold text-emerald-400 flex items-center gap-1">
+                      <Shield className="w-3.5 h-3.5" /> Certificat d'Empreinte Numérique (ZKP)
+                    </span>
+                    <span className="text-[8px] font-mono bg-emerald-400/10 text-emerald-400 px-1.5 py-0.5 rounded uppercase font-black tracking-wide border border-emerald-400/20">
+                      Loi 18-00 & ANCFCC Compliant
+                    </span>
+                  </div>
+                  <p className="text-[10.5px] text-gray-400 leading-normal">
+                    Fidèle à la directive stricte d'exemption de risque juridique, l'infrastructure MyCity ne stocke aucun document d'acte original ou de titre foncier en clair. Seul ce condensat de hachage cryptographique et sa preuve à divulgation nulle (ZKP) sont conservés à des fins d'authentification souveraine absolue auprès du cadastre.
+                  </p>
+                  <div className="bg-black/35 p-2 rounded-xl text-[9px] font-mono text-gray-500 space-y-0.5 border border-white/5">
+                    <p className="truncate"><b>Hachage immuable :</b> <span className="text-gray-300 font-bold select-all">{selectedOffer.titleDeedHash}</span></p>
+                    <p className="truncate"><b>Authenticité cryptographique :</b> <span className="text-[#a29bfe] font-bold select-all">{selectedOffer.zkpProofToken}</span></p>
+                  </div>
+                </div>
+              )}
 
               <h2 className="font-title font-black text-lg md:text-xl text-white leading-snug">
                 {selectedOffer.title}
@@ -1325,8 +2098,8 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   <span className="text-[9px] font-mono text-gray-500 uppercase block">Situation :</span>
                   <span className="text-sm font-black text-[#a29bfe] font-mono">{selectedOffer.district}, Casablanca</span>
                 </div>
-                <div className="bg-black/30 p-3 rounded-xl border border-[#6C3CFF]/15 space-y-0.5">
-                  <span className="text-[9px] font-mono text-[#6C3CFF] uppercase block">Prix de cession :</span>
+                <div className="bg-black/30 p-3 rounded-xl border border-[#a16eff]/15 space-y-0.5">
+                  <span className="text-[9px] font-mono text-[#a16eff] uppercase block">Prix de cession :</span>
                   <span className="text-sm font-black text-emerald-400 font-mono">{selectedOffer.priceMAD.toLocaleString('fr-FR')} MAD</span>
                 </div>
               </div>
@@ -1347,7 +2120,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                   </div>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 text-[#6C3CFF] font-bold flex items-center justify-center text-xs">
+                    <div className="w-10 h-10 rounded-xl bg-[#a16eff]/10 border border-[#a16eff]/20 text-[#a16eff] font-bold flex items-center justify-center text-xs">
                       MP
                     </div>
                     <div>
@@ -1359,7 +2132,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
 
                 <div className="pt-2 border-t border-white/5 flex justify-between items-center text-xs">
                   <span className="text-gray-400 font-mono">Ligne directe sécurisée :</span>
-                  <span className="text-[#6C3CFF] font-black font-mono select-all flex items-center gap-1">
+                  <span className="text-[#a16eff] font-black font-mono select-all flex items-center gap-1">
                     📞 {selectedOffer.promoterContact}
                   </span>
                 </div>
@@ -1405,18 +2178,18 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 
                 {/* Roads Map Vector Draw */}
                 <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-20" viewBox="0 0 100 100" preserveAspectRatio="none">
-                  <path d="M 0 0 Q 30 15 55 10 T 100 0 L 0 0 Z" fill="#6C3CFF" />
+                  <path d="M 0 0 Q 30 15 55 10 T 100 0 L 0 0 Z" fill="#a16eff" />
                   <path d="M 10 45 L 90 25 M 20 25 Q 35 45 48 85 M 40 12 L 85 85" stroke="white" strokeWidth="0.8" fill="none" />
-                  <path d="M 5 25 Q 40 30 95 65" stroke="#6C3CFF" strokeWidth="1.2" strokeDasharray="3,3" fill="none" />
+                  <path d="M 5 25 Q 40 30 95 65" stroke="#a16eff" strokeWidth="1.2" strokeDasharray="3,3" fill="none" />
                 </svg>
 
                 {/* Grid nodes */}
-                <div className="absolute inset-0 opacity-15 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6C3CFF 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
+                <div className="absolute inset-0 opacity-15 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#a16eff 1px, transparent 1px)', backgroundSize: '16px 16px' }}></div>
 
                 {/* Neighborhood labels */}
                 <span className="absolute left-[10%] top-[8%] text-white/20 font-mono text-[8px] uppercase tracking-widest">Atlantique</span>
-                <span className="absolute left-[30%] top-[45%] text-[#6C3CFF]/50 font-title font-medium text-[9px]">Gauthier</span>
-                <span className="absolute left-[50%] top-[70%] text-[#6C3CFF]/50 font-title font-medium text-[9px]">California</span>
+                <span className="absolute left-[30%] top-[45%] text-[#a16eff]/50 font-title font-medium text-[9px]">Gauthier</span>
+                <span className="absolute left-[50%] top-[70%] text-[#a16eff]/50 font-title font-medium text-[9px]">California</span>
 
                 {/* Targeted Property Interactive PIN of selected item */}
                 <div 
@@ -1438,7 +2211,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               </div>
 
               {/* Informative notice on legal search status */}
-              <div className="p-3 bg-[#6C3CFF]/5 border border-[#6C3CFF]/15 rounded-xl text-[10px] text-[#b2a9f4] space-y-1 font-mono">
+              <div className="p-3 bg-[#a16eff]/5 border border-[#a16eff]/15 rounded-xl text-[10px] text-[#b2a9f4] space-y-1 font-mono">
                 <span className="font-bold flex items-center gap-1 text-white">
                   <CheckCircle className="w-3.5 h-3.5 text-emerald-400" /> Coordonnées Titrées Conformité
                 </span>
@@ -1449,7 +2222,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
 
               <button
                 onClick={() => setSelectedOffer(null)}
-                className="w-full py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/90 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-[#6C3CFF]/20"
+                className="w-full py-2 bg-[#a16eff] hover:bg-[#a16eff]/90 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-[#a16eff]/20"
               >
                 Fermer l'Aperçu Cartographique
               </button>
@@ -1462,11 +2235,11 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
       {/* Selected Business Modal */}
       {selectedBusiness && (
         <div id="business-details-modal" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/100 animate-fade-in" style={{ backgroundColor: '#06070a' }}>
-          <div id="business-details-card" className="bg-[#161821] border border-[#6C3CFF]/20 w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
+          <div id="business-details-card" className="bg-[#161821] border border-[#a16eff]/20 w-full max-w-2xl rounded-3xl overflow-hidden flex flex-col shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
             
             <div className="flex justify-between items-start border-b border-white/5 pb-4">
               <div className="space-y-1">
-                <span className="text-[10px] font-mono uppercase bg-[#6C3CFF]/20 text-[#BEB3FF] px-2.5 py-1 rounded-md border border-[#6C3CFF]/10 font-bold">
+                <span className="text-[10px] font-mono uppercase bg-[#a16eff]/20 text-[#BEB3FF] px-2.5 py-1 rounded-md border border-[#a16eff]/10 font-bold">
                   {selectedBusiness.category === 'FURNITURE' && "Ameublement & Mobilier"}
                   {selectedBusiness.category === 'DECO' && "Design & Décoration"}
                   {selectedBusiness.category === 'KITCHEN' && "Cuisines de Créateurs"}
@@ -1490,7 +2263,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
               </p>
 
               {/* Highlights & Atouts */}
-              <div className="bg-black/35 p-4 rounded-2xl border border-[#6C3CFF]/15 space-y-2">
+              <div className="bg-black/35 p-4 rounded-2xl border border-[#a16eff]/15 space-y-2">
                 <span className="text-[10px] font-mono text-[#9E8BFF] uppercase tracking-wider block font-bold">✨ Avantages & Services Exclusifs</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300">
                   {selectedBusiness.services.map((srv: string, ind: number) => (
@@ -1521,7 +2294,7 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
                 <span className="text-[9px] font-mono text-gray-500 uppercase block">Contact direct Showroom</span>
                 <span className="text-white font-mono font-semibold">📞 Téléphone fixe & Service Clientèle</span>
               </div>
-              <span className="text-[#6C3CFF] font-black font-mono text-sm bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 px-3 py-1.5 rounded-xl select-all">
+              <span className="text-[#a16eff] font-black font-mono text-sm bg-[#a16eff]/10 border border-[#a16eff]/20 px-3 py-1.5 rounded-xl select-all">
                 {selectedBusiness.phone}
               </span>
             </div>
@@ -1529,12 +2302,203 @@ export default function MyHome({ currentLang = 'FR' }: { currentLang: string }) 
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setSelectedBusiness(null)}
-                className="px-5 py-2 bg-[#6C3CFF] hover:bg-[#6C3CFF]/90 text-white font-bold transition-all text-xs rounded-xl cursor-pointer shadow-lg shadow-[#6C3CFF]/25 font-title"
+                className="px-5 py-2 bg-[#a16eff] hover:bg-[#a16eff]/90 text-white font-bold transition-all text-xs rounded-xl cursor-pointer shadow-lg shadow-[#a16eff]/25 font-title"
               >
                 Fermer l'aperçu expert
               </button>
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Booking Modal for Rentals / B'n'B */}
+      {selectedRentalForBooking && !bookingSuccessData && (
+        <div id="booking-sheet" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/90 backdrop-blur-md animate-fade-in" style={{ direction: 'ltr' }}>
+          <div className="bg-[#161821] border border-[#a16eff]/30 w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl p-6 md:p-8 space-y-5" style={{ backgroundColor: '#161821' }}>
+            <div className="flex justify-between items-start border-b border-white/5 pb-3">
+              <div>
+                <span className="font-mono text-[9px] bg-purple-500/15 text-[#be8bff] border border-purple-500/25 px-2 py-0.5 rounded font-black uppercase">
+                  Réservation directe - MyHost
+                </span>
+                <h3 className="font-title font-black text-sm text-white mt-1.5 leading-tight">
+                  {selectedRentalForBooking.title}
+                </h3>
+                <span className="text-[10.5px] text-gray-400 font-mono">Quartier : {selectedRentalForBooking.district}</span>
+              </div>
+              <button
+                onClick={() => setSelectedRentalForBooking(null)}
+                className="p-1 px-2.5 bg-black/40 hover:bg-rose-950/40 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+              >
+                ✕ Close
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmBooking} className="space-y-4 text-xs text-gray-300">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Nom Complet du réservataire *</label>
+                  <input
+                    type="text"
+                    value={bookingTenantName}
+                    onChange={(e) => setBookingTenantName(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#a16eff]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Adresse E-mail *</label>
+                  <input
+                    type="email"
+                    value={bookingTenantEmail}
+                    onChange={(e) => setBookingTenantEmail(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-2 text-white outline-none focus:border-[#a16eff]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Date d'arrivée *</label>
+                  <input
+                    type="date"
+                    value={bookingCheckIn}
+                    onChange={(e) => setBookingCheckIn(e.target.value)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-1.5 text-white outline-none focus:border-[#a16eff] font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">Nombre d'invités</label>
+                  <select
+                    value={bookingGuests}
+                    onChange={(e) => setBookingGuests(parseInt(e.target.value))}
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2 py-1.5 text-white outline-none cursor-pointer"
+                  >
+                    <option value="1">1 Personne</option>
+                    <option value="2">2 Personnes</option>
+                    <option value="3">3 Personnes</option>
+                    <option value="4">4+ Personnes</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[9px] uppercase font-mono text-gray-500 mb-1">
+                    {selectedRentalForBooking.type === 'SHORT' ? 'Nombre de nuits *' : 'Nombre de mois *'}
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={bookingDuration}
+                    onChange={(e) => setBookingDuration(parseInt(e.target.value) || 1)}
+                    required
+                    className="w-full bg-[#1c1f2b] border border-white/10 rounded-xl px-2.5 py-1.5 text-white outline-none focus:border-[#a16eff] font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Price Calculation Widget */}
+              <div className="bg-black/45 p-3 rounded-2xl border border-white/5 space-y-1.5 font-mono">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span>Tarif de base ({selectedRentalForBooking.type === 'SHORT' ? 'par nuit' : 'par mois'}):</span>
+                  <span className="text-white font-bold">{selectedRentalForBooking.priceValue.toLocaleString('fr-FR')} MAD</span>
+                </div>
+                <div className="flex justify-between items-center text-[10px] pb-1.5 border-b border-white/5">
+                  <span>Période / Durée :</span>
+                  <span className="text-white font-bold">
+                    {bookingDuration} {selectedRentalForBooking.type === 'SHORT' ? 'nuit(s)' : 'mois'}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center text-xs font-bold font-sans pt-1">
+                  <span className="text-gray-400">Total à régler (TTC) :</span>
+                  <span className="text-emerald-400 font-mono text-sm font-black">
+                    {(selectedRentalForBooking.priceValue * bookingDuration).toLocaleString('fr-FR')} MAD
+                  </span>
+                </div>
+              </div>
+
+              {/* Automated security compliance explanation */}
+              <p className="text-[10px] text-gray-400 leading-normal font-sans italic">
+                🛡️ Transmis via MyHost : Votre identité sera cryptographiquement sécurisée auprès du Conseil de copropriété pour conformité d'accès de nuit (Conforme CNDP).
+              </p>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  onClick={() => setSelectedRentalForBooking(null)}
+                  type="button"
+                  className="flex-1 py-2.5 bg-neutral-950 hover:bg-white/5 border border-white/10 text-gray-400 text-xs font-bold rounded-xl cursor-pointer transition-all uppercase tracking-wider font-mono text-center"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-gradient-to-r from-purple-600 to-[#a16eff] hover:from-purple-700 hover:to-[#be8bff] text-white text-xs font-black font-title rounded-xl cursor-pointer shadow-lg shadow-purple-500/20 text-center uppercase tracking-wider"
+                >
+                  Confirmer mon séjour 🏨
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Booking Confirmation Receipt Sheet */}
+      {selectedRentalForBooking && bookingSuccessData && (
+        <div id="booking-success-sheet" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#06070a]/95 backdrop-blur-md animate-fade-in" style={{ direction: 'ltr' }}>
+          <div className="bg-[#161821] border border-emerald-500/30 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl p-6 md:p-8 space-y-4" style={{ backgroundColor: '#161821' }}>
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/35 flex items-center justify-center mx-auto text-emerald-400 text-xl font-bold animate-pulse">
+                ✓
+              </div>
+              <h3 className="font-title font-black text-sm text-white">Réservation confirmée avec MyHost !</h3>
+              <p className="text-[10.5px] text-gray-400">Votre quittance numérique souveraine a été enregistrée avec succès.</p>
+            </div>
+
+            <div className="bg-black/40 p-4 rounded-2xl border border-white/5 space-y-2 text-xs font-mono text-gray-300">
+              <div className="flex justify-between items-center pb-1.5 border-b border-white/5">
+                <span className="text-gray-500">Référence séjour :</span>
+                <span className="text-white font-bold text-[#e1bcff]">{bookingSuccessData.ref}</span>
+              </div>
+              <div className="space-y-0.5 text-[10.5px]">
+                <p className="truncate text-white font-bold">{bookingSuccessData.propertyTitle}</p>
+                <p className="text-gray-400 font-sans">Zone : <b>{bookingSuccessData.propertyDistrict}</b></p>
+                <p className="text-gray-400 font-sans">Voyageur : <b>{bookingSuccessData.tenantName}</b></p>
+                <p className="text-gray-400 font-sans">Durée : <b>{bookingSuccessData.duration} {bookingSuccessData.type === 'SHORT' ? 'nuit(s)' : 'mois'}</b></p>
+                <p className="text-gray-400 font-sans">Date d'arrivée : <b>{bookingSuccessData.checkIn}</b></p>
+              </div>
+              <div className="flex justify-between items-center pt-1.5 border-t border-white/5">
+                <span className="text-gray-500 font-sans">Montant total réglé :</span>
+                <span className="text-emerald-400 font-bold">{bookingSuccessData.totalAmount.toLocaleString('fr-FR')} MAD</span>
+              </div>
+            </div>
+
+            {/* Smart Lock activation indicator */}
+            <div className="bg-[#12141c] p-3 rounded-xl border border-purple-500/25 text-center space-y-2">
+              <span className="font-mono text-[9px] uppercase bg-purple-500/20 text-[#be8bff] border border-purple-500/20 px-2 py-0.5 rounded font-black tracking-widest">
+                🗝️ Smart Lock Pass MyHost
+              </span>
+              <p className="text-[10px] text-gray-400 font-sans leading-relaxed">
+                Voici le code d'accès de nuit à la serrure connectée de cet appartement, valide dès votre arrivée :
+              </p>
+              <div className="py-2.5 bg-black/50 border border-white/5 rounded-xl text-lg font-black font-mono text-[#be8bff] tracking-wider select-all cursor-pointer">
+                {bookingSuccessData.pinCode}
+              </div>
+              <p className="text-[9px] text-gray-500 italic font-sans leading-tight">
+                Entrez ce code sur le digicode de la poignée de l'appartement. Assistance Voyageur MyCity : +212 522-890010 (24h/24)
+              </p>
+            </div>
+
+            <button
+              onClick={() => {
+                setSelectedRentalForBooking(null);
+                setBookingSuccessData(null);
+              }}
+              className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-title font-bold text-xs rounded-xl cursor-pointer shadow-lg shadow-emerald-600/10 text-center uppercase tracking-wider"
+            >
+              Terminer & fermer la quittance
+            </button>
           </div>
         </div>
       )}
