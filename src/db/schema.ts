@@ -74,6 +74,7 @@ export const userProfiles = pgTable("user_profiles", {
   isBusiness: boolean("is_business").default(false),
   isInstitution: boolean("is_institution").default(false),
   city: varchar("city", { length: 100 }).default("Casablanca"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"), // Enterprise isolation multi-tenant ID
   deviceFingerprint: text("device_fingerprint"),
   avatarUrl: text("avatar_url"),
   bookingsCount: integer("bookings_count").default(0),
@@ -109,6 +110,7 @@ export const venues = pgTable("venues", {
   description: text("description"),
   address: text("address"),
   city: varchar("city", { length: 100 }).default("Casablanca"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"), // Enterprise isolation multi-tenant ID
   geom: geographyPoint("geom").notNull(),
   phone: text("phone"),
   email: text("email"),
@@ -136,6 +138,7 @@ export const events = pgTable("events", {
   category: varchar("category", { length: 50 }).notNull(),
   venueId: uuid("venue_id").references(() => venues.id, { onDelete: "cascade" }),
   citySlug: varchar("city_slug", { length: 50 }).references(() => cities.slug, { onDelete: "cascade" }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"), // Enterprise isolation multi-tenant ID
   organizerId: uuid("organizer_id").references(() => userProfiles.id, { onDelete: "cascade" }),
   imageUrl: text("image_url"),
   images: jsonb("images").default("[]"),
@@ -162,6 +165,7 @@ export const bookings = pgTable("bookings", {
   status: varchar("status", { length: 20 }).default("pending"),
   paymentProvider: varchar("payment_provider", { length: 50 }),
   paymentId: text("payment_id"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"), // Enterprise isolation multi-tenant ID
   paymentRaw: jsonb("payment_raw"),
   qrCode: text("qr_code"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
@@ -181,6 +185,7 @@ export const claims = pgTable("claims", {
   status: varchar("status", { length: 20 }).default("open"),
   geom: geographyPoint("geom"),
   imageUrl: text("image_url"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"), // Enterprise isolation multi-tenant ID
   assignedTo: uuid("assigned_to").references(() => userProfiles.id, { onDelete: "set null" }),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
@@ -204,6 +209,7 @@ export const flashMessages = pgTable("flash_messages", {
   targetLng: doublePrecision("target_lng"),
   targetRadiusM: integer("target_radius_m").default(1000),
   expiresAt: timestamp("expires_at", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
   createdByInstitution: boolean("created_by_institution").default(false),
 });
@@ -256,5 +262,335 @@ export const auditLogs = pgTable("audit_logs", {
   targetType: varchar("target_type", { length: 50 }),
   targetId: uuid("target_id"),
   metadata: jsonb("metadata"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
   timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow(),
 });
+
+// ============================================================================
+// 12. TABLE: USERS (Robust Secure Auth Verification Engine)
+// ============================================================================
+export const users = pgTable("users", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  email: text("email").unique().notNull(),
+  passwordHash: text("password_hash").notNull(),
+  role: varchar("role", { length: 20 }).notNull().default("PUBLIC"), // MAIRIE, PUBLIC, BUSINESS_CAT1, BUSINESS_CAT2
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 13. TABLE: SYNDICS (Loi 18-00 / 106-12 Copro Aggregators)
+// ============================================================================
+export const syndics = pgTable("syndics", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  licenseNumber: varchar("license_number", { length: 50 }).notNull().unique(),
+  phone: text("phone"),
+  email: text("email"),
+  status: varchar("status", { length: 20 }).default("ACTIVE"), // ACTIVE, SUSPENDED, EXPIRED
+  mandateStart: timestamp("mandate_start", { withTimezone: true }),
+  mandateEnd: timestamp("mandate_end", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 14. TABLE: TRANSACTIONS (PCI-DSS Scoped Immutable Ledger)
+// ============================================================================
+export const transactions = pgTable("transactions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  amountMad: decimal("amount_mad", { precision: 10, scale: 2 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(), // SUBSCRIPTION, MARKETPLACE, CO_OWNERSHIP_FEE, TAX
+  status: varchar("status", { length: 20 }).default("PENDING"), // PENDING, PAID, FAILED, REFUNDED
+  paymentMethod: varchar("payment_method", { length: 50 }),
+  txHash: text("tx_hash").notNull().unique(), // Secure SHA-256 integrity hash for auditing
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 15. TABLE: PUSH TOKENS (Sovereign Geotargeted Push System)
+// ============================================================================
+export const pushTokens = pgTable("push_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  deviceType: varchar("device_type", { length: 20 }).default("WEB"), // WEB, IOS, ANDROID
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 16. TABLE: EVENT STORE (Event Sourcing Engine)
+// ============================================================================
+export const eventStore = pgTable("event_store", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  eventType: varchar("event_type", { length: 100 }).notNull(), // CLAIM_CREATED, CLAIM_RESOLVED, SHOP_VISITED, EVENT_CONSULTED
+  aggregateId: varchar("aggregate_id", { length: 100 }),
+  actor: varchar("actor", { length: 255 }),
+  payload: jsonb("payload"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow(),
+});
+
+
+// ============================================================================
+// 17. TABLE: REFRESH TOKENS (Persistent Token Rotation & Revocation Ledger)
+// ============================================================================
+export const refreshTokens = pgTable("refresh_tokens", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  revoked: boolean("revoked").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 18. TABLE: NOTIFICATIONS (Persistent State for Multi-channel Warnings)
+// ============================================================================
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 200 }).notNull(),
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 19. TABLE: RESIDENCES & ANNOUNCEMENTS (State Persistence for Co-ownership)
+// ============================================================================
+export const residences = pgTable("residences", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  address: text("address"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  syndicId: uuid("syndic_id").references(() => syndics.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const residenceAnnouncements = pgTable("residence_announcements", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  residenceId: uuid("residence_id").references(() => residences.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  content: text("content").notNull(),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 20. TABLE: MARKETPLACE ENGINES (Listings, Orders, Subscriptions, Invoices)
+// ============================================================================
+export const marketplaceListings = pgTable("marketplace_listings", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  title: varchar("title", { length: 255 }).notNull(),
+  description: text("description"),
+  priceMad: decimal("price_mad", { precision: 10, scale: 2 }).notNull(),
+  ownerId: uuid("owner_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  imageUrl: text("image_url"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const orders = pgTable("orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  buyerId: uuid("buyer_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  listingId: uuid("listing_id").references(() => marketplaceListings.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").default(1),
+  totalMad: decimal("total_mad", { precision: 10, scale: 2 }).notNull(),
+  status: varchar("status", { length: 50 }).default("PENDING"), // PENDING, PAID, SHIPPED, COMPLETED
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const userSubscriptions = pgTable("user_subscriptions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  tier: varchar("tier", { length: 50 }).notNull(),
+  status: varchar("status", { length: 50 }).default("ACTIVE"),
+  priceMad: decimal("price_mad", { precision: 10, scale: 2 }).notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const invoices = pgTable("invoices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  payableType: varchar("payable_type", { length: 100 }).notNull(), // ORDER, SUBSCRIPTION, TAX
+  payableId: uuid("payable_id").notNull(),
+  invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
+  subtotalMad: decimal("subtotal_mad", { precision: 12, scale: 2 }).notNull(),
+  tvaMad: decimal("tva_mad", { precision: 12, scale: 2 }).notNull(), // Value Added Tax 20%
+  totalMad: decimal("total_mad", { precision: 12, scale: 2 }).notNull(),
+  securedPdfHash: text("secured_pdf_hash"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 20B. MULTI-TENANCY SYSTEM TABLES (Tenants, Tenant Roles, Tenant Members)
+// ============================================================================
+export const tenants = pgTable("tenants", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 255 }).notNull(),
+  domain: varchar("domain", { length: 255 }),
+  status: varchar("status", { length: 20 }).default("ACTIVE"), // ACTIVE, INACTIVE, SUSPENDED
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+export const tenantRoles = pgTable("tenant_roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  name: varchar("name", { length: 50 }).notNull(), // ADMIN, AGENT, MODERATOR, CITIZEN
+  permissions: jsonb("permissions").default('["read:public"]'),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const tenantMembers = pgTable("tenant_members", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  tenantId: uuid("tenant_id").references(() => tenants.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  roleId: uuid("role_id").references(() => tenantRoles.id, { onDelete: "set null" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 21. TABLE: MUNICIPAL WORKFORCES (Departments, Agents, Dispatched Work Orders, Status Histories)
+// ============================================================================
+export const departments = pgTable("departments", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: varchar("name", { length: 100 }).notNull(),
+  managerName: varchar("manager_name", { length: 100 }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const municipalAgents = pgTable("municipal_agents", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  departmentId: uuid("department_id").references(() => departments.id, { onDelete: "set null" }),
+  badgeNumber: varchar("badge_number", { length: 50 }).notNull().unique(),
+  status: varchar("status", { length: 50 }).default("AVAILABLE"), // AVAILABLE, ON_MISSION, ON_LEAVE
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const workOrders = pgTable("work_orders", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  claimId: uuid("claim_id").references(() => claims.id, { onDelete: "cascade" }),
+  agentId: uuid("agent_id").references(() => municipalAgents.id, { onDelete: "set null" }),
+  title: varchar("title", { length: 255 }).notNull(),
+  instructions: text("instructions"),
+  priority: varchar("priority", { length: 20 }).default("NORMAL"),
+  status: varchar("status", { length: 50 }).default("ASSIGNED"), // ASSIGNED, WORK_IN_PROGRESS, COMPLETED
+  scheduledAt: timestamp("scheduled_at", { withTimezone: true }),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const claimStatusHistory = pgTable("claim_status_history", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  claimId: uuid("claim_id").references(() => claims.id, { onDelete: "cascade" }),
+  formerStatus: varchar("former_status", { length: 50 }),
+  newStatus: varchar("new_status", { length: 50 }).notNull(),
+  agentEmail: varchar("agent_email", { length: 255 }),
+  notes: text("notes"),
+  tenantId: uuid("tenant_id").references(() => tenants.id).default("d4838958-9a55-4b32-b3e3-eb2da451c4c1"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 22. SECURITY TABLES: DEVICES & SESSIONS
+// ============================================================================
+export const devices = pgTable("devices", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  deviceFingerprint: text("device_fingerprint").notNull(),
+  deviceType: varchar("device_type", { length: 50 }).default("DESKTOP"),
+  os: varchar("os", { length: 50 }),
+  browser: varchar("browser", { length: 50 }),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  trusted: boolean("trusted").default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const sessions = pgTable("sessions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  deviceId: uuid("device_id").references(() => devices.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  ipAddress: varchar("ip_address", { length: 45 }),
+  userAgent: text("user_agent"),
+  isActive: boolean("is_active").default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }),
+  lastActiveAt: timestamp("last_active_at", { withTimezone: true }).defaultNow(),
+});
+
+// ============================================================================
+// 23. CNDP PRIVACY RIGHTS: EXPORTS & DELETIONS
+// ============================================================================
+export const privacyExportRequests = pgTable("privacy_export_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 50 }).default("PENDING"), // PENDING, READY, COMPLETED, DOWNLOADED
+  secureHash: text("secure_hash"),
+  filePath: text("file_path"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+export const privacyDeletionRequests = pgTable("privacy_deletion_requests", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "cascade" }),
+  status: varchar("status", { length: 50 }).default("PENDING"), // PENDING, ANONYMIZED, SIGNED
+  reason: text("reason"),
+  certificateHash: text("certificate_hash"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+});
+
+// Custom geometry Polygon type for PostGIS
+export const geographyPolygon = customType<{
+  data: string;
+  driverData: string;
+}>({
+  dataType() {
+    return "geometry(Polygon, 4326)";
+  },
+  toDriver(value: string): string {
+    return value;
+  },
+  fromDriver(value: unknown): string {
+    return typeof value === "string" ? value : "";
+  },
+});
+
+// ============================================================================
+// 24. CNDP AUDIT LOGS & SPATIAL DISTRICTS
+// ============================================================================
+export const cndpAuditLogs = pgTable("cndp_audit_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").references(() => userProfiles.id, { onDelete: "set null" }),
+  actionType: varchar("action_type", { length: 50 }).notNull(), // 'EXCEL_EXPORT', 'DATA_PORTABILITY_REQUEST', 'PURGE'
+  ipHash: varchar("ip_hash", { length: 64 }).notNull(),
+  userAgentHash: varchar("user_agent_hash", { length: 64 }).notNull(),
+  recordedAt: timestamp("recorded_at", { withTimezone: true }).defaultNow(),
+});
+
+export const cityDistricts = pgTable("city_districts", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  districtName: varchar("district_name", { length: 100 }).notNull(),
+  managerId: uuid("manager_id").references(() => userProfiles.id, { onDelete: "set null" }),
+  geomPolygon: geographyPolygon("geom_polygon").notNull(),
+}, (table) => {
+  return [
+    index("idx_city_districts_geom").using("gist", table.geomPolygon),
+  ];
+});
+
+
