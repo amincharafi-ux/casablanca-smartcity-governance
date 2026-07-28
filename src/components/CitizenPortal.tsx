@@ -55,7 +55,7 @@ export default function CitizenPortal({
     <div id="citizen-portal-container" className="space-y-6">
       {/* Services de la Ville header banner */}
       <div className="bg-[#0f111a] border border-white/5 rounded-2xl p-4 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-[#6C3CFF]/10 border border-[#6C3CFF]/20 flex items-center justify-center text-[#6C3CFF]">
+        <div className="w-10 h-10 rounded-xl bg-[#7dd3fc]/10 border border-[#7dd3fc]/20 flex items-center justify-center text-[#7dd3fc]">
           <FileText className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
@@ -86,7 +86,7 @@ export default function CitizenPortal({
                 <select
                   value={claimCategory}
                   onChange={(e) => setClaimCategory(e.target.value as any)}
-                  className="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 font-mono focus:outline-none focus:border-[#6c3cff] transition-all cursor-pointer"
+                  className="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 font-mono focus:outline-none focus:border-[#7dd3fc] transition-all cursor-pointer"
                 >
                   <option value="CHAUSEE">{t.claimCategoryChaussee}</option>
                   <option value="ECLAIRAGE">{t.claimCategoryEclairage}</option>
@@ -102,7 +102,7 @@ export default function CitizenPortal({
                   value={claimLocation}
                   onChange={(e) => setClaimLocation(e.target.value)}
                   placeholder={t.claimLocationPlaceholder}
-                  className="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#6c3cff] transition-all"
+                  className="w-full bg-black/40 border border-white/15 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#7dd3fc] transition-all"
                   required
                 />
               </div>
@@ -115,7 +115,7 @@ export default function CitizenPortal({
                 value={claimTitle}
                 onChange={(e) => setClaimTitle(e.target.value)}
                 placeholder={t.claimSubjectPlaceholder}
-                className="w-full bg-black/40 border border-[#6C3CFF]/20 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#6c3cff] transition-all"
+                className="w-full bg-black/40 border border-[#7dd3fc]/20 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#7dd3fc] transition-all"
                 required
               />
             </div>
@@ -127,7 +127,7 @@ export default function CitizenPortal({
                 onChange={(e) => setClaimDesc(e.target.value)}
                 rows={3}
                 placeholder={t.claimDescPlaceholder}
-                className="w-full bg-black/40 border border-[#6C3CFF]/20 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#6c3cff] transition-all"
+                className="w-full bg-black/40 border border-[#7dd3fc]/20 rounded-xl px-2.5 py-1.5 text-xs text-white placeholder-gray-500 focus:outline-none focus:border-[#7dd3fc] transition-all"
                 required
               />
             </div>
@@ -141,7 +141,7 @@ export default function CitizenPortal({
               <button
                 type="submit"
                 id="submit-claim-form-btn"
-                className="px-4 py-2.5 bg-[#6c3cff] hover:bg-[#5324e9] text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg hover:shadow-[#6C3CFF]/25 active:scale-95"
+                className="px-4 py-2.5 bg-[#7dd3fc] hover:bg-[#0284c7] text-white font-bold text-xs rounded-xl transition-all cursor-pointer flex items-center gap-2 shadow-lg hover:shadow-[#7dd3fc]/25 active:scale-95"
               >
                 {t.claimSubmitBtn}
               </button>
