@@ -15,6 +15,7 @@ import { isDbConnected, db } from "./src/db/index";
 import * as schema from "./src/db/schema";
 import { eq } from "drizzle-orm";
 import missingEndpointsRouter from "./src/routes/missingEndpoints";
+import privacyRouter from "./src/routes/privacy.routes";
 
 // Load environment variables
 dotenv.config();
@@ -269,6 +270,7 @@ app.get("/api/export-zip", (req: any, res: any) => {
 });
 
 // Robust registration of the B2G Certified Missing Audit Endpoints Router (supporting all prefix environments)
+app.use("/api/v1/privacy", privacyRouter);
 app.use("/v1", missingEndpointsRouter);
 app.use("/api/v1", missingEndpointsRouter);
 app.use("/api", missingEndpointsRouter);
@@ -1333,16 +1335,46 @@ app.get("/api/admin/db-schema", (req: any, res: any) => {
   created_at TIMESTAMPTZ DEFAULT NOW()
 );`
       },
+      syndics: {
+        name: 'syndics',
+        description: 'Organismes syndics et gestionnaires de copropriété enregistrés sous Loi 18-00.',
+        rls: 'Active • Isolée par tenant. Seuls les syndics du tenant gèrent leurs immeubles.',
+        sql: `CREATE TABLE syndics (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name VARCHAR(255) NOT NULL,
+  license_number VARCHAR(50) NOT NULL UNIQUE,
+  phone TEXT,
+  email TEXT,
+  status VARCHAR(20) DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'SUSPENDED', 'EXPIRED')),
+  mandate_start TIMESTAMPTZ,
+  mandate_end TIMESTAMPTZ,
+  tenant_id UUID REFERENCES tenants(id) DEFAULT 'd4838958-9a55-4b32-b3e3-eb2da451c4c1',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);`
+      },
       residences: {
         name: 'residences',
         description: 'Immeubles en copropriété rattachés aux organismes syndics sous Loi 18-00.',
-        rls: 'Active • Lecture publique, modifications réservées aux syndics agréés.',
+        rls: 'Active • Isolée par tenant. Les résidents et syndics n\'accèdent qu\'aux immeubles de leur tenant.',
         sql: `CREATE TABLE residences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(255) NOT NULL,
   address TEXT,
   tenant_id UUID REFERENCES tenants(id) DEFAULT 'd4838958-9a55-4b32-b3e3-eb2da451c4c1',
   syndic_id UUID REFERENCES syndics(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);`
+      },
+      residence_announcements: {
+        name: 'residence_announcements',
+        description: 'Annonces et communications internes des copropriétés de la résidence.',
+        rls: 'Active • Isolée par tenant. Consultation réservée aux copropriétaires du même tenant.',
+        sql: `CREATE TABLE residence_announcements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  residence_id UUID REFERENCES residences(id) ON DELETE CASCADE,
+  title VARCHAR(255) NOT NULL,
+  content TEXT NOT NULL,
+  tenant_id UUID REFERENCES tenants(id) DEFAULT 'd4838958-9a55-4b32-b3e3-eb2da451c4c1',
   created_at TIMESTAMPTZ DEFAULT NOW()
 );`
       },
