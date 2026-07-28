@@ -181,25 +181,6 @@ const CATEGORIES_DATA: Category[] = [
       "Adoption",
       "Promeneurs"
     ]
-  },
-  {
-    id: 8,
-    name: "Maison & Services",
-    emoji: "🏠",
-    color: "from-cyan-500/10 to-blue-500/10 border-cyan-500/30 text-cyan-400",
-    description: "Artisans qualifiés, dépannages et petits travaux",
-    subCategories: [
-      "Plombier",
-      "Électricien",
-      "Femme de ménage",
-      "Jardinier",
-      "Climatisation",
-      "Réparation électroménager",
-      "Déménagement",
-      "Décoration",
-      "Architectes",
-      "Petits travaux"
-    ]
   }
 ];
 
@@ -839,92 +820,6 @@ const PROVIDERS_DATABASE: Provider[] = [
     reviews: [
       { id: "r7-3-1", author: "Rachid G.", rating: 5, date: "20 Mai 2026", comment: "Mon dalmatien y séjourne pendant mes voyages d'affaires. Des vidéos me sont envoyées tous les jours." }
     ]
-  },
-
-  // --- MAISON & SERVICES (categoryId: 8) ---
-  {
-    id: "p8-1",
-    categoryId: 8,
-    subCategory: "Plombier",
-    name: "Allo Plomberie Rapide - Hassan & Fils",
-    neighborhood: "Bourgogne",
-    address: "Angle Boulevard Moulay Youssef, Casablanca",
-    phone: "+212 661-390412",
-    website: "www.hassan-plomberierapide.ma",
-    rating: 4.8,
-    certified: true,
-    highlight: "Déplacement offert pour Devis & Dépannage en 30 minutes",
-    description: "Spécialiste en recherche de fuites invisibles d'eau par caméra acoustique, débouchage mécanique lourd et étanchéité des terrasses de Casa.",
-    reviews: [
-      { id: "r8-1-1", author: "Chakib B.", rating: 5, date: "2 Juin 2026", comment: "Intervenu en urgence pour une rupture de canalisation. Réparation propre et sans bavures." },
-      { id: "r8-1-2", author: "Amine S.", rating: 4, date: "10 Mai 2026", comment: "Honnête et ponctuel. Le tarif a été annoncé avant de percer." }
-    ]
-  },
-  {
-    id: "p8-2",
-    categoryId: 8,
-    subCategory: "Électricien",
-    name: "Rachid Électrotechnique Générale",
-    neighborhood: "Maarif",
-    address: "Angle Boulevard Bir Anzarane, Casablanca",
-    phone: "+212 660-254011",
-    website: "www.rachidcasa-electricite.ma",
-    rating: 4.7,
-    certified: true,
-    highlight: "Mise aux normes NF, domotique de sécurité",
-    description: "Installations de détecteurs d'incendies, rénovations complètes de tableaux électriques désuets, pose de climatiseurs légers.",
-    reviews: [
-      { id: "r8-2-1", author: "Latifa A.", rating: 5, date: "14 Avril 2026", comment: "Très pro, a ré-équipé tout mon salon avec des dalles LED esthétiques." }
-    ]
-  },
-  {
-    id: "p8-3",
-    categoryId: 8,
-    subCategory: "Femme de ménage",
-    name: "Clean Home Casablanca Services Premium",
-    neighborhood: "Anfa",
-    address: "Boulevard Roosevelt, Résidence Palmeraie, Casablanca",
-    phone: "+212 522-390499",
-    website: "www.cleanhome-casa.ma",
-    rating: 4.9,
-    certified: true,
-    highlight: "Intervenantes formées, certifiées & déclarées",
-    description: "Service de nettoyage d'intérieur de prestige, repassage méticuleux, et lessives préservant les fibres textiles. Disponibilité d'urgences.",
-    reviews: [
-      { id: "r8-3-1", author: "Nadia L.", rating: 5, date: "28 Mai 2026", comment: "Le service est d'une fiabilité totale. La prestation est contrôlée à chaque passage." }
-    ]
-  },
-  {
-    id: "p8-4",
-    categoryId: 8,
-    subCategory: "Jardinier",
-    name: "Espaces Verts de l'Atlas - Maroc Paysage",
-    neighborhood: "Bouskoura",
-    address: "Ville Verte, Point Entreprises, Casablanca",
-    phone: "+212 663-801240",
-    website: "www.marocpaysage.ma",
-    rating: 4.8,
-    certified: true,
-    highlight: "Aménagement de jardins secs économes en eau",
-    description: "Taille des arbres ornementaux, réajustement des sols, installation d'arrosages automatiques connectés goute-à-goute optimaux.",
-    reviews: []
-  },
-  {
-    id: "p8-5",
-    categoryId: 8,
-    subCategory: "Climatisation",
-    name: "Climatisation Dépannage Direct MyCity",
-    neighborhood: "Ain Diab",
-    address: "Boulevard de l'Océan Atlantique, Casablanca",
-    phone: "+212 522-794011",
-    website: "www.climdirect-casa.ma",
-    rating: 4.7,
-    certified: true,
-    highlight: "Installation de pompes à chaleur classe A+++",
-    description: "Entretien préventif annuel des filtres anti-pollen, réparation immédiate de fuites de gaz réfrigérants écologiques certifiés.",
-    reviews: [
-      { id: "r8-5-1", author: "Imed E.", rating: 4, date: "30 Mai 2026", comment: "De bons conseils techniques concernant la pose d'unité Inverter économique." }
-    ]
   }
 ];
 
@@ -934,6 +829,8 @@ interface MyLifePortalProps {
   onPostReview?: (eventId: string, rating: number, comment: string) => void;
   onPostLike?: (eventId: string) => void;
   onSelectEventOnMap?: (evt: CityEvent) => void;
+  defaultLifeTab?: 'PROVIDERS' | 'AGENDA';
+  defaultCategoryId?: number;
 }
 
 export default function MyLifePortal({ 
@@ -942,9 +839,11 @@ export default function MyLifePortal({
   onPostReview,
   onPostLike,
   onSelectEventOnMap,
+  defaultLifeTab = 'AGENDA',
+  defaultCategoryId = 1,
 }: MyLifePortalProps) {
   // Navigation & filter states
-  const [myLifeTab, setMyLifeTab] = useState<'PROVIDERS' | 'AGENDA'>('AGENDA');
+  const [myLifeTab, setMyLifeTab] = useState<'PROVIDERS' | 'AGENDA'>(defaultLifeTab);
   const [eventCategoryFilter, setEventCategoryFilter] = useState<'ALL' | 'CULTURE' | 'ECONOMIC' | 'ECO_CSR' | 'SPORT'>('ALL');
   const [activeReviewEventId, setActiveReviewEventId] = useState<string | null>(null);
   const [userRating, setUserRating] = useState<number>(5);
@@ -952,10 +851,11 @@ export default function MyLifePortal({
   const [checkoutEvent, setCheckoutEvent] = useState<CityEvent | null>(null);
   const [checkoutSuccess, setCheckoutSuccess] = useState(false);
   const [calendarSyncTarget, setCalendarSyncTarget] = useState<string | null>(null);
+  const [showMedecinModal, setShowMedecinModal] = useState(false);
 
   const tGlobal = globalTranslations[currentLang];
 
-  const [activeCategoryId, setActiveCategoryId] = useState<number>(1);
+  const [activeCategoryId, setActiveCategoryId] = useState<number>(defaultCategoryId);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedSubCategory, setSelectedSubCategory] = useState<string>("ALL");
   const [selectedNeighborhood, setSelectedNeighborhood] = useState<string>("ALL");
@@ -964,6 +864,14 @@ export default function MyLifePortal({
 
   // States for reviews expander (avis vérifiés)
   const [expandedReviewsProviderId, setExpandedReviewsProviderId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    setMyLifeTab(defaultLifeTab);
+  }, [defaultLifeTab]);
+
+  React.useEffect(() => {
+    setActiveCategoryId(defaultCategoryId);
+  }, [defaultCategoryId]);
 
   // States for dynamic quote request form (demande de devis)
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState<boolean>(false);
@@ -1055,8 +963,25 @@ export default function MyLifePortal({
     });
   }, [activeCategoryId, selectedSubCategory, selectedNeighborhood, onlyCertified, minRating, searchQuery]);
 
+  const recordCommerceVisit = (p: Provider) => {
+    fetch("/api/events/record", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventType: "COMMERCE_VISITE",
+        aggregateId: p.id,
+        payload: {
+          name: p.name,
+          category: p.subCategory,
+          neighborhood: p.neighborhood
+        }
+      })
+    }).catch(err => console.error("Failed to record commerce visit event:", err));
+  };
+
   // Open multi-step quote builder for specific provider
   const handleOpenQuoteForm = (provider: Provider) => {
+    recordCommerceVisit(provider);
     setSelectedProviderForQuote(provider);
     setQuoteFormData({
       serviceType: provider.subCategory,
@@ -1159,7 +1084,7 @@ export default function MyLifePortal({
       
       {/* 1. Header Hero Card with Local Vibe & Indicators */}
       <div className="relative overflow-hidden bg-gradient-to-br from-[#11131a] via-[#151926] to-[#0c0e14] border border-white/5 rounded-3xl p-6 md:p-8 shadow-2xl">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-[#6C3CFF]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
+        <div className="absolute top-0 right-0 w-80 h-80 bg-[#d4af7a]/10 rounded-full blur-3xl pointer-events-none -mr-16 -mt-16" />
         <div className="absolute bottom-0 left-0 w-60 h-60 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none -ml-16 -mb-16" />
         
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -1170,7 +1095,7 @@ export default function MyLifePortal({
             </div>
             <h1 className="text-xl md:text-3xl font-black font-title text-white tracking-tight leading-tight flex items-center gap-2">
               <span>{t("title")}</span>
-              <span className="text-sm px-2.5 py-0.5 rounded bg-[#6C3CFF]/20 text-[#9E8BFF] font-mono border border-[#6C3CFF]/40 font-bold uppercase">
+              <span className="text-sm px-2.5 py-0.5 rounded bg-[#d4af7a]/20 text-[#e6c697] font-mono border border-[#d4af7a]/40 font-bold uppercase">
                 8 Axes Libres
               </span>
             </h1>
@@ -1192,35 +1117,7 @@ export default function MyLifePortal({
         </div>
       </div>
 
-      {/* Tab Switcher for Providers Directory vs City Events Agenda */}
-      <div className="flex border border-white/5 bg-[#0f111a] rounded-xl p-1 gap-1 max-w-md shadow-inner">
-        <button
-          onClick={() => setMyLifeTab('AGENDA')}
-          className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            myLifeTab === 'AGENDA' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#6C3CFF] text-white shadow-md' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
-          }`}
-        >
-          <span>📅</span>
-          <span>
-            {currentLang === 'AR' ? "الأجندة والأنشطة" : currentLang === 'EN' ? "City Events & Booking" : "Agenda & Billetterie"}
-          </span>
-        </button>
-        <button
-          onClick={() => setMyLifeTab('PROVIDERS')}
-          className={`flex-1 py-2 px-3.5 rounded-lg text-[11px] font-title font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-            myLifeTab === 'PROVIDERS' 
-              ? 'bg-gradient-to-r from-indigo-600 to-[#6C3CFF] text-white shadow-md' 
-              : 'text-gray-400 hover:text-white hover:bg-white/5 font-medium'
-          }`}
-        >
-          <span>🏢</span>
-          <span>
-            {currentLang === 'AR' ? "دليل مقدمي الخدمات" : currentLang === 'EN' ? "Local Directory" : "Annuaire Prestataires"}
-          </span>
-        </button>
-      </div>
+
 
       {myLifeTab === 'PROVIDERS' ? (
         <>
@@ -1239,7 +1136,7 @@ export default function MyLifePortal({
               }}
               className={`p-3 rounded-2xl border text-center transition-all duration-300 flex flex-col items-center justify-center gap-2 cursor-pointer relative overflow-hidden group ${
                 isActive 
-                  ? 'bg-gradient-to-b from-[#1c1a2f] to-[#121124] border-[#6C3CFF] text-[#9E8BFF] shadow-lg shadow-[#6C3CFF]/10 scale-[1.03]' 
+                  ? 'bg-gradient-to-b from-[#1c1a2f] to-[#121124] border-[#d4af7a] text-[#e6c697] shadow-lg shadow-[#d4af7a]/10 scale-[1.03]' 
                   : 'bg-[#10121a]/85 border-white/5 text-gray-400 hover:text-white hover:bg-white/5 hover:border-white/10'
               }`}
             >
@@ -1264,7 +1161,7 @@ export default function MyLifePortal({
               placeholder={t("searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#6C3CFF]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
+              className="w-full pl-10 pr-4 py-2.5 bg-black/40 border border-white/5 hover:border-white/10 focus:border-[#d4af7a]/50 text-white rounded-xl text-xs font-mono placeholder-gray-500 outline-none transition-colors"
             />
           </div>
 
@@ -1273,7 +1170,7 @@ export default function MyLifePortal({
             <select
               value={selectedSubCategory}
               onChange={(e) => setSelectedSubCategory(e.target.value)}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="ALL">{t("allSubCategoriesLabel")}</option>
               {activeCategory.subCategories.map(sub => (
@@ -1285,7 +1182,7 @@ export default function MyLifePortal({
             <select
               value={selectedNeighborhood}
               onChange={(e) => setSelectedNeighborhood(e.target.value)}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-gray-300 hover:text-white rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="ALL">{t("allNeighborhoodsLabel")}</option>
               {uniqueNeighborhoods.filter(n => n !== "ALL").map(neigh => (
@@ -1297,7 +1194,7 @@ export default function MyLifePortal({
             <select
               value={minRating}
               onChange={(e) => setMinRating(Number(e.target.value))}
-              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#6C3CFF]/30 text-yellow-400 rounded-xl text-xs font-mono outline-none cursor-pointer"
+              className="px-3 py-2.5 bg-black/40 border border-white/5 focus:border-[#d4af7a]/30 text-yellow-400 rounded-xl text-xs font-mono outline-none cursor-pointer"
             >
               <option value="0">Tout score</option>
               <option value="4.6">★ 4.6+</option>
@@ -1329,6 +1226,140 @@ export default function MyLifePortal({
         </div>
       </div>
 
+      {/* Institution representative banner for Médecins if activeCategoryId is 2 */}
+      {activeCategoryId === 2 && (
+        <>
+          <div 
+            onClick={() => setShowMedecinModal(true)}
+            className="p-4 bg-emerald-950/20 border border-emerald-500/25 rounded-2xl mb-4 space-y-2 cursor-pointer hover:border-emerald-500/60 hover:bg-emerald-500/10 transition-all group scale-[0.99] hover:scale-[1.002]"
+            title="Cliquez pour consulter le rôle, les recours en cas d'erreur médicale et les coordonnées"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-sm">🏥</span>
+                <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">Conseil de l'Ordre des Médecins de Casablanca</span>
+              </div>
+              <span className="text-[9px] bg-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full font-mono font-bold uppercase group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                📖 Guide Patient & Recours
+              </span>
+            </div>
+            <p className="text-[9.5px] text-emerald-300 leading-normal">
+              Ordre National des Médecins du Maroc — Organe de régulation déontologique et légal veillant au respect absolu de la déontologie. <span className="underline font-bold text-white">Cliquez pour consulter le guide légal patient complet</span>.
+            </p>
+          </div>
+
+          {/* Médecin Detailed Malpractice & Patient Rights Modal */}
+          {showMedecinModal && (
+            <div className="fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 z-[9999] animate-fade-in" style={{ direction: 'ltr' }}>
+              <div className="bg-[#11131e] border border-emerald-500/30 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl flex flex-col">
+                {/* Header */}
+                <div className="p-6 border-b border-emerald-500/15 flex items-start justify-between bg-emerald-950/20">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">🏥</span>
+                    <div>
+                      <h3 className="font-title font-bold text-base text-white">Conseil Régional de l'Ordre des Médecins</h3>
+                      <p className="text-xs text-emerald-300 font-mono">Territoire Casablanca-Settat — Déontologie & Protection des Patients</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setShowMedecinModal(false)}
+                    className="p-1 px-2.5 bg-emerald-950/50 hover:bg-rose-950/50 text-gray-400 hover:text-white rounded-lg border border-white/5 transition-colors font-mono text-xs cursor-pointer"
+                  >
+                    ✕ Fermer
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div className="p-6 space-y-6 text-xs text-gray-300 leading-relaxed">
+                  {/* Section 1: Rôle Légal */}
+                  <div className="space-y-2">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>🩺</span> Rôle Légal de l'Ordre & Mission Publique
+                    </h4>
+                    <p>
+                      Régit par la <b>Loi n° 08-12</b> et la <b>Loi n° 131-13</b> relatives à la pratique de la médecine au Maroc, le Conseil de l'Ordre assure de manière exclusive la tenue de l'inscription des praticiens (secteur libéral et public) autorisés à exercer légalement la médecine humaine sur Casablanca. Il veille de manière stricte au Code de Déontologie, définit les exigences morales et éthiques (Serment d'Hippocrate), arbitre les conflits professionnels et émet des avis obligatoires sur l'organisation sanitaire publique de la commune.
+                    </p>
+                  </div>
+
+                  {/* Section 2: Protection face aux maladresses / malpratiques */}
+                  <div className="space-y-2">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>🛡️</span> Protection & Assistance face aux erreurs de traitement (Malpratiques Médicales)
+                    </h4>
+                    <p className="mb-2">
+                      Si vous suspectez une erreur technique, une négligence active ou un manquement éthique de la part d'un médecin ou d'une clinique privée :
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] bg-emerald-950/20 p-3.5 rounded-xl border border-emerald-500/10">
+                      <div className="space-y-1">
+                        <h5 className="font-bold text-white">🚫 Sanctions Disciplinaires Éthiques</h5>
+                        <p className="text-gray-400 text-[10.5px]">L'Ordre traite de force les plaintes pour manquement au devoir d'assistance humaine, publicité illégale, prescriptions abusives ou violation du secret médical. Les sanctions vont du blâme formel à la suspension temporaire, voire la radiation pénale.</p>
+                      </div>
+                      <div className="space-y-1">
+                        <h5 className="font-bold text-white">🧑‍⚖️ Recours pour Erreurs Cliniques</h5>
+                        <p className="text-gray-400 text-[10.5px]">Une erreur médicale flagrante requiert l'établissement d'une faute, d'un préjudice corporel et d'un lien de causalité direct. L'Ordre instruit des enquêtes de pairs de manière contradictoire pour certifier s'il y a eu violation de l'état de l'art de la science médicale.</p>
+                      </div>
+                      <div className="space-y-1 md:col-span-2 pt-1 border-t border-white/5">
+                        <h5 className="font-bold text-white">🤝 Médiation Pacifique Obligatoire</h5>
+                        <p className="text-gray-400 text-[10.5px]">Avant d'entamer une procédure judiciaire longue et ardue, l'Ordre peut désigner un médecin conciliateur indépendant pour organiser une séance de médiation afin de s'accorder sur une solution amiable indemnisée par l'Assurance R.C.P. du médecin.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 3: Vos Droits & Comment les obtenir */}
+                  <div className="space-y-3">
+                    <h4 className="font-mono text-emerald-400 font-bold uppercase tracking-wider border-b border-emerald-500/10 pb-1 flex items-center gap-1.5">
+                      <span>📋</span> Droits Fondamentaux du Patient & Voies d'Action Légales
+                    </h4>
+                    <ol className="space-y-2.5 text-gray-400 list-decimal pl-4">
+                      <li>
+                        <b className="text-white">Le Droit fondamental aux Dossiers Médicaux :</b> Conformément au cadre légal marocain, tout patient (ou tuteur légal) a un droit inaliénable d'obtenir une copie intégrale et scellée de son dossier clinique (comptes rendus opératoires, examens d'imagerie, tracés EEG/ECG, fiches d'hospitalisation, bilans sanguins).
+                      </li>
+                      <li>
+                        <b className="text-white">Saisine officielle de l'Ordre :</b> Adresser une lettre de doléances argumentée au Président du Conseil Régional de l'Ordre de Casablanca. Mentionnez le nom du praticien réfuté, la date de la prise en charge, ainsi que l'historique précis des symptômes et prescriptions.
+                      </li>
+                      <li>
+                        <b className="text-white">Désignation d'un Expert Judiciaire :</b> En cas de contentieux lourd, déposez immédiatement un référé devant le Tribunal de Première Instance pour mandater un Expert Médical Assermenté (répertorié sur le tableau de la Cour d'Appel) pour évaluer impartialement l'IPP (Incapacité Partielle Permanente) consécutive à l'accident thérapeutique.
+                      </li>
+                      <li>
+                        <b className="text-white">Responsabilité Civile & Caisse d'Assurance :</b> Les médecins libéraux ont l'obligation légale de souscrire une assurance de responsabilité civile professionnelle (RCP). Une fois la faute avérée, l'indemnisation est versée de plein droit pour le préjudice moral, esthétique et la perte de revenus.
+                      </li>
+                    </ol>
+                  </div>
+
+                  {/* Section 4: Contact Officiel */}
+                  <div className="space-y-3 bg-[#11131e] border border-emerald-500/15 p-4 rounded-2xl">
+                    <h4 className="font-mono text-white font-bold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+                      <span>📞</span> Coordonnées Officielles & Bureau de Casablanca
+                    </h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] font-mono leading-relaxed">
+                      <div>
+                        <p><span className="text-gray-500">📍 Siège Central :</span> <span className="text-gray-200 font-sans">12 Rue d'Oran, Quartier Gauthier, Casablanca, Maroc</span></p>
+                        <p className="mt-1"><span className="text-gray-500">📧 E-mail :</span> <span className="text-emerald-400">regional.casablanca@ordre-medecins.ma</span></p>
+                      </div>
+                      <div>
+                        <p><span className="text-gray-500">📞 Standard Tél :</span> <span className="text-[#00ffcc] font-sans font-bold">+212 (0) 522-22 15 16</span></p>
+                        <p><span className="text-gray-500">📠 Copieur / Fax :</span> <span className="text-gray-400 font-sans">+212 (0) 522-27 80 70</span></p>
+                        <p className="mt-1"><span className="text-gray-500">🕒 Heures d'Accueil :</span> <span className="text-yellow-400">Lundi-Vendredi : 09:00 - 16:00</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-4 bg-emerald-950/20 border-t border-emerald-500/15 flex justify-end">
+                  <button 
+                    onClick={() => setShowMedecinModal(false)}
+                    className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl transition-all font-mono text-xs cursor-pointer shadow-lg shadow-emerald-500/10"
+                  >
+                    J'ai bien compris mes droits de patient
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* 4. Active List of Matching Providers & Services */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" id="mylife-providers-grid">
         {filteredProviders.map((provider) => {
@@ -1341,7 +1372,7 @@ export default function MyLifePortal({
               <div className="space-y-3">
                 {/* Badges and SubCategory */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="text-[9px] font-mono uppercase px-2.5 py-0.5 bg-[#6C3CFF]/15 text-[#9E8BFF] border border-[#6C3CFF]/20 rounded-full">
+                  <span className="text-[9px] font-mono uppercase px-2.5 py-0.5 bg-[#d4af7a]/15 text-[#e6c697] border border-[#d4af7a]/20 rounded-full">
                     {provider.subCategory}
                   </span>
 
@@ -1361,7 +1392,7 @@ export default function MyLifePortal({
 
                 {/* Name, Highlight and Description */}
                 <div className="space-y-1">
-                  <h3 className="text-sm font-black text-white group-hover:text-[#9E8BFF] transition-colors font-title flex items-center gap-1.5">
+                  <h3 className="text-sm font-black text-white group-hover:text-[#e6c697] transition-colors font-title flex items-center gap-1.5">
                     {provider.name}
                   </h3>
                   <p className="text-[11px] text-[#00f0ff] font-mono font-medium">
@@ -1385,11 +1416,17 @@ export default function MyLifePortal({
                 </div>
               </div>
 
-              {/* Verified rating and Devis interaction footer */}
+               {/* Verified rating and Devis interaction footer */}
               <div className="border-t border-white/5 pt-3.5 mt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 {/* Avis Vérifiés Control */}
                 <button
-                  onClick={() => setExpandedReviewsProviderId(isReviewsOpen ? null : provider.id)}
+                  onClick={() => {
+                    const nextState = isReviewsOpen ? null : provider.id;
+                    setExpandedReviewsProviderId(nextState);
+                    if (nextState) {
+                      recordCommerceVisit(provider);
+                    }
+                  }}
                   className="flex items-center gap-2 group/review cursor-pointer bg-black/10 hover:bg-white/5 px-2.5 py-1.5 rounded-lg border border-white/5 transition-all text-left"
                   title="Cliquez pour visualiser les avis détaillés des citoyens de Casablanca."
                 >
@@ -1516,7 +1553,7 @@ export default function MyLifePortal({
                       required
                       value={quoteFormData.serviceType}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, serviceType: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
 
@@ -1527,7 +1564,7 @@ export default function MyLifePortal({
                     <select
                       value={quoteFormData.urgencyLevel}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, urgencyLevel: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-gray-300 rounded-lg p-2 text-xs font-mono outline-none cursor-pointer"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-gray-300 rounded-lg p-2 text-xs font-mono outline-none cursor-pointer"
                     >
                       <option value="normal">Normal (Sans urgence)</option>
                       <option value="rapid">Rapide (Sous 48 heures)</option>
@@ -1546,7 +1583,7 @@ export default function MyLifePortal({
                     placeholder="Surface, nature des travaux, horaires recommandés, contraintes d'accès d'appartement de Casablanca etc."
                     value={quoteFormData.description}
                     onChange={(e) => setQuoteFormData({ ...quoteFormData, description: e.target.value })}
-                    className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-xl p-3 text-xs font-mono placeholder-gray-600 outline-none resize-none"
+                    className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-xl p-3 text-xs font-mono placeholder-gray-600 outline-none resize-none"
                   />
                 </div>
 
@@ -1560,7 +1597,7 @@ export default function MyLifePortal({
                       required
                       value={quoteFormData.deliveryDate}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, deliveryDate: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
 
@@ -1573,7 +1610,7 @@ export default function MyLifePortal({
                       placeholder="Ex: 500 MAD"
                       value={quoteFormData.estimatedBudget}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, estimatedBudget: e.target.value })}
-                      className="w-full bg-black/40 border border-white/5 focus:border-[#6C3CFF]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
+                      className="w-full bg-black/40 border border-white/5 focus:border-[#d4af7a]/50 text-white rounded-lg px-3 py-2 text-xs font-mono outline-none"
                     />
                   </div>
                 </div>
@@ -1591,7 +1628,7 @@ export default function MyLifePortal({
                       placeholder="Nom complet"
                       value={quoteFormData.clientName}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientName: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                     <input
                       type="text"
@@ -1599,7 +1636,7 @@ export default function MyLifePortal({
                       placeholder="Téléphone"
                       value={quoteFormData.clientPhone}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientPhone: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                     <input
                       type="email"
@@ -1607,7 +1644,7 @@ export default function MyLifePortal({
                       placeholder="Email de contact"
                       value={quoteFormData.clientEmail}
                       onChange={(e) => setQuoteFormData({ ...quoteFormData, clientEmail: e.target.value })}
-                      className="bg-black/40 border border-white/5 focus:border-[#6C3CFF]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
+                      className="bg-black/40 border border-white/5 focus:border-[#d4af7a]/40 text-white rounded px-2 py-1.5 text-[10.5px] font-mono outline-none w-full"
                     />
                   </div>
                 </div>
@@ -1700,7 +1737,7 @@ export default function MyLifePortal({
                       setIsQuoteModalOpen(false);
                       setQuoteStep(1);
                     }}
-                    className="px-4 py-2 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-500/20 text-[#9E8BFF] hover:text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
+                    className="px-4 py-2 bg-indigo-950/60 hover:bg-indigo-900 border border-indigo-500/20 text-[#e6c697] hover:text-white text-xs font-bold rounded-xl cursor-pointer transition-all"
                   >
                     Fermer l'accusé de réception
                   </button>
@@ -1789,7 +1826,7 @@ export default function MyLifePortal({
                     <div className="pt-2 border-t border-white/5 text-[11px] flex justify-between items-center text-gray-500 font-mono">
                       <span>{tGlobal.eventOrganizer} <strong className="text-gray-300 font-semibold">{evt.partnerName}</strong></span>
                       {evt.ticketPrice > 0 ? (
-                        <span className="text-[#9E8BFF] font-black">{evt.ticketPrice} MAD</span>
+                        <span className="text-[#e6c697] font-black">{evt.ticketPrice} MAD</span>
                       ) : (
                         <span className="text-[#00ff66] font-bold">{tGlobal.freeEntry}</span>
                       )}
@@ -1827,7 +1864,7 @@ export default function MyLifePortal({
 
                       <button
                         onClick={() => handleTicketCheckout(evt)}
-                        className="px-3 py-1.5 bg-[#6c3cff] hover:bg-[#562ee6] text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all hover:shadow-[#6c3cff]/15"
+                        className="px-3 py-1.5 bg-[#d4af7a] hover:bg-[#562ee6] text-white rounded-xl text-[10px] font-bold cursor-pointer transition-all hover:shadow-[#d4af7a]/15"
                       >
                         {evt.ticketPrice > 0 ? tGlobal.reserveBtn : tGlobal.registerBtn}
                       </button>
@@ -1840,7 +1877,7 @@ export default function MyLifePortal({
                       <span className="text-[10px] font-mono font-bold text-slate-400 uppercase">{tGlobal.commentsCount} ({evt.reviews.length})</span>
                       <button
                         onClick={() => setActiveReviewEventId(activeReviewEventId === evt.id ? null : evt.id)}
-                        className="text-[10px] text-[#9E8BFF] hover:underline cursor-pointer font-bold font-mono"
+                        className="text-[10px] text-[#e6c697] hover:underline cursor-pointer font-bold font-mono"
                       >
                         {activeReviewEventId === evt.id ? tGlobal.hideBtn : tGlobal.rateBtn}
                       </button>
@@ -1871,7 +1908,7 @@ export default function MyLifePortal({
                             value={userComment}
                             onChange={(e) => setUserComment(e.target.value)}
                             placeholder={tGlobal.giveOpinion}
-                            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-xl text-[11px] px-3 py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-[#6c3cff] font-mono"
+                            className="flex-1 bg-[#0a0a0f] border border-white/10 rounded-xl text-[11px] px-3 py-1.5 text-white placeholder-gray-600 focus:outline-none focus:border-[#d4af7a] font-mono"
                           />
                           <button
                             onClick={() => {
@@ -1880,7 +1917,7 @@ export default function MyLifePortal({
                               setUserComment('');
                               setActiveReviewEventId(null);
                             }}
-                            className="bg-[#6c3cff] hover:bg-[#5324e9] text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
+                            className="bg-[#d4af7a] hover:bg-[#5324e9] text-white px-3.5 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer"
                           >
                             {tGlobal.publishBtn}
                           </button>
@@ -1917,7 +1954,7 @@ export default function MyLifePortal({
           {/* CMI Checkout Modal inside Agenda tab */}
           {checkoutEvent && (
             <div id="cmi-checkout-modal" className="fixed inset-0 bg-black/85 z-50 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm bg-[#161821] border border-[#6c3cff]/40 rounded-3xl p-5 space-y-4 shadow-2xl relative animate-scale-in">
+              <div className="w-full max-w-sm bg-[#161821] border border-[#d4af7a]/40 rounded-3xl p-5 space-y-4 shadow-2xl relative animate-scale-in">
                 <span className="absolute top-3 right-3 px-2 py-0.5 bg-indigo-950 text-[#00f0ff] font-mono text-[8px] rounded border border-indigo-500/20 uppercase tracking-widest">{tGlobal.cmiGateway}</span>
                 
                 <div className="flex items-center gap-2.5">
@@ -1968,7 +2005,7 @@ export default function MyLifePortal({
                       </button>
                       <button
                         onClick={handlePayTicketSim}
-                        className="flex-1 py-2 bg-[#6c3cff] hover:bg-[#5424e9] text-white rounded-xl text-xs font-bold cursor-pointer select-none transition-all hover:shadow-[#6c3cff]/15"
+                        className="flex-1 py-2 bg-[#d4af7a] hover:bg-[#5424e9] text-white rounded-xl text-xs font-bold cursor-pointer select-none transition-all hover:shadow-[#d4af7a]/15"
                       >
                         {tGlobal.checkoutPayBtn}
                       </button>
