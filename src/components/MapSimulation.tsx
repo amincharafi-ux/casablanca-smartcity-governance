@@ -84,11 +84,14 @@ export default function MapSimulation({
 
   // Filter events based on role and criteria
   const visibleEvents = events.filter(evt => {
-    // Premium Cat 2 partners are always visible
-    // Cat 1 partners are visible on map ONLY on Jour-J (isToday === true)
-    if (userRole === 'BUSINESS_CAT1') {
-      return evt.partnerId === 'partner-cat1-1' || evt.partnerId === 'partner-cat1-2';
+    // Partners can view all promotion events on the map to oversee placements
+    if (userRole === 'PARTENAIRES') {
+      if (activeCategoryFilter !== 'ALL' && evt.category !== activeCategoryFilter) {
+        return false;
+      }
+      return true;
     }
+    // Cat 1 partners are visible on map ONLY on Jour-J (isToday === true) for general audience or others
     if (evt.partnerId.includes('cat1') && !evt.isToday) {
       return false;
     }
@@ -112,7 +115,7 @@ export default function MapSimulation({
       <div className="absolute inset-0 bg-[#0f111a] opacity-85"></div>
       
       {/* Glowing radial grid from Elegant Dark template */}
-      <div className="absolute inset-0 opacity-25 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#6C3CFF 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+      <div className="absolute inset-0 opacity-25 pointer-events-none" style={{ backgroundImage: 'radial-gradient(#7dd3fc 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
       
       {/* Grid line grid */}
       <svg className="absolute inset-0 w-full h-full opacity-5 pointer-events-none" width="100%" height="100%">
@@ -156,7 +159,7 @@ export default function MapSimulation({
                 backgroundColor: 
                   zone.heat === 'critical' ? '#ff4747' :
                   zone.heat === 'high' ? '#ffb800' :
-                  zone.heat === 'medium' ? '#6c3cff' : '#00f0ff',
+                  zone.heat === 'medium' ? '#7dd3fc' : '#00f0ff',
               }}
             />
           ))}
@@ -197,7 +200,7 @@ export default function MapSimulation({
               if (onSelectClaim) onSelectClaim(claim);
             }}
             className={`absolute z-20 group transform -translate-x-1/2 -translate-y-1/2 p-1.5 rounded-full border bg-neutral-900 transition-all duration-300 hover:scale-125 focus:outline-none ${
-              selectedPinId === claim.id ? 'scale-125 ring-2 ring-[#6c3cff]' : ''
+              selectedPinId === claim.id ? 'scale-125 ring-2 ring-[#7dd3fc]' : ''
             }`}
             style={{ left: `${cx}%`, top: `${cy}%` }}
           >
@@ -273,10 +276,25 @@ export default function MapSimulation({
               setSelectedPinId(evt.id);
               setSelectedMyHomeOffer(null);
               if (onSelectEvent) onSelectEvent(evt);
+
+              // Event Sourcing API Integration - Evénement consulté
+              fetch("/api/events/record", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  eventType: "EVENEMENT_CONSULTE",
+                  aggregateId: evt.id,
+                  payload: {
+                    title: evt.title,
+                    category: evt.category,
+                    ticketPrice: evt.ticketPrice
+                  }
+                })
+              }).catch(err => console.error("Event recording failed:", err));
             }}
             className={`absolute z-30 group transform -translate-x-1/2 -translate-y-1/2 p-2 rounded-xl transition-all duration-300 flex items-center justify-center cursor-pointer ${
               selectedPinId === evt.id 
-                ? 'bg-brand-surface scale-125 ring-2 ring-[#6c3cff] border border-white/10' 
+                ? 'bg-brand-surface scale-125 ring-2 ring-[#7dd3fc] border border-white/10' 
                 : 'hover:scale-110'
             }`}
             style={{ left: `${cx}%`, top: `${cy}%` }}
@@ -382,7 +400,7 @@ export default function MapSimulation({
                   onSelectMyHome();
                   setSelectedMyHomeOffer(null);
                 }}
-                className="px-3 py-1 bg-[#6C3CFF] hover:bg-[#5a30e0] text-white font-semibold font-title rounded-lg cursor-pointer transition-colors"
+                className="px-3 py-1 bg-[#7dd3fc] hover:bg-[#0284c7] text-white font-semibold font-title rounded-lg cursor-pointer transition-colors"
               >
                 Accéder Espace MyHome 🏠
               </button>
@@ -467,9 +485,8 @@ export default function MapSimulation({
           </div>
         </div>
         
-        <div className="text-[9px] text-[#6c3cff] font-bold">
-          {userRole === 'BUSINESS_CAT1' && t.mapRoleCat1}
-          {userRole === 'BUSINESS_CAT2' && t.mapRoleCat2}
+        <div className="text-[9px] text-[#7dd3fc] font-bold">
+          {userRole === 'PARTENAIRES' && (currentLang === 'FR' ? "Portail Partenaires : Visualisation complète des animations locales" : currentLang === 'AR' ? "بوابة الشركاء: عرض شامل لجميع العروض الترويجية للأعمال" : "Partners Portal: Full visualization of local business promos")}
           {userRole === 'PUBLIC' && t.mapRolePublic}
           {userRole === 'MAIRIE' && t.mapRoleMairie}
         </div>
