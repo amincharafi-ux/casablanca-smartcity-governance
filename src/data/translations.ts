@@ -405,6 +405,31 @@ export interface TranslationDictionary {
   meshPowerToggledOnLog: string;
   meshPowerToggledOffLog: string;
   meshClearQueueBtn: string;
+
+  // Domain Cockpit Header & Cards & Subtabs
+  dddTitle: string;
+  dddSub: string;
+  dddArch: string;
+  domainCitizen: string;
+  domainCitizenSub: string;
+  domainResidence: string;
+  domainResidenceSub: string;
+  domainCommerce: string;
+  domainCommerceSub: string;
+  domainMunicipality: string;
+  domainMunicipalitySub: string;
+  subtabProfile: string;
+  subtabJourneys: string;
+  subtabSyndic: string;
+  subtabHost: string;
+  subtabImmo: string;
+  subtabFintech: string;
+  subtabShowrooms: string;
+  subtabLocalServices: string;
+  subtabMarketplace: string;
+  subtabTelemetry: string;
+  subtabClaims: string;
+  subtabGov: string;
 }
 
 export const translations: Record<LanguageCode, TranslationDictionary> = {
@@ -733,10 +758,10 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     statsResolutionRate: "Taux Résolution",
     statsOpenClaims: "Réclamations Ouvertes",
     statsResolutionBeds: "Indices de satisfaction",
-    mairieTabClaims: "🚨 Triage Réclamations",
-    mairieTabServices: "🏥 Services de Garde (Hôpitaux)",
-    mairieTabFlash: "📣 Alerte Flash Universelle",
-    mairieTabAudit: "🛡️ Audit Logs CNDP",
+    mairieTabClaims: "Triage Réclamations",
+    mairieTabServices: "Pharmacies de gardes",
+    mairieTabFlash: "Alerte Flash Universelle",
+    mairieTabAudit: "Audit Logs CNDP",
     claimsQueueTitle: "File de Tri Citoyenne",
     aiReportLoading: "Calcul AI en cours...",
     aiReportGenerateBtn: "Rapport de Synthèse IA Gemini",
@@ -803,7 +828,32 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     meshLogStatusTitle: "Derniers Logs Réseau BLE:",
     meshPowerToggledOnLog: "Démarrage du réseau Mesh local BLE V2.",
     meshPowerToggledOffLog: "Arrêt du module local Bluetooth BLE.",
-    meshClearQueueBtn: "Purge Cache"
+    meshClearQueueBtn: "Purge Cache",
+
+    // Domain Cockpit Header & Cards & Subtabs
+    dddTitle: "DOMAINES D'ACTIVITÉ TERRITORIAUX (DDD)",
+    dddSub: "Système d'Exploitation Territorial Souverain (OS)",
+    dddArch: "Architecture : micro-services & flux d'événements",
+    domainCitizen: "Domaine Citoyen",
+    domainCitizenSub: "Profils & Consentement",
+    domainResidence: "Domaine Résidence",
+    domainResidenceSub: "Copropriété & Immo Intelligent",
+    domainCommerce: "Domaine Commerce",
+    domainCommerceSub: "Marché & FinTech",
+    domainMunicipality: "Domaine Municipalité",
+    domainMunicipalitySub: "Mairie & Télémétrie",
+    subtabProfile: "👤 Mon Profil & Consentement CNDP",
+    subtabJourneys: "🔄 Parcours & Démarches Citoyennes",
+    subtabSyndic: "🏘️ Copropriété & Syndic Virtuel",
+    subtabHost: "✈️ MRE Gestion Locative (Host)",
+    subtabImmo: "🔑 Immobilier Direct (MyImmo)",
+    subtabFintech: "💰 Fintech Revenue Engine (Monétisation)",
+    subtabShowrooms: "🪴 Showrooms Déco & Domotique",
+    subtabLocalServices: "🛠️ Services de Proximité (Quotidien)",
+    subtabMarketplace: "🛒 Marketplace & Événements",
+    subtabTelemetry: "📊 Télémétrie Urbaine (Map)",
+    subtabClaims: "🌿 Bureau des Signalements (MyCivic)",
+    subtabGov: "🏛️ Mairie Administration (MyGov)"
   },
   EN: {
     appName: "MyCity Companion",
@@ -1130,10 +1180,10 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     statsResolutionRate: "Fix Rate",
     statsOpenClaims: "Active Claims",
     statsResolutionBeds: "Citizen Score Indicator",
-    mairieTabClaims: "🚨 Incident Registry",
-    mairieTabServices: "🏥 Critical Care Status (Hospitals)",
-    mairieTabFlash: "📣 Universal Flash Alert",
-    mairieTabAudit: "🛡️ CNDP Audit Trails",
+    mairieTabClaims: "Incident Registry",
+    mairieTabServices: "Duty Pharmacies",
+    mairieTabFlash: "Universal Flash Alert",
+    mairieTabAudit: "CNDP Audit Trails",
     claimsQueueTitle: "Emergency Claims Sorting Queue",
     aiReportLoading: "Calculating Gemini vectors...",
     aiReportGenerateBtn: "Gemini AI Summary Report",
@@ -1200,7 +1250,32 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     meshLogStatusTitle: "Active BLE Node Logs:",
     meshPowerToggledOnLog: "Initialized offline P2P BLE mesh environment V2.",
     meshPowerToggledOffLog: "Bluetooth low energy module shut down.",
-    meshClearQueueBtn: "Purge Database"
+    meshClearQueueBtn: "Purge Database",
+
+    // Domain Cockpit Header & Cards & Subtabs
+    dddTitle: "TERRITORIAL BUSINESS DOMAINS (DDD)",
+    dddSub: "Sovereign Territorial Operating System (OS)",
+    dddArch: "Architecture: micro-services & event streams",
+    domainCitizen: "Citizen Domain",
+    domainCitizenSub: "Profiles & Consent",
+    domainResidence: "Residence Domain",
+    domainResidenceSub: "Co-op & Smart Immo",
+    domainCommerce: "Commerce Domain",
+    domainCommerceSub: "Market & FinTech",
+    domainMunicipality: "Municipality Domain",
+    domainMunicipalitySub: "Mairie & Telemetry",
+    subtabProfile: "👤 My Profile & CNDP Consent",
+    subtabJourneys: "🔄 Journeys & Citizen Formalities",
+    subtabSyndic: "🏘️ Co-ownership & Virtual Syndic",
+    subtabHost: "✈️ MRE Rental Management (Host)",
+    subtabImmo: "🔑 Direct Real Estate (MyImmo)",
+    subtabFintech: "💰 Fintech Revenue Engine (Monetization)",
+    subtabShowrooms: "🪴 Decor Showrooms & Home Automation",
+    subtabLocalServices: "🛠️ Local Services & Maintenance",
+    subtabMarketplace: "🛒 Marketplace & Events",
+    subtabTelemetry: "📊 Urban Telemetry (Map)",
+    subtabClaims: "🌿 Citizen Claims Center (MyCivic)",
+    subtabGov: "🏛️ Mairie Administration (MyGov)"
   },
   AR: {
     appName: "MyCity Companion",
@@ -1527,10 +1602,10 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     statsResolutionRate: "معدل الحل",
     statsOpenClaims: "البلاغات النشطة",
     statsResolutionBeds: "مؤشر رضا المواطنين",
-    mairieTabClaims: "🚨 سجل البلاغات والشكاوى",
-    mairieTabServices: "🏥 حالة الرعاية الحرجة (المستشفيات)",
-    mairieTabFlash: "📣 الإعلانات والإنذارات الشاملة عاجلة",
-    mairieTabAudit: "🛡️ سجل مراجعة CNDP",
+    mairieTabClaims: "سجل البلاغات والشكاوى",
+    mairieTabServices: "صيدليات الحراسة",
+    mairieTabFlash: "الإعلانات والإنذارات الشاملة عاجلة",
+    mairieTabAudit: "سجل مراجعة CNDP",
     claimsQueueTitle: "طابور فرز ومعالجة بلاغات الطوارئ",
     aiReportLoading: "جاري حساب الأبعاد بمساعدة Gemini...",
     aiReportGenerateBtn: "تقرير تلخيص الذكاء الاصطناعي Gemini AI",
@@ -1597,6 +1672,31 @@ export const translations: Record<LanguageCode, TranslationDictionary> = {
     meshLogStatusTitle: "سجلات العقد النشطة BLE:",
     meshPowerToggledOnLog: "تم التفعيل الكامل لشبكات BLE P2P الطارئة V2.",
     meshPowerToggledOffLog: "تم تعطيل مديول البلوتوث والاتصال المنخفض الطاقة.",
-    meshClearQueueBtn: "مسح قاعدة البيانات"
+    meshClearQueueBtn: "مسح قاعدة البيانات",
+
+    // Domain Cockpit Header & Cards & Subtabs
+    dddTitle: "مجالات الأعمال الترابية (DDD)",
+    dddSub: "نظام التشغيل الترابي السيادي (OS)",
+    dddArch: "البنية: الخدمات المصغرة وتدفقات الأحداث",
+    domainCitizen: "مجال المواطن",
+    domainCitizenSub: "الملفات الشخصية والموافقة",
+    domainResidence: "مجال الإقامة",
+    domainResidenceSub: "الملكية المشتركة والعقارات الذكية",
+    domainCommerce: "مجال التجارة",
+    domainCommerceSub: "السوق والتكنولوجيا المالية",
+    domainMunicipality: "مجال البلدية",
+    domainMunicipalitySub: "المجلس البلدي والقياس عن بعد",
+    subtabProfile: "👤 ملفي الشخصي وموافقة CNDP",
+    subtabJourneys: "🔄 المسارات والمعاملات البلدية",
+    subtabSyndic: "🏘️ الملكية المشتركة والسنديك الافتراضي",
+    subtabHost: "✈️ تدبير الإيجار لمغاربة العالم (Host)",
+    subtabImmo: "🔑 العقارات المباشرة (MyImmo)",
+    subtabFintech: "💰 محرك عوائد التكنولوجيا المالية",
+    subtabShowrooms: "🪴 معارض الديكور والمنزل الذكي",
+    subtabLocalServices: "🛠️ خدمات القرب اليومية",
+    subtabMarketplace: "🛒 السوق الحرة والفعاليات",
+    subtabTelemetry: "📊 التخطيط والقياس الحضري (الخريطة)",
+    subtabClaims: "🌿 مكتب بلاغات وشكاوى المواطنين (MyCivic)",
+    subtabGov: "🏛️ إدارة المجلس البلدي (MyGov)"
   }
 };
