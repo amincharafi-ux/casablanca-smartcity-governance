@@ -24,6 +24,8 @@ import StrategicScreensHub from './components/StrategicScreensHub';
 import MySyndicPricingAndCRM from './components/MySyndicPricingAndCRM';
 import DistrictManagerDashboard from './components/DistrictManagerDashboard';
 import SyndicAdminConsole from './components/SyndicAdminConsole';
+import SinapsEnclaveBridge from './components/SinapsEnclaveBridge';
+import UrbanOperatingSystemCockpit from './components/UrbanOperatingSystemCockpit';
 
 import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
@@ -99,26 +101,34 @@ export default function App() {
 
   // Synchroniser le jeton JWT signé cryptographiquement sur le serveur par rapport au rôle actif
   useEffect(() => {
-    fetch("/api/auth/token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ role: userRole })
-    })
-    .then(res => {
-      if (!res.ok) throw new Error("Erreur de synchronisation du jeton");
-      return res.json();
-    })
-    .then(data => {
-      if (data.token) {
-        // Enregistrer dans le cookie pour être transmis automatiquement sur toutes les requêtes subséquentes
-        document.cookie = `session_jwt=${data.token}; path=/; max-age=86400; SameSite=Strict; Secure`;
-        localStorage.setItem("session_jwt", data.token);
-        console.log(`[SECURE SOUVERAIN] JWT cryptographique synchronisé pour le rôle : ${userRole}`);
+    let isMounted = true;
+    const syncSecurityToken = async () => {
+      try {
+        const res = await fetch("/api/auth/token", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ role: userRole })
+        });
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.error || `HTTP ${res.status}`);
+        }
+        const data = await res.json();
+        if (data?.token && isMounted) {
+          // Enregistrer dans le cookie pour être transmis automatiquement sur toutes les requêtes subséquentes
+          document.cookie = `session_jwt=${data.token}; path=/; max-age=86400; SameSite=Strict; Secure`;
+          localStorage.setItem("session_jwt", data.token);
+          console.log(`[SECURE SOUVERAIN] JWT cryptographique synchronisé pour le rôle : ${userRole}`);
+        }
+      } catch (err: any) {
+        console.warn(`[SYNC TOKEN] Synchronisation du jeton (${userRole}):`, err?.message || err);
       }
-    })
-    .catch(err => {
-      console.error("[CATASTROPHE] Impossible de synchroniser le jeton de sécurité :", err);
-    });
+    };
+
+    syncSecurityToken();
+    return () => {
+      isMounted = false;
+    };
   }, [userRole]);
 
   const [isSqlSpecOpen, setIsSqlSpecOpen] = useState(false);
@@ -131,6 +141,8 @@ export default function App() {
   const [isDataWarehouseOpen, setIsDataWarehouseOpen] = useState(false);
   const [isFigmaDemoOpen, setIsFigmaDemoOpen] = useState(false);
   const [isStrategicHubOpen, setIsStrategicHubOpen] = useState(false);
+  const [isSinapsEnclaveOpen, setIsSinapsEnclaveOpen] = useState(false);
+  const [isUrbanOsCockpitOpen, setIsUrbanOsCockpitOpen] = useState(false);
   const [isMySyndicPricingOpen, setIsMySyndicPricingOpen] = useState(false);
   const [isMasterDashboardOpen, setIsMasterDashboardOpen] = useState(false);
   const [fitScale, setFitScale] = useState<'100%' | '90%' | '85%' | '75%'>('85%');
@@ -606,7 +618,20 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-8 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-9 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+              <button
+                id="urban-os-cockpit-btn"
+                onClick={() => {
+                  setIsUrbanOsCockpitOpen(true);
+                  handleAddPrivacyLog("Urban OS Cockpit Open", "Ouverture du Cockpit Urban Operating System (Architecture Cible 2026-2030, NATS JetStream, GeoInt & Graphe).");
+                }}
+                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-900/80 via-teal-900/80 to-cyan-900/80 hover:from-emerald-800 hover:to-cyan-800 border border-emerald-400/50 hover:border-emerald-300 text-emerald-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/20 animate-pulse"
+                title="Ouvrir le Cockpit Urban Operating System (Phases 1 à 8 du Rapport CTO : NATS JetStream, PostGIS GeoInt, Knowledge Graph, Jumeau Numérique, Copilot IA)"
+              >
+                <Cpu className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                <span className="truncate">⚡ Urban OS 2030</span>
+              </button>
+
               <button
                 id="security-audit-btn"
                 onClick={() => {
@@ -670,12 +695,25 @@ export default function App() {
               </button>
 
               <button
+                id="sinaps-enclave-bridge-btn"
+                onClick={() => {
+                  setIsSinapsEnclaveOpen(true);
+                  handleAddPrivacyLog("Enclave SINAPS Open", "Ouverture de la passerelle native TEE Enclave MyCity <-> SINAPS (Graphe & Data Stream).");
+                }}
+                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-cyan-950/70 to-blue-950/70 hover:from-cyan-900/90 hover:to-blue-900/90 border border-cyan-400/50 hover:border-cyan-300 text-cyan-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-cyan-500/20 animate-pulse"
+                title="Ouvrir la Liaison Enclave TEE Natif vers le projet SINAPS (Flux Data & Graphe Territorial)"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <span className="truncate">🔒 Enclave SINAPS</span>
+              </button>
+
+              <button
                 onClick={() => {
                   setIsStrategicHubOpen(true);
-                  handleAddPrivacyLog("Strategic Hub Open", "Ouverture du Showcase des 7 écrans stratégiques intégrés.");
+                  handleAddPrivacyLog("Strategic Hub Open", "Ouverture du Showcase des 8 écrans stratégiques intégrés.");
                 }}
                 className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-emerald-500/20 hover:from-sky-500/30 hover:to-emerald-500/30 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-[#00ffcc]/10 animate-pulse"
-                title="Ouvrir le Hub Showcase des 7 Pièces Maîtresses et Écrans Stratégiques"
+                title="Ouvrir le Hub Showcase des 8 Pièces Maîtresses et Écrans Stratégiques"
               >
                 <Sparkles className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
                 <span className="truncate">🚀 Écrans Strat. (8)</span>
@@ -1309,6 +1347,51 @@ export default function App() {
         onClose={() => setIsStrategicHubOpen(false)}
         onAddLog={handleAddPrivacyLog}
       />
+
+      {/* DEDICATED SINAPS TEE ENCLAVE BRIDGE MODAL */}
+      {isSinapsEnclaveOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-6xl max-h-[94vh] bg-[#08090e] border border-cyan-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#0e111a] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-cyan-500/20 text-cyan-400 rounded-xl border border-cyan-500/30">
+                  <ShieldCheck className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    Liaison Enclave Matérielle MyCity ⟷ SINAPS
+                    <span className="text-[9px] font-mono bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-2 py-0.5 rounded uppercase font-bold">
+                      TEE Confidential Hardware
+                    </span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Stream Continu & Graphe Territorial Chiffré Souverain</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsSinapsEnclaveOpen(false)}
+                className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-white/10">
+              <SinapsEnclaveBridge 
+                onAddLog={handleAddPrivacyLog} 
+                onOpenKnowledgeGraph={() => {
+                  setIsSinapsEnclaveOpen(false);
+                  setIsStrategicHubOpen(true);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* URBAN OPERATING SYSTEM (2026-2030 ARCHITECTURE) COCKPIT */}
+      {isUrbanOsCockpitOpen && (
+        <UrbanOperatingSystemCockpit onClose={() => setIsUrbanOsCockpitOpen(false)} />
+      )}
 
       {/* MYSYNDIC PRICING & CRM COMMERCIAL MODAL */}
       <MySyndicPricingAndCRM
