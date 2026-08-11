@@ -583,6 +583,14 @@ export async function getOrCreateProfileByRole(role: string): Promise<any> {
   const normalizedRole = role.toUpperCase();
   const emailMap: Record<string, string> = {
     "MAIRIE": "fatim.zahra@mairie-casablanca.ma",
+    "MUNICIPALITE": "direction.technique@mairie-casablanca.ma",
+    "SUPER_ADMIN": "cto.souverain@mycity.ma",
+    "DATA_TEAM": "data.urban@casablanca.ma",
+    "PARTENAIRES": "partenaires@casablanca-smartcity.ma",
+    "COMMERCE": "commerce@casablancashop.ma",
+    "RESIDENCE": "syndic.gauthier@casablanca.ma",
+    "SYNDIC": "syndic.pro@casablanca.ma",
+    "CITOYEN": "citoyen.connecte@souverain.ma",
     "BUSINESS_CAT1": "omar.kabbaj@casablancashop.ma",
     "BUSINESS_CAT2": "i.elomari@premiumcasablanca.ma",
     "PUBLIC": "citizen@souverain.ma"
@@ -590,13 +598,21 @@ export async function getOrCreateProfileByRole(role: string): Promise<any> {
 
   const nameMap: Record<string, string> = {
     "MAIRIE": "Secrétariat de la Mairie",
+    "MUNICIPALITE": "Direction Territoriale Casablanca",
+    "SUPER_ADMIN": "Super Administrateur Urban OS",
+    "DATA_TEAM": "Équipe SIG & Data Intelligence",
+    "PARTENAIRES": "Pôle Partenaires & Écosystème",
+    "COMMERCE": "Pôle Commerçants & Artisans",
+    "RESIDENCE": "Conseil Syndical Gauthier",
+    "SYNDIC": "Administrateur Syndic Agréé",
+    "CITOYEN": "Citoyen Souverain CNDP",
     "BUSINESS_CAT1": "Omar Kabbaj (Shop Owners)",
     "BUSINESS_CAT2": "I. El Omari (Premium Casa)",
-    "PUBLIC": "Citoyen Sauvérisé CNDP"
+    "PUBLIC": "Citoyen Souverain CNDP"
   };
 
   const email = emailMap[normalizedRole] || `citoyen-${Math.floor(Math.random() * 9000 + 1000)}@souverain.ma`;
-  const name = nameMap[normalizedRole] || "Citoyen Validé CNDP";
+  const name = nameMap[normalizedRole] || `Citoyen (${normalizedRole})`;
 
   return {
     email,
