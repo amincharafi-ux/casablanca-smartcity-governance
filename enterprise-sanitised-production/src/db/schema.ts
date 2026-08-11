@@ -1,4 +1,4 @@
-import { pgTable, text, varchar, boolean, timestamp, integer, doublePrecision, uuid, jsonb, decimal, primaryKey, customType, index } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, boolean, timestamp, integer, doublePrecision, uuid, jsonb, decimal, primaryKey, customType, index, real } from "drizzle-orm/pg-core";
 
 // Custom geography Point type for PostGIS
 export const geographyPoint = customType<{
@@ -611,6 +611,49 @@ export const complianceAuditLogs = pgTable("compliance_audit_logs", {
   status: varchar("status", { length: 20 }).notNull(),
   metadata: jsonb("metadata"),
   timestamp: timestamp("timestamp", { withTimezone: true }).defaultNow().notNull(),
+});
+
+// ============================================================================
+// 26. SINAPS SOUVERAIN ENCLAVE CONNECTOR & TERRITORIAL GRAPH SYNC
+// ============================================================================
+export const sinapsEnclaveAttestations = pgTable("sinaps_enclave_attestations", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  enclaveId: varchar("enclave_id", { length: 120 }).notNull(),
+  hardwareTEE: varchar("hardware_tee", { length: 60 }).notNull(), // 'INTEL_SGX_V2', 'AWS_NITRO_ENCLAVE', 'SOVEREIGN_TPM_HSM'
+  pcr0: varchar("pcr0", { length: 96 }).notNull(),
+  pcr1: varchar("pcr1", { length: 96 }).notNull(),
+  pcr2: varchar("pcr2", { length: 96 }).notNull(),
+  certificateFingerprint: varchar("certificate_fingerprint", { length: 128 }).notNull(),
+  encryptionCipher: varchar("encryption_cipher", { length: 60 }).default("AES-256-GCM-HKDF"),
+  status: varchar("status", { length: 30 }).default("VERIFIED"),
+  latencyMs: real("latency_ms").default(0.85),
+  lastHeartbeat: timestamp("last_heartbeat", { withTimezone: true }).defaultNow(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow(),
+});
+
+export const sinapsDataStreams = pgTable("sinaps_data_streams", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  topic: varchar("topic", { length: 80 }).notNull(), // 'URBAN_TELEMETRY', 'TERRITORIAL_GRAPH', 'IOT_MESH_CDC'
+  originModule: varchar("origin_module", { length: 60 }).notNull(),
+  encryptedPayloadHash: varchar("encrypted_payload_hash", { length: 96 }).notNull(),
+  recordCount: integer("record_count").default(1),
+  anonymizationLevel: varchar("anonymization_level", { length: 60 }).default("CNDP_L09_08_STRICT"),
+  throughputKbps: real("throughput_kbps").default(125.4),
+  status: varchar("status", { length: 30 }).default("DELIVERED"),
+  transmittedAt: timestamp("transmitted_at", { withTimezone: true }).defaultNow(),
+});
+
+export const sinapsGraphSyncLogs = pgTable("sinaps_graph_sync_logs", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  syncId: varchar("sync_id", { length: 80 }).notNull(),
+  nodesCount: integer("nodes_count").notNull(),
+  edgesCount: integer("edges_count").notNull(),
+  embeddingDimensions: integer("embedding_dimensions").default(1536),
+  territorialClusters: jsonb("territorial_clusters"),
+  merkleRootHash: varchar("merkle_root_hash", { length: 96 }).notNull(),
+  syncMode: varchar("sync_mode", { length: 50 }).default("DELTA_STREAM"),
+  status: varchar("status", { length: 30 }).default("SYNCHRONIZED"),
+  syncedAt: timestamp("synced_at", { withTimezone: true }).defaultNow(),
 });
 
 
