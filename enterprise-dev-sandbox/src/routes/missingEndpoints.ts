@@ -67,6 +67,13 @@ function verifyWebJwt(token: string): any | null {
 
 // Custom JWT Authentication Middleware for this missing routes module
 const authMiddleware = (req: any, res: Response, next: any) => {
+  const requestUrl = req.originalUrl || req.url || "";
+  const isAuthOrPublic = /(\/auth\/|\/health|\/export-zip|\/docs)/i.test(requestUrl);
+  if (isAuthOrPublic) {
+    req.user = { role: "PUBLIC", email: null, full_name: "Citoyen Public" };
+    return next();
+  }
+
   const authHeader = req.headers.authorization;
   const cookies = req.headers.cookie || "";
   const jwtMatch = cookies.match(/session_jwt=([^;]+)/);
@@ -74,7 +81,6 @@ const authMiddleware = (req: any, res: Response, next: any) => {
   const token = (authHeader && authHeader.startsWith("Bearer ") ? authHeader.substring(7) : null) || cookieJwt;
 
   // Real-time security filter for sensitive portals
-  const requestUrl = req.originalUrl || req.url || "";
   const sensitivePathRegex = /(\/admin|\/syndic|\/mairie|\/dashboard\/mairie|\/dashboard\/admin)/i;
   const isSensitivePath = sensitivePathRegex.test(requestUrl);
 
@@ -105,13 +111,17 @@ const authMiddleware = (req: any, res: Response, next: any) => {
     }
     next();
   } else {
-    // Bad/Expired token = return 401 Unauthorized immediately instead of silent degradation
-    return res.status(401).json({
-      error: {
-        code: "ERR_UNAUTHORIZED",
-        message: "Session expirée ou jeton d'accès invalide. Veuillez vous reconnecter."
-      }
-    });
+    // If token is invalid or expired on sensitive paths, block it. Otherwise reset to PUBLIC so public routes succeed.
+    if (isSensitivePath) {
+      return res.status(401).json({
+        error: {
+          code: "ERR_UNAUTHORIZED",
+          message: "Session expirée ou jeton d'accès invalide. Veuillez vous reconnecter."
+        }
+      });
+    }
+    req.user = { role: "PUBLIC", email: null, full_name: "Citoyen Public" };
+    next();
   }
 };
 
