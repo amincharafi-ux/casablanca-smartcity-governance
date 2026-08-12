@@ -88,6 +88,8 @@ export let localAuditLogs: any[] = [
 export let localConsents: any[] = [];
 export let localEvents: any[] = [];
 
+import { cdcDebeziumService } from "../services/cdcDebezium.service";
+
 // ============================================================================
 // EVENT SOURCING ENGINE (Immutable Audit Trail for Citizen & Business Actions)
 // ============================================================================
@@ -108,6 +110,19 @@ export async function recordSourcedEvent(
   };
 
   localEvents.unshift(eventObj);
+
+  // Automatically trigger CDC & Event Mesh cascade for 100% domain events
+  try {
+    cdcDebeziumService.recordMutation(
+      eventType.includes("CLAIM") ? "claims" : eventType.includes("VOTE") ? "residence_votes" : eventType.includes("BUSINESS") ? "marketplace_listings" : "event_store",
+      "CREATE",
+      { id: aggregateId, eventType, actor, ...payload },
+      null,
+      "public"
+    );
+  } catch (err) {
+    console.warn("CDC automatic mutation bridge warning:", err);
+  }
 
   const connected = await isDbConnected();
   if (connected) {
