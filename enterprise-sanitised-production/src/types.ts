@@ -697,3 +697,185 @@ export type DuckDbQueryResult = LakehouseQueryResult;
 export type UnderservedZone = UnderservedUrbanZone;
 export type NebulaGraphResult = NGqlQueryResult;
 
+// ============================================================================
+// PROGRAMME P0: 100% DOMAIN EVENT MESH & REAL-TIME CDC CASCADE
+// ============================================================================
+
+export type UrbanDomain = 
+  | 'CITIZEN_PUBLIC_SPACE'       // 1. Signalements, voirie, requêtes citoyennes
+  | 'HOUSING_SYNDIC_VERTICAL'    // 2. Assemblées générales, votes, pannes parties communes
+  | 'LOCAL_COMMERCE_ECONOMY'     // 3. Patentes, transactions de quartier, invendus
+  | 'FIELD_CONTRACTOR_DISPATCH'  // 4. Ordres de mission, dispatching, clôtures avec photos CNDP
+  | 'MOBILITY_TRANSIT_FLOWS'     // 5. Tramway, busway, capteurs de circulation, parkings
+  | 'INFRASTRUCTURE_FLUIDS'      // 6. Télémétrie eau Lydec, électricité, qualité air, IoT
+  | 'CRISIS_RISKS_RESILIENCE';   // 7. Crues des oueds, alertes météo, périmètres sécurité pompiers
+
+export interface EventMeshPipelineStep {
+  stage: 'POSTGRESQL_OLTP' | 'DEBEZIUM_CDC' | 'NATS_JETSTREAM' | 'LAKEHOUSE_ICEBERG' | 'KNOWLEDGE_GRAPH' | 'SINAPS_ENCLAVE';
+  timestamp: string;
+  latencyMs: number;
+  status: 'SUCCESS' | 'PROCESSING' | 'SKIPPED' | 'ERROR';
+  details: string;
+  metadataHash?: string;
+  lsnOrOffset?: string;
+}
+
+export interface EventMeshCascadeTrace {
+  traceId: string;
+  domain: UrbanDomain;
+  eventName: string;
+  entityId: string;
+  district: string;
+  timestamp: string;
+  totalDurationMs: number;
+  is100PercentCovered: boolean;
+  steps: EventMeshPipelineStep[];
+  cndpCompliant: boolean;
+  canonicalPayloadId: string;
+}
+
+// ============================================================================
+// PROGRAMME P1: COMPLETE INDUSTRIAL URBAN LAKEHOUSE STACK
+// ============================================================================
+
+export interface LakehouseObjectStorageBucket {
+  bucketName: string;
+  provider: 'SOVEREIGN_MINIO' | 'AWS_S3_COMPLIANT' | 'GCS_COMPLIANT';
+  region: 'casablanca-dc1' | 'bouskoura-dc2';
+  totalObjectsCount: number;
+  totalSizeBytes: number;
+  storageClass: 'HOT_PARQUET_ZSTD' | 'WARM_ICEBERG_DATA' | 'COLD_ARCHIVE_GLACIER';
+  lastCompactionTimestamp: string;
+  compressionRatio: number; // e.g. 4.8x
+}
+
+export interface ClickHouseTableSpec {
+  database: string;
+  tableName: string;
+  engine: 'MergeTree' | 'ReplacingMergeTree' | 'SummingMergeTree' | 'MaterializedView';
+  partitionBy: string;
+  orderBy: string;
+  primaryKey: string;
+  rowCount: number;
+  compressedBytes: number;
+  uncompressedBytes: number;
+  queryLatencyP99Ms: number;
+}
+
+export interface LakehouseComprehensiveStackStatus {
+  sourcePostgresConnected: boolean;
+  debeziumConnectorStatus: 'RUNNING' | 'PAUSED' | 'FAILED';
+  objectStorage: LakehouseObjectStorageBucket[];
+  icebergCatalogType: 'REST_CATALOG' | 'NESSIE' | 'HIVE_METASTORE';
+  icebergTablesCount: number;
+  clickhouseNodeStatus: 'CLUSTER_HEALTHY' | 'DEGRADED';
+  clickhouseTables: ClickHouseTableSpec[];
+  duckDbInProcessMemoryMb: number;
+  totalProcessedEvents24h: number;
+  totalStorageSavingsPct: number;
+}
+
+// ============================================================================
+// PROGRAMME P2: 3-TIER FEDERATED URBAN GRAPH
+// ============================================================================
+
+export type FederatedGraphTier = 
+  | 'LEVEL_1_MYCITY_LOCAL'     // Arrondissement & Ville (Entités physiques, commerces, capteurs locaux)
+  | 'LEVEL_2_SINAPS_REGIONAL'  // Région Casablanca-Settat / Inter-villes (Corridors fret, résilience, transit régional)
+  | 'LEVEL_3_NATIONAL_GRAPH';  // National Souverain (DGCL, Intérieur, HCP, Ministères, Vision Macro)
+
+export interface FederatedGraphNode {
+  federatedId: string; // e.g. "ma.nat.casablanca.maarif.residence_palmier"
+  tier: FederatedGraphTier;
+  label: string;
+  type: string;
+  jurisdiction: string; // e.g. "Arrondissement Maârif", "Région Casablanca-Settat", "Royaume du Maroc"
+  localProperties: Record<string, any>;
+  federationPolicy: 'STRICT_LOCAL' | 'ANONYMIZED_REGIONAL' | 'K_ANONYMOUS_NATIONAL';
+  crossTierLinksCount: number;
+  differentialPrivacyEpsilon?: number;
+}
+
+export interface FederatedGraphEdge {
+  id: string;
+  sourceFederatedId: string;
+  targetFederatedId: string;
+  relation: string;
+  crossTier: boolean;
+  weight: number;
+  syncedToEnclave: boolean;
+}
+
+export interface CrossGraphFederatedQuery {
+  queryId: string;
+  originTier: FederatedGraphTier;
+  targetTiers: FederatedGraphTier[];
+  nGqlFederatedStatement: string;
+  executionTimeMs: number;
+  scannedGraphNodes: number;
+  crossTierResolutionsCount: number;
+  privacyProofHash: string;
+  summary: string;
+  results: Record<string, any>[];
+}
+
+// ============================================================================
+// PROGRAMME P3: URBAN MEMORY FABRIC (COGNITIVE MEMORY SYSTEM)
+// ============================================================================
+
+export type UrbanMemoryType = 
+  | 'EPISODIC'    // Souvenirs d'incidents passés, déroulé chronologique, résolutions réelles
+  | 'SEMANTIC'    // Profils de quartiers, règles d'urbanisme, rythmes de vie, densité
+  | 'PROCEDURAL'  // Protocoles d'intervention, SOPs communales, plans d'urgence
+  | 'PROSPECTIVE';// Prédictions analogiques, anticipations d'impacts, simulations
+
+export interface UrbanMemoryRecord {
+  id: string;
+  memoryType: UrbanMemoryType;
+  title: string;
+  description: string;
+  district: string;
+  coordinates?: { lat: number; lng: number };
+  h3Index: string; // H3 Hexagonal spatial index (Resolution 8/9)
+  temporalPattern: {
+    seasonality?: 'WINTER_RAIN' | 'SUMMER_TOURISM' | 'RAMADAN_EVENING' | 'ALL_YEAR';
+    timeOfDay?: 'PEAK_MORNING' | 'PEAK_EVENING' | 'NIGHT' | 'CONTINUOUS';
+    recurringFrequencyDays?: number;
+  };
+  graphContext: {
+    relatedEntityIds: string[];
+    topologyCluster: string;
+    impactRadiusMeters: number;
+  };
+  embeddingVector: number[]; // 1536-dim or 768-dim normalized embedding representation
+  confidenceScore: number;
+  associatedPlaybook?: string;
+  lastRetrievedTimestamp?: string;
+  reinforcementCount: number;
+}
+
+export interface UrbanMemorySynthesisPipeline {
+  observationId: string;
+  rawFact: string;
+  timestamp: string;
+  extractedEntities: string[];
+  generatedEmbeddingHash: string;
+  graphContextEnriched: {
+    neighborhoodNodes: string[];
+    cascadeRiskScore: number;
+  };
+  geoContextEnriched: {
+    h3Cell: string;
+    isochroneCoveragePct: number;
+    nearbyCriticalFacilities: string[];
+  };
+  temporalContextEnriched: {
+    isPeakHour: boolean;
+    weatherCondition: string;
+    historicalAnalogMatchesCount: number;
+  };
+  synthesizedMemory: UrbanMemoryRecord;
+  proactiveRecommendation: string;
+}
+
+
