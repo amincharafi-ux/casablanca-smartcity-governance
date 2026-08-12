@@ -21,26 +21,35 @@ export const geographyPoint = customType<{
         return { lng: parseFloat(match[1]), lat: parseFloat(match[2]) };
       }
 
-      // 2. Hex EWKB representation parsing
+      // 2. Hex EWKB representation parsing (universal DataView parser, zero Node Buffer dependency)
       try {
-        const buf = Buffer.from(value, "hex");
-        if (buf.length >= 21) {
-          const isLittleEndian = buf[0] === 0x01;
-          let offset = 1;
-          
-          const type = isLittleEndian ? buf.readUInt32LE(offset) : buf.readUInt32BE(offset);
-          offset += 4;
-          
-          const hasSRID = !!(type & 0x20000000) || type === 0x20000001 || type === 536870913;
-          if (hasSRID) {
-            offset += 4; // Skip SRID
+        if (/^[0-9a-fA-F]+$/.test(value) && value.length >= 42) {
+          const byteLen = value.length / 2;
+          const bytes = new Uint8Array(byteLen);
+          for (let i = 0; i < byteLen; i++) {
+            bytes[i] = parseInt(value.substring(i * 2, i * 2 + 2), 16);
           }
-          
-          const lng = isLittleEndian ? buf.readDoubleLE(offset) : buf.readDoubleBE(offset);
-          offset += 8;
-          const lat = isLittleEndian ? buf.readDoubleLE(offset) : buf.readDoubleBE(offset);
-          
-          return { lng, lat };
+          if (bytes.length >= 21) {
+            const isLittleEndian = bytes[0] === 0x01;
+            const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+            let offset = 1;
+            
+            const type = view.getUint32(offset, isLittleEndian);
+            offset += 4;
+            
+            const hasSRID = !!(type & 0x20000000) || type === 0x20000001 || type === 536870913;
+            if (hasSRID) {
+              offset += 4; // Skip SRID
+            }
+            
+            const lng = view.getFloat64(offset, isLittleEndian);
+            offset += 8;
+            const lat = view.getFloat64(offset, isLittleEndian);
+            
+            if (!isNaN(lng) && !isNaN(lat)) {
+              return { lng, lat };
+            }
+          }
         }
       } catch (e) {
         console.error("Error parsing geographyPoint from hex EWKB:", e);
