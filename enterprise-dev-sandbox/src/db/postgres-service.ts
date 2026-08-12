@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import { cryptoCompat as crypto } from "../utils/cryptoCompat";
 import { db, isDbConnected } from "./index";
 import * as schema from "./schema";
 import { eq, desc } from "drizzle-orm";
@@ -17,7 +17,7 @@ export function verifyPassword(password: string, stored: string): boolean {
     if (!stored || !stored.includes(":")) return false;
     const [salt, hash] = stored.split(":");
     const testHash = crypto.scryptSync(password, salt, 64).toString("hex");
-    return crypto.timingSafeEqual(Buffer.from(hash, "hex"), Buffer.from(testHash, "hex"));
+    return crypto.timingSafeEqual(hash, testHash);
   } catch (error) {
     console.error("Password verification crash:", error);
     return false;
