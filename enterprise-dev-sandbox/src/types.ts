@@ -878,4 +878,157 @@ export interface UrbanMemorySynthesisPipeline {
   proactiveRecommendation: string;
 }
 
+// ============================================================================
+// PROGRAMME P4: DIGITAL TWIN CASABLANCA & STRICT OPERATIONAL ISOLATION LAYER
+// ============================================================================
+
+export type CityOperatingMode = 'OPERATIONAL_FABRIC' | 'DIGITAL_TWIN_SANDBOX';
+
+export interface OperationalTelemetryMetrics {
+  timestamp: string;
+  source: 'REALTIME_PRODUCTION_POSTGRES' | 'IOT_HARDWARE_GATEWAYS' | 'DISPATCHED_CREWS_GPS';
+  verifiedCitizensOnline: number;
+  realWorldGridLoadKw: number;
+  actualWaterPressureBar: number;
+  realCongestionIndex: number;
+  liveCriticalIncidentsCount: number;
+  activeMunicipalVehicles: number;
+  immutableAuditBlockHeight: number;
+  productionDbLatencyMs: number;
+}
+
+export interface SimulationSandboxBranch {
+  branchId: string;
+  name: string;
+  description: string;
+  category: 'EXTREME_WEATHER_FLOOD' | 'TRAMWAY_GRID_OUTAGE' | 'MASS_GATHERING_CASABLANCA' | 'URBAN_EARTHQUAKE_STRESS';
+  status: 'ACTIVE_SIMULATION' | 'PAUSED' | 'CONVERGED' | 'ARCHIVED';
+  createdAt: string;
+  forkedFromSnapshotLsn: string;
+  simulatedSecondsAhead: number;
+  syntheticEventsGenerated: number;
+  zeroPollutionFirewallViolations: number; // Must be strictly 0
+  projectedMetrics: {
+    projectedCongestionIndex: number;
+    projectedGridLoadKw: number;
+    projectedEconomicImpactMad: number;
+    projectedEvacuationTimeMinutes: number;
+    criticalInterventionUnitsNeeded: number;
+  };
+  keyBottlenecks: {
+    district: string;
+    severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+    failureDescription: string;
+  }[];
+  mitigationActions: string[];
+}
+
+export interface IcebergDataFileMetadata {
+  filePath: string;
+  partitionValues: Record<string, any>;
+  recordCount: number;
+  fileSizeBytes: number;
+  columnStats: {
+    columnName: string;
+    nullCount: number;
+    minValue: string | number;
+    maxValue: string | number;
+  }[];
+  compressionCodec: 'ZSTD' | 'SNAPPY' | 'GZIP';
+  splitOffsets: number[];
+}
+
+export interface LakehouseQueryExplain {
+  planNodes: {
+    stage: string;
+    description: string;
+    rowsIn: number;
+    rowsOut: number;
+    simdVectorWidth?: number;
+    partitionsPruned?: number;
+    partitionsTotal?: number;
+    timeMs: number;
+  }[];
+  vectorSimdEnabled: boolean;
+  columnarMemoryAllocatedKb: number;
+  scanThroughputMbPerSec: number;
+  rowThroughputRowsPerSec: number;
+  ioSavingsPercentage: number;
+}
+
+export interface CloudEventSpec {
+  id: string;
+  source: string;
+  specversion: string;
+  type: string;
+  datacontenttype: string;
+  time: string;
+  subject: string;
+  traceparent: string;
+  data: Record<string, any>;
+  cndpSanitized: boolean;
+  domain: UrbanDomain;
+  latencyFromOriginMs: number;
+}
+
+export interface DeadLetterQueueItem {
+  id: string;
+  originalEventId: string;
+  domain: UrbanDomain;
+  subject: string;
+  failedAt: string;
+  retryAttempts: number;
+  maxRetries: number;
+  errorReason: string;
+  payload: Record<string, any>;
+  status: 'PENDING_RETRY' | 'DEAD_LETTERED' | 'MANUALLY_RESOLVED';
+}
+
+export interface CrossTierEntityLink {
+  id: string;
+  sourceTier: FederatedGraphTier;
+  sourceNodeId: string;
+  sourceNodeLabel: string;
+  targetTier: FederatedGraphTier;
+  targetNodeId: string;
+  targetNodeLabel: string;
+  relationType: string;
+  differentialPrivacyBudget: number;
+  teeSignedHash: string;
+  establishedAt: string;
+}
+
+export interface MemoryPipelineStepExecution {
+  stepIndex: number;
+  stepName: 'OBSERVATION' | 'EMBEDDING' | 'GRAPH_CONTEXT' | 'GEO_CONTEXT' | 'TEMPORAL_CONTEXT' | 'RECALL' | 'REASONING';
+  title: string;
+  status: 'COMPLETED' | 'IN_PROGRESS' | 'PENDING';
+  durationMs: number;
+  outputSummary: string;
+  details: Record<string, any>;
+}
+
+export interface UrbanMemoryRecallResult {
+  memory: UrbanMemoryRecord;
+  cosineSimilarity: number;
+  geoProximityScore: number;
+  graphConnectednessScore: number;
+  temporalRelevanceScore: number;
+  unifiedRecallScore: number; // Combined weighted score
+  rank: number;
+}
+
+export interface OperationalVsTwinIsolationState {
+  firewallActive: boolean;
+  isolationProtocolVersion: string; // "v2026.4-TEE-FENCED"
+  operationalLayer: OperationalTelemetryMetrics;
+  activeSimulationBranches: SimulationSandboxBranch[];
+  selectedSandboxBranchId: string;
+  memoryNamespaceDecoupled: boolean;
+  auditTrailZeroPollutionVerified: boolean;
+  crossLayerDriftPct: number; // Difference between operational reality and sandbox projections
+}
+
+
+
 
