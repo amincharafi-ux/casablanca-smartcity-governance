@@ -257,7 +257,7 @@ export default function MapSimulation({
         if (evt.id === 'evt-3') { cx = 76; cy = 34; }
         if (evt.id === 'evt-4') { cx = 22; cy = 22; }
 
-        const categoryColors = {
+        const categoryColors: Record<string, string> = {
           'CULTURE': 'bg-brand-accent-culture shadow-brand-accent-culture/50 border-[#ff3c83]',
           'ECONOMIC': 'bg-brand-accent-economic shadow-brand-accent-economic/50 border-[#00f0ff]',
           'ECO_CSR': 'bg-emerald-400 shadow-emerald-400/50 border-emerald-300',
@@ -266,7 +266,17 @@ export default function MapSimulation({
           'EMERGENCY': 'bg-brand-accent-emergency shadow-brand-accent-emergency/50 border-[#ff4747]',
         };
 
+        const categoryPulsationAuras: Record<string, string> = {
+          'CULTURE': 'bg-[#ff3c83]/30 ring-[#ff3c83]/50',
+          'ECONOMIC': 'bg-[#00f0ff]/30 ring-[#00f0ff]/50',
+          'ECO_CSR': 'bg-emerald-400/30 ring-emerald-400/50',
+          'SERVICES': 'bg-[#ffb800]/30 ring-[#ffb800]/50',
+          'SPORT': 'bg-[#00ff66]/30 ring-[#00ff66]/50',
+          'EMERGENCY': 'bg-[#ff4747]/40 ring-[#ff4747]/60',
+        };
+
         const isPremium = evt.isPremiumPartner;
+        const auraColor = categoryPulsationAuras[evt.category] || 'bg-cyan-500/30 ring-cyan-500/50';
 
         return (
           <button
@@ -299,11 +309,15 @@ export default function MapSimulation({
             }`}
             style={{ left: `${cx}%`, top: `${cy}%` }}
           >
+            {/* CSS Pulsating Beacon Radar Waves */}
+            <div className={`absolute -inset-1 rounded-2xl ${auraColor} animate-beacon-pulse pointer-events-none`} />
+            <div className={`absolute -inset-2 rounded-2xl ${auraColor} animate-ping opacity-25 pointer-events-none`} />
+
             {isPremium && (
-              <div className="absolute inset-0 rounded-xl bg-violet-600/20 animate-ping opacity-75 pointer-events-none" />
+              <div className="absolute inset-0 rounded-xl bg-violet-600/30 animate-ping opacity-80 pointer-events-none" />
             )}
             
-            <div className={`p-1.5 rounded-lg bg-neutral-950/90 border-2 cursor-pointer ${categoryColors[evt.category]}`}>
+            <div className={`relative p-1.5 rounded-lg bg-neutral-950/90 border-2 cursor-pointer shadow-lg transition-transform duration-300 group-hover:scale-110 ${categoryColors[evt.category] || 'bg-cyan-500 border-cyan-400'}`}>
               {evt.category === 'ECONOMIC' && <Building className="w-3.5 h-3.5 text-[#00f0ff]" />}
               {evt.category === 'CULTURE' && <Sparkles className="w-3.5 h-3.5 text-[#ff3c83]" />}
               {evt.category === 'SPORT' && <MapPin className="w-3.5 h-3.5 text-[#00ff66]" />}
@@ -312,12 +326,12 @@ export default function MapSimulation({
             </div>
 
             {isPremium && (
-              <div className="absolute -top-1.5 -right-1 bg-yellow-400 text-[8px] font-black text-black px-1 rounded flex items-center">
+              <div className="absolute -top-1.5 -right-1 bg-yellow-400 text-[8px] font-black text-black px-1 rounded flex items-center shadow-md">
                 ★
               </div>
             )}
 
-            <div className="absolute -bottom-11 text-center bg-neutral-900/95 text-[9px] text-gray-200 border border-white/5 shadow-xl px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 flex flex-col items-center whitespace-nowrap transition-opacity pointer-events-none">
+            <div className="absolute -bottom-11 text-center bg-neutral-900/95 text-[9px] text-gray-200 border border-white/5 shadow-xl px-2 py-0.5 rounded-md opacity-0 group-hover:opacity-100 flex flex-col items-center whitespace-nowrap transition-opacity pointer-events-none z-50">
               <span className="font-semibold">{evt.title}</span>
               <span className="text-gray-400 text-[8px]">{evt.partnerName} {isPremium && '⭐'}</span>
             </div>
