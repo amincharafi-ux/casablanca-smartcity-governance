@@ -152,25 +152,37 @@ export interface ChainedAuditTrailLog {
 }
 
 // ============================================================================
-// PHASE 2: URBAN DATA FABRIC & EVENT-DRIVEN STREAMING (NATS JETSTREAM & CDC)
+// ============================================================================
+// PROGRAMME 1 & 5: URBAN DATA FABRIC, EVENT MESH (NATS JETSTREAM & CDC) & CANONICAL SINAPS CONTRACT
 // ============================================================================
 
 export type UrbanEventSubject = 
-  | 'urban.citizen.report'
-  | 'urban.citizen.engagement'
-  | 'urban.commerce.transaction'
-  | 'urban.commerce.promo'
+  | 'urban.report.created'
+  | 'urban.report.updated'
+  | 'urban.report.resolved'
+  | 'urban.event.published'
+  | 'urban.event.booked'
+  | 'urban.business.registered'
+  | 'urban.business.verified'
+  | 'urban.vote.cast'
+  | 'urban.ag.session_opened'
+  | 'urban.residence.updated'
   | 'urban.residence.alert'
   | 'urban.residence.payment'
   | 'urban.municipal.dispatch'
   | 'urban.municipal.ordinance'
   | 'urban.mobility.telemetry'
+  | 'urban.iot.telemetry'
   | 'urban.iot.sensor_read'
-  | 'urban.geoint.anomaly';
+  | 'urban.geoint.anomaly'
+  | 'urban.citizen.report'
+  | 'urban.citizen.engagement'
+  | 'urban.commerce.transaction'
+  | 'urban.commerce.promo';
 
 export interface UrbanEvent<T = any> {
   eventId: string;
-  eventType: UrbanEventSubject;
+  eventType: UrbanEventSubject | string;
   tenantId: string;
   district: string;
   category: string;
@@ -185,7 +197,9 @@ export interface UrbanEvent<T = any> {
   tracingContext: {
     traceId: string;
     spanId: string;
+    parentSpanId?: string;
     emitter: string;
+    sampled?: boolean;
   };
 }
 
@@ -209,6 +223,177 @@ export interface DebeziumCDCEvent {
   before: Record<string, any> | null;
   after: Record<string, any> | null;
   transactionId: string;
+}
+
+// CANONICAL SINAPS INTEGRATION CONTRACT (SINGLE UNIQUE DATA CONTRACT)
+export interface SinapsCanonicalPayload<T = any> {
+  eventId: string;
+  eventType: UrbanEventSubject | string;
+  timestamp: string;
+  tenantId: string;
+  geo: {
+    lat: number;
+    lng: number;
+    district: string;
+    srid: number;
+    isochroneZone?: 'ZONE_5MIN' | 'ZONE_10MIN' | 'ZONE_15MIN' | 'OUTSIDE_15MIN';
+    neighborhood?: string;
+    address?: string;
+  };
+  entities: {
+    id: string;
+    type: GraphNodeType | string;
+    label: string;
+    properties: Record<string, any>;
+  }[];
+  relationships: {
+    source: string;
+    target: string;
+    type: GraphEdgeType | string;
+    weight: number;
+    properties?: Record<string, any>;
+  }[];
+  confidence: number;
+  cndpCompliance: {
+    anonymized: boolean;
+    kAnonymityScore?: number;
+    legalBasis: string;
+    pcr0AttestationHash: string;
+    cryptoShreddingKeyId?: string;
+  };
+  lakehousePartition?: string;
+  payload?: T;
+}
+
+// ============================================================================
+// PROGRAMME 2: URBAN LAKEHOUSE & ANALYTICAL OLAP ENGINE (ICEBERG / DUCKDB)
+// ============================================================================
+
+export interface IcebergTableManifest {
+  tableName: string;
+  schemaVersion: number;
+  currentSnapshotId: string;
+  formatVersion: 2;
+  partitionSpec: string[];
+  totalRecords: number;
+  totalDataSizeBytes: number;
+  parquetFilesCount: number;
+  lastUpdatedTimestamp: string;
+  partitions: IcebergPartition[];
+}
+
+export interface IcebergPartition {
+  partitionPath: string; // e.g. year=2026/month=08/district=maarif
+  recordsCount: number;
+  fileSizeBytes: number;
+  minTimestamp: string;
+  maxTimestamp: string;
+  compression: 'SNAPPY_PARQUET' | 'ZSTD';
+}
+
+export interface LakehouseQueryResult {
+  query: string;
+  executionEngine: 'DUCKDB_OLAP' | 'CLICKHOUSE_VECTOR' | 'ICEBERG_SCAN';
+  executionTimeMs: number;
+  scannedBytes: number;
+  scannedRows: number;
+  columns: string[];
+  rows: Record<string, any>[];
+  cndpSanitized: boolean;
+}
+
+export interface LakehouseTimeTravelSnapshot {
+  snapshotId: string;
+  timestamp: string;
+  operation: 'APPEND' | 'OVERWRITE' | 'DELETE';
+  summary: string;
+  addedRecords: number;
+  totalRecords: number;
+  merkleRootHash: string;
+}
+
+// ============================================================================
+// PROGRAMME 3: URBAN KNOWLEDGE GRAPH & NEBULAGRAPH (nGQL) INTEGRATION
+// ============================================================================
+
+export interface NebulaGraphSpace {
+  spaceName: string;
+  partitionNum: number;
+  replicaFactor: number;
+  vidType: 'FIXED_STRING(64)' | 'INT64';
+  tags: NebulaTagSchema[];
+  edges: NebulaEdgeSchema[];
+}
+
+export interface NebulaTagSchema {
+  tagName: string;
+  properties: { name: string; type: string; nullable?: boolean; default?: any }[];
+  indexes: string[];
+}
+
+export interface NebulaEdgeSchema {
+  edgeName: string;
+  properties: { name: string; type: string; nullable?: boolean; default?: any }[];
+  indexes: string[];
+}
+
+export interface NGqlQueryResult {
+  nGqlStatement: string;
+  space: string;
+  latencyUs: number;
+  headers: string[];
+  rows: any[][];
+  errorMsg?: string;
+}
+
+// ============================================================================
+// PROGRAMME 4: GEOSPATIAL INTELLIGENCE & URBAN ANALYTICS LAYER
+// ============================================================================
+
+export interface DistrictAttractivenessScore {
+  district: string;
+  overallScore: number; // 0 to 100
+  commercialVibrancy: number; // 0 to 100
+  pedestrianFootfallIndex: number;
+  activeBusinessCount: number;
+  amenityDiversityScore: number;
+  safetyPerceptionScore: number;
+  trendPercentage: number;
+}
+
+export interface MobilityAccessibilityScore {
+  district: string;
+  overallMobilityScore: number; // 0 to 100
+  transitStopsWithin500m: number;
+  tramwayConnectivityRating: number;
+  avgBuswayWaitMinutes: number;
+  parkingOccupancyPct: number;
+  activeCongestionPoints: number;
+  walkabilityIndex: number;
+}
+
+export interface IsochroneAccessZone {
+  id: string;
+  facilityName: string;
+  facilityType: 'HOSPITAL' | 'SCHOOL' | 'MUNICIPALITY' | 'EMERGENCY' | 'TRANSIT_HUB';
+  centerCoords: [number, number]; // [lng, lat]
+  fiveMinPolygon: [number, number][];
+  tenMinPolygon: [number, number][];
+  fifteenMinPolygon: [number, number][];
+  coveredPopulation15Min: number;
+  coverageRatioPct: number;
+}
+
+export interface UnderservedUrbanZone {
+  id: string;
+  district: string;
+  neighborhood: string;
+  deficitType: 'GREEN_SPACE_VOID' | 'LIGHTING_DEFICIT' | 'WASTE_BIN_DEFICIT' | 'TRANSIT_DESERT' | 'HEALTHCARE_GAP';
+  severity: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  estimatedAffectedResidents: number;
+  centroidCoords: [number, number];
+  recommendedIntervention: string;
+  estimatedBudgetMad: number;
 }
 
 // ============================================================================
@@ -470,8 +655,8 @@ export interface SinapsEnclaveAttestation {
 export interface SinapsDataStreamEvent {
   id: string;
   timestamp: string;
-  topic: 'URBAN_TELEMETRY' | 'TERRITORIAL_GRAPH' | 'IOT_MESH_CDC' | 'MUNICIPAL_DISPATCH' | 'SYNDIC_WORKFLOW';
-  originModule: 'MYCITY_CORE' | 'MYHOME_SYNDIC' | 'MYLIFE_MARKET' | 'MAIRIE_DISPATCH';
+  topic: 'URBAN_TELEMETRY' | 'TERRITORIAL_GRAPH' | 'IOT_MESH_CDC' | 'MUNICIPAL_DISPATCH' | 'SYNDIC_WORKFLOW' | 'CANONICAL_SINAPS_CONTRACT';
+  originModule: 'MYCITY_CORE' | 'MYHOME_SYNDIC' | 'MYLIFE_MARKET' | 'MAIRIE_DISPATCH' | 'MYCITY_EVENT_MESH';
   encryptedPayloadHash: string;
   recordCount: number;
   anonymizationLevel: 'CNDP_L09_08_STRICT' | 'TOKENIZED_K_ANONYMITY' | 'AGGREGATED_HEATMAP';
@@ -501,3 +686,14 @@ export interface SinapsEnclaveQuery {
   latencyMs: number;
   timestamp: string;
 }
+
+// ============================================================================
+// STRATEGIC PROGRAMMES ALIASES & EXPORTS (CTO MASTERPLAN ROADMAP)
+// ============================================================================
+
+export type IcebergTableMetadata = IcebergTableManifest;
+export type IcebergSnapshot = LakehouseTimeTravelSnapshot;
+export type DuckDbQueryResult = LakehouseQueryResult;
+export type UnderservedZone = UnderservedUrbanZone;
+export type NebulaGraphResult = NGqlQueryResult;
+
