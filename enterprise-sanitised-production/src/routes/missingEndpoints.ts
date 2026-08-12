@@ -172,6 +172,20 @@ function wrapError(code: string, message: string, details: any = {}) {
   };
 }
 
+const isStrictProduction = process.env.NODE_ENV === "production";
+
+function checkProductionInfra(req: Request, res: Response, serviceName: string): boolean {
+  if (isStrictProduction && !process.env.ENABLE_SIMULATED_INFRA_MOCKS) {
+    res.status(502).json(wrapError(
+      "ERR_INFRASTRUCTURE_SERVICE_UNAVAILABLE",
+      `Le service d'infrastructure backend '${serviceName}' n'est pas connecté ou provisionné dans cet environnement de production.`,
+      { service: serviceName, status: 502, environment: "production" }
+    ));
+    return true;
+  }
+  return false;
+}
+
 // ============================================================================
 // IN-MEMORY HIGH-FIDELITY DATABASE FOR UNPROVISIONED OR EXTRA TABLES
 // ============================================================================
@@ -449,21 +463,34 @@ router.post("/auth/login", async (req: Request, res: Response) => {
     if (dbConnected) {
       authUser = await postgresService.authenticateCredential(email, password);
     } else {
-      // Memory mock validation
-      if (email.endsWith("@mairie-casablanca.ma") || email === "admin@mycity.ma") {
-        authUser = {
-          id: crypto.randomUUID(),
-          email,
-          role: "MAIRIE",
-          full_name: "Officier Souverain Casablanca"
-        };
-      } else {
-        authUser = {
-          id: crypto.randomUUID(),
-          email,
-          role: "PUBLIC",
-          full_name: "Citoyen MyCity"
-        };
+      // Strictly prevent mock fallbacks in production environments
+      if (process.env.NODE_ENV === 'production') {
+        return res.status(503).json(
+          wrapError(
+            "ERR_SERVICE_UNAVAILABLE",
+            "La base de données souveraine PostgreSQL est temporairement indisponible. Les connexions de secours non vérifiées sont formellement désactivées en mode production."
+          )
+        );
+      }
+
+      // Memory mock validation strictly in simulation / development
+      authUser = await postgresService.authenticateCredential(email, password);
+      if (!authUser) {
+        if (email.endsWith("@mairie-casablanca.ma") || email === "admin@mycity.ma") {
+          authUser = {
+            id: crypto.randomUUID(),
+            email,
+            role: "MAIRIE",
+            full_name: "Officier Souverain Casablanca"
+          };
+        } else {
+          authUser = {
+            id: crypto.randomUUID(),
+            email,
+            role: "PUBLIC",
+            full_name: "Citoyen MyCity"
+          };
+        }
       }
     }
 
@@ -1865,6 +1892,7 @@ router.get("/zta/rls/policies", (req: Request, res: Response) => {
 
 // GET /db/timescaledb/hypertables - Hypertables partitioning details
 router.get("/db/timescaledb/hypertables", (req: Request, res: Response) => {
+  if (checkProductionInfra(req, res, "TimescaleDB Extension")) return;
   res.json(wrapData({
     engine: "PostgreSQL 16 + TimescaleDB Extension",
     hypertables: [
@@ -1879,6 +1907,7 @@ router.get("/db/timescaledb/hypertables", (req: Request, res: Response) => {
 
 // POST /db/scylladb/telemetry - ScyllaDB high-throughput IoT ingest endpoint
 router.post("/db/scylladb/telemetry", (req: any, res: Response) => {
+  if (checkProductionInfra(req, res, "ScyllaDB / Cassandra Cluster")) return;
   const { sensor_id, sensor_type, payload } = req.body;
 
   res.status(202).json(wrapData({
@@ -1895,6 +1924,7 @@ router.post("/db/scylladb/telemetry", (req: any, res: Response) => {
 
 // POST /db/qdrant/vector-search - Spatial Vector Search via Qdrant / Milvus Cluster with HNSW
 router.post("/db/qdrant/vector-search", (req: any, res: Response) => {
+  if (checkProductionInfra(req, res, "Qdrant Vector DB Cluster")) return;
   const { query, vector, top_k = 5, district_id = "CASABLANCA_ANFA" } = req.body;
 
   res.json(wrapData({
@@ -1918,6 +1948,7 @@ router.post("/db/qdrant/vector-search", (req: any, res: Response) => {
 
 // GET /events/kafka/cdc-status - Kafka CDC & Debezium Stream status
 router.get("/events/kafka/cdc-status", (req: Request, res: Response) => {
+  if (checkProductionInfra(req, res, "Apache Kafka / Redpanda Event Bus")) return;
   res.json(wrapData({
     event_bus: "Redpanda / Apache Kafka",
     topics: [
@@ -1933,6 +1964,7 @@ router.get("/events/kafka/cdc-status", (req: Request, res: Response) => {
 
 // POST /events/websocket/district-cluster - Redis Pub/Sub Regional Push Gateway
 router.post("/events/websocket/district-cluster", (req: any, res: Response) => {
+  if (checkProductionInfra(req, res, "Redis Pub/Sub Regional Cluster")) return;
   const { district_code, alert_type, message_body } = req.body;
 
   const district = district_code || "FR-MAI-04";
