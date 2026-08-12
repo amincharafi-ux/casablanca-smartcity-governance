@@ -553,7 +553,13 @@ export async function updateClaimStatus(
 export async function authenticateCredential(email: string, pass: string): Promise<any | null> {
   const connected = await isDbConnected();
   if (!connected) {
-    // Local development fallback
+    // Strictly disable mock fallback credentials in production environments
+    if (process.env.NODE_ENV === 'production') {
+      console.error("[SECURITY] Database disconnected in PRODUCTION mode. Mock credential fallback is disabled.");
+      return null;
+    }
+
+    // Local simulation / development fallback only
     const mockAccounts = [
       { email: "fz.mayor@mairie-casablanca.ma", role: "MAIRIE", pass: "MairiePassword123!", name: "Fatim-Zahra Mayor" },
       { email: "fatim.zahra@mairie-casablanca.ma", role: "MAIRIE", pass: "MairiePassword123!", name: "Secrétariat de la Mairie" },
