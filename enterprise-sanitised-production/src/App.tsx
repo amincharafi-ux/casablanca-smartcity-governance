@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShieldCheck, Shield, User, Building, Building2, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download, Palette, Sparkles, DollarSign, X } from 'lucide-react';
+import { ShieldCheck, Shield, User, Building, Building2, Landmark, RefreshCw, Cpu, Activity, LogOut, Database, Lock, Download, Palette, Sparkles, DollarSign, X, Brain, Share2, Zap, Globe } from 'lucide-react';
 import { UserRole, CityEvent, CitizenClaim, CitizenConsent, CNDPPrivacyLog } from './types';
 import { INITIAL_EVENTS, INITIAL_CLAIMS, INITIAL_PHARMACIES, INITIAL_HOSPITALS } from './data/mockData';
 import { LanguageCode, translations } from './data/translations';
@@ -26,6 +26,11 @@ import DistrictManagerDashboard from './components/DistrictManagerDashboard';
 import SyndicAdminConsole from './components/SyndicAdminConsole';
 import SinapsEnclaveBridge from './components/SinapsEnclaveBridge';
 import UrbanOperatingSystemCockpit from './components/UrbanOperatingSystemCockpit';
+
+import { EventMeshCascadeStudio } from './components/EventMeshCascadeStudio';
+import UrbanLakehouseExplorer from './components/UrbanLakehouseExplorer';
+import { FederatedGraphStudio } from './components/FederatedGraphStudio';
+import { UrbanMemoryFabricStudio } from './components/UrbanMemoryFabricStudio';
 
 import MyResidence from './components/MyResidence';
 import MyLife from './components/MyLife';
@@ -143,6 +148,10 @@ export default function App() {
   const [isStrategicHubOpen, setIsStrategicHubOpen] = useState(false);
   const [isSinapsEnclaveOpen, setIsSinapsEnclaveOpen] = useState(false);
   const [isUrbanOsCockpitOpen, setIsUrbanOsCockpitOpen] = useState(false);
+  const [isEventMeshOpen, setIsEventMeshOpen] = useState(false);
+  const [isLakehouseOpen, setIsLakehouseOpen] = useState(false);
+  const [isFederatedGraphOpen, setIsFederatedGraphOpen] = useState(false);
+  const [isMemoryFabricOpen, setIsMemoryFabricOpen] = useState(false);
   const [isMySyndicPricingOpen, setIsMySyndicPricingOpen] = useState(false);
   const [isMasterDashboardOpen, setIsMasterDashboardOpen] = useState(false);
   const [fitScale, setFitScale] = useState<'100%' | '90%' | '85%' | '75%'>('85%');
@@ -618,7 +627,59 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-9 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-12 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
+              <button
+                id="urban-event-mesh-p0-btn"
+                onClick={() => {
+                  setIsEventMeshOpen(true);
+                  handleAddPrivacyLog("Event Mesh P0 Open", "Ouverture du Studio Cascade Urban Event Mesh 100% (Postgres ➔ Debezium ➔ NATS ➔ Iceberg ➔ Graph ➔ SINAPS).");
+                }}
+                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-950/80 to-yellow-950/80 hover:from-amber-900 hover:to-yellow-900 border border-amber-400/50 hover:border-amber-300 text-amber-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
+                title="Programme P0 : Urban Event Mesh (100% Domaines Couverts)"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                <span className="truncate">⚡ P0 Event Mesh</span>
+              </button>
+
+              <button
+                id="urban-lakehouse-p1-btn"
+                onClick={() => {
+                  setIsLakehouseOpen(true);
+                  handleAddPrivacyLog("Lakehouse P1 Open", "Ouverture de l'Urban Lakehouse (ClickHouse MPP, Iceberg v2, MinIO S3 & DuckDB).");
+                }}
+                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-950/80 to-blue-950/80 hover:from-sky-900 hover:to-blue-900 border border-sky-400/50 hover:border-sky-300 text-sky-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-sky-500/20"
+                title="Programme P1 : Urban Lakehouse Stack Analytique Complet"
+              >
+                <Database className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span className="truncate">📊 P1 Lakehouse</span>
+              </button>
+
+              <button
+                id="federated-graph-p2-btn"
+                onClick={() => {
+                  setIsFederatedGraphOpen(true);
+                  handleAddPrivacyLog("Federated Graph P2 Open", "Ouverture du Graphe Fédéré à 3 Niveaux (MyCity ➔ SINAPS ➔ National Knowledge Graph).");
+                }}
+                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 border border-emerald-400/50 hover:border-emerald-300 text-emerald-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/20"
+                title="Programme P2 : Federated Knowledge Graph (3 Niveaux)"
+              >
+                <Share2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span className="truncate">🌐 P2 Graphe Fédéré</span>
+              </button>
+
+              <button
+                id="memory-fabric-p3-btn"
+                onClick={() => {
+                  setIsMemoryFabricOpen(true);
+                  handleAddPrivacyLog("Memory Fabric P3 Open", "Ouverture de l'Urban Memory Fabric (Cognitive Memory System vs Vector DB).");
+                }}
+                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 border border-purple-400/50 hover:border-purple-300 text-purple-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-purple-500/20"
+                title="Programme P3 : Urban Memory Fabric (Système Cognitif)"
+              >
+                <Brain className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                <span className="truncate">🧠 P3 Memory Fabric</span>
+              </button>
+
               <button
                 id="urban-os-cockpit-btn"
                 onClick={() => {
@@ -1391,6 +1452,142 @@ export default function App() {
       {/* URBAN OPERATING SYSTEM (2026-2030 ARCHITECTURE) COCKPIT */}
       {isUrbanOsCockpitOpen && (
         <UrbanOperatingSystemCockpit onClose={() => setIsUrbanOsCockpitOpen(false)} />
+      )}
+
+      {/* PROGRAMME P0: EVENT MESH CASCADE MODAL */}
+      {isEventMeshOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-amber-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-amber-500/10 text-amber-400 rounded-xl border border-amber-500/20">
+                  <Zap className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    ⚡ Programme P0 — Urban Event Mesh Complet (100% Domaines)
+                    <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded uppercase font-bold">
+                      Postgres ➔ Debezium ➔ NATS ➔ Iceberg ➔ Graph ➔ SINAPS
+                    </span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Pipeline de Réplication & Traçabilité Événementielle sans perte</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsEventMeshOpen(false)}
+                className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-white/10">
+              <EventMeshCascadeStudio />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PROGRAMME P1: URBAN LAKEHOUSE MODAL */}
+      {isLakehouseOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-sky-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-sky-500/10 text-sky-400 rounded-xl border border-sky-500/20">
+                  <Database className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    📊 Programme P1 — Urban Lakehouse Stack Analytique Complet
+                    <span className="text-[9px] font-mono bg-sky-500/20 text-sky-300 border border-sky-500/30 px-2 py-0.5 rounded uppercase font-bold">
+                      ClickHouse MPP + Apache Iceberg v2 + MinIO S3
+                    </span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Requêteur SQL Vectorisé, Formats Tables Ouverts & Compaction ZSTD</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsLakehouseOpen(false)}
+                className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-white/10">
+              <UrbanLakehouseExplorer />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PROGRAMME P2: FEDERATED KNOWLEDGE GRAPH MODAL */}
+      {isFederatedGraphOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-emerald-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl border border-emerald-500/20">
+                  <Share2 className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    🌐 Programme P2 — Federated Knowledge Graph (3 Niveaux)
+                    <span className="text-[9px] font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded uppercase font-bold">
+                      MyCity ➔ SINAPS ➔ National Knowledge Graph
+                    </span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Graphes Fédérés Multi-Échelles, Requêtes Trans-Graphes nGQL & K-Anonymity</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsFederatedGraphOpen(false)}
+                className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-white/10">
+              <FederatedGraphStudio />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PROGRAMME P3: URBAN MEMORY FABRIC MODAL */}
+      {isMemoryFabricOpen && (
+        <div className="fixed inset-0 z-[999999] flex items-center justify-center p-2 sm:p-6 bg-black/90 backdrop-blur-xl animate-fade-in font-sans">
+          <div className="w-full max-w-7xl h-[94vh] bg-[#0f111a] border border-purple-500/40 rounded-3xl shadow-2xl flex flex-col overflow-hidden relative">
+            <div className="h-16 px-6 bg-[#161821] border-b border-white/10 flex items-center justify-between shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-purple-500/10 text-purple-400 rounded-xl border border-purple-500/20">
+                  <Brain className="w-5 h-5 animate-pulse" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-title font-black text-white uppercase tracking-wider flex items-center gap-2">
+                    🧠 Programme P3 — Urban Memory Fabric (Système Cognitif vs Vector DB)
+                    <span className="text-[9px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30 px-2 py-0.5 rounded uppercase font-bold">
+                      Épisodique • Sémantique • Procédurale • Prospective
+                    </span>
+                  </h2>
+                  <p className="text-[10px] font-mono text-gray-400">Contextualisation Multidimensionnelle (Spatial H3, Topologique, Temporel & Playbooks)</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsMemoryFabricOpen(false)}
+                className="p-2 bg-white/5 hover:bg-red-500/20 hover:text-red-300 text-gray-400 rounded-xl transition-all cursor-pointer border border-white/5"
+                title="Fermer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 scrollbar-thin scrollbar-thumb-white/10">
+              <UrbanMemoryFabricStudio />
+            </div>
+          </div>
+        </div>
       )}
 
       {/* MYSYNDIC PRICING & CRM COMMERCIAL MODAL */}
