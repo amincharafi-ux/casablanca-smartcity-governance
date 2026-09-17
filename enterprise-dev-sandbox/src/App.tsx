@@ -627,170 +627,18 @@ export default function App() {
               </div>
             </div>
 
-            <div className="flex sm:grid sm:grid-cols-4 xl:grid-cols-12 gap-2 w-full flex-1 lg:ml-2 font-sans overflow-x-auto pb-1.5 scrollbar-none snap-x snap-mandatory">
-              <button
-                id="urban-event-mesh-p0-btn"
-                onClick={() => {
-                  setIsEventMeshOpen(true);
-                  handleAddPrivacyLog("Event Mesh P0 Open", "Ouverture du Studio Cascade Urban Event Mesh 100% (Postgres ➔ Debezium ➔ NATS ➔ Iceberg ➔ Graph ➔ SINAPS).");
-                }}
-                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-amber-950/80 to-yellow-950/80 hover:from-amber-900 hover:to-yellow-900 border border-amber-400/50 hover:border-amber-300 text-amber-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-amber-500/20"
-                title="Programme P0 : Urban Event Mesh (100% Domaines Couverts)"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                <span className="truncate">⚡ P0 Event Mesh</span>
-              </button>
-
-              <button
-                id="urban-lakehouse-p1-btn"
-                onClick={() => {
-                  setIsLakehouseOpen(true);
-                  handleAddPrivacyLog("Lakehouse P1 Open", "Ouverture de l'Urban Lakehouse (ClickHouse MPP, Iceberg v2, MinIO S3 & DuckDB).");
-                }}
-                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-950/80 to-blue-950/80 hover:from-sky-900 hover:to-blue-900 border border-sky-400/50 hover:border-sky-300 text-sky-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-sky-500/20"
-                title="Programme P1 : Urban Lakehouse Stack Analytique Complet"
-              >
-                <Database className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span className="truncate">📊 P1 Lakehouse</span>
-              </button>
-
-              <button
-                id="federated-graph-p2-btn"
-                onClick={() => {
-                  setIsFederatedGraphOpen(true);
-                  handleAddPrivacyLog("Federated Graph P2 Open", "Ouverture du Graphe Fédéré à 3 Niveaux (MyCity ➔ SINAPS ➔ National Knowledge Graph).");
-                }}
-                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-950/80 to-teal-950/80 hover:from-emerald-900 hover:to-teal-900 border border-emerald-400/50 hover:border-emerald-300 text-emerald-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/20"
-                title="Programme P2 : Federated Knowledge Graph (3 Niveaux)"
-              >
-                <Share2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span className="truncate">🌐 P2 Graphe Fédéré</span>
-              </button>
-
-              <button
-                id="memory-fabric-p3-btn"
-                onClick={() => {
-                  setIsMemoryFabricOpen(true);
-                  handleAddPrivacyLog("Memory Fabric P3 Open", "Ouverture de l'Urban Memory Fabric (Cognitive Memory System vs Vector DB).");
-                }}
-                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-950/80 to-indigo-950/80 hover:from-purple-900 hover:to-indigo-900 border border-purple-400/50 hover:border-purple-300 text-purple-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-purple-500/20"
-                title="Programme P3 : Urban Memory Fabric (Système Cognitif)"
-              >
-                <Brain className="w-3.5 h-3.5 text-purple-400 shrink-0" />
-                <span className="truncate">🧠 P3 Memory Fabric</span>
-              </button>
-
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2 w-full flex-1 lg:ml-2 font-sans">
               <button
                 id="urban-os-cockpit-btn"
                 onClick={() => {
                   setIsUrbanOsCockpitOpen(true);
                   handleAddPrivacyLog("Urban OS Cockpit Open", "Ouverture du Cockpit Urban Operating System (Architecture Cible 2026-2030, NATS JetStream, GeoInt & Graphe).");
                 }}
-                className="shrink-0 min-w-[155px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-900/80 via-teal-900/80 to-cyan-900/80 hover:from-emerald-800 hover:to-cyan-800 border border-emerald-400/50 hover:border-emerald-300 text-emerald-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/20 animate-pulse"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-emerald-900/80 via-teal-900/80 to-cyan-900/80 hover:from-emerald-800 hover:to-cyan-800 border border-emerald-400/50 hover:border-emerald-300 text-emerald-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/20 animate-pulse"
                 title="Ouvrir le Cockpit Urban Operating System (Phases 1 à 8 du Rapport CTO : NATS JetStream, PostGIS GeoInt, Knowledge Graph, Jumeau Numérique, Copilot IA)"
               >
                 <Cpu className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
                 <span className="truncate">⚡ Urban OS 2030</span>
-              </button>
-
-              <button
-                id="security-audit-btn"
-                onClick={() => {
-                  setIsSecurityAuditOpen(true);
-                  handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
-                }}
-                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
-                title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
-              >
-                <Shield className="w-3.5 h-3.5 text-red-400 shrink-0" />
-                <span className="truncate">🛡️ Audit Sécurité</span>
-              </button>
-
-              <button
-                id="brand-charter-explorer-btn"
-                onClick={() => {
-                  setIsBrandCharterOpen(true);
-                  handleAddPrivacyLog("Brand Charter Board", "Utilisateur a ouvert la charte graphique officielle de l'app MyCity.");
-                }}
-                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 hover:from-purple-950/70 hover:to-indigo-950/70 border border-purple-500/30 hover:border-[#00ffcc]/60 text-indigo-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
-                title="Ouvrir la Charte Graphique Officielle (Normes, Courriers, Rapports & Correspondances)"
-              >
-                <Palette className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
-                <span className="truncate">🎨 Charte & Corresp.</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsGithubRoomOpen(true);
-                  handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
-                }}
-                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
-                title="Ouvrir la Tech Data Room (GitHub) de MyCity"
-              >
-                <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
-                <span className="truncate">🐙 GitHub Data Room</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsDataWarehouseOpen(true);
-                  handleAddPrivacyLog("OLAP Cockpit Open", "Ouverture du Data Warehouse & Cockpit Analytique ClickHouse.");
-                }}
-                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-[#1c142c] hover:bg-[#a16eff]/30 border border-[#a16eff]/30 hover:border-[#a16eff] text-[#d8b4fe] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
-                title="Ouvrir le Cockpit Data Warehouse OLAP (ClickHouse & BigQuery)"
-              >
-                <Database className="w-3.5 h-3.5 text-[#a16eff] animate-pulse shrink-0" />
-                <span className="truncate">📊 Data Warehouse</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsFigmaDemoOpen(true);
-                  handleAddPrivacyLog("Figma Hub Open", "Ouverture du Générateur de Maquettes & Démo Figma.");
-                }}
-                className="shrink-0 min-w-[130px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-pink-950/30 hover:bg-pink-900/40 border border-pink-500/30 hover:border-pink-400 text-pink-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
-                title="Générer & Télécharger la Démo Maquettes sur FIGMA"
-              >
-                <Palette className="w-3.5 h-3.5 text-pink-400 shrink-0" />
-                <span className="truncate">🎨 Démo Figma</span>
-              </button>
-
-              <button
-                id="sinaps-enclave-bridge-btn"
-                onClick={() => {
-                  setIsSinapsEnclaveOpen(true);
-                  handleAddPrivacyLog("Enclave SINAPS Open", "Ouverture de la passerelle native TEE Enclave MyCity <-> SINAPS (Graphe & Data Stream).");
-                }}
-                className="shrink-0 min-w-[145px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-cyan-950/70 to-blue-950/70 hover:from-cyan-900/90 hover:to-blue-900/90 border border-cyan-400/50 hover:border-cyan-300 text-cyan-300 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-cyan-500/20 animate-pulse"
-                title="Ouvrir la Liaison Enclave TEE Natif vers le projet SINAPS (Flux Data & Graphe Territorial)"
-              >
-                <ShieldCheck className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                <span className="truncate">🔒 Enclave SINAPS</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setIsStrategicHubOpen(true);
-                  handleAddPrivacyLog("Strategic Hub Open", "Ouverture du Showcase des 8 écrans stratégiques intégrés.");
-                }}
-                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-sky-500/20 via-purple-500/20 to-emerald-500/20 hover:from-sky-500/30 hover:to-emerald-500/30 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-[#00ffcc]/10 animate-pulse"
-                title="Ouvrir le Hub Showcase des 8 Pièces Maîtresses et Écrans Stratégiques"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
-                <span className="truncate">🚀 Écrans Strat. (8)</span>
-              </button>
-
-              <button
-                id="mysyndic-pricing-crm-btn"
-                onClick={() => {
-                  setIsMySyndicPricingOpen(true);
-                  handleAddPrivacyLog("MySyndic Pricing CRM", "Ouverture de la grille tarifaire Immeubles et du CRM commercial intégré MySyndic.");
-                }}
-                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/40 hover:border-purple-400 text-purple-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-purple-500/10"
-                title="Consulter le Modèle de Pricing MySyndic et le CRM Commercial Intégré"
-              >
-                <DollarSign className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
-                <span className="truncate">💎 Pricing & CRM</span>
               </button>
 
               <button
@@ -799,11 +647,63 @@ export default function App() {
                   setIsMasterDashboardOpen(true);
                   handleAddPrivacyLog("Master Dashboard Open", "Ouverture du Cockpit Executive Dashboard (Fit to size).");
                 }}
-                className="shrink-0 min-w-[140px] sm:min-w-0 sm:w-full snap-start flex items-center justify-center gap-1.5 px-3 py-2 bg-gradient-to-r from-emerald-950/40 via-teal-950/40 to-indigo-950/40 hover:from-emerald-950/70 hover:to-indigo-950/70 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/10 animate-pulse"
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-emerald-950/40 via-teal-950/40 to-indigo-950/40 hover:from-emerald-950/70 hover:to-indigo-950/70 border border-[#00ffcc]/40 hover:border-[#00ffcc] text-[#00ffcc] rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-black transition-all whitespace-nowrap shadow-lg shadow-emerald-500/10"
                 title="Ouvrir le Cockpit Master Dashboard (Sovereign BI & Arrondissements)"
               >
                 <Activity className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
                 <span className="truncate">📈 Master Dashboard</span>
+              </button>
+
+              <button
+                id="security-audit-btn"
+                onClick={() => {
+                  setIsSecurityAuditOpen(true);
+                  handleAddPrivacyLog("Security Audit Console", "Utilisateur a ouvert la console d'Audit de Sécurité Intégral.");
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-[#311016]/80 hover:bg-[#311016]/95 border border-red-500/20 hover:border-red-500/50 text-red-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir l'Audit de Sécurité Intégral de MyCity"
+              >
+                <Shield className="w-3.5 h-3.5 text-red-400 shrink-0" />
+                <span className="truncate">🛡️ Audit Sécurité</span>
+              </button>
+
+              <button
+                id="github-data-room-btn"
+                onClick={() => {
+                  setIsGithubRoomOpen(true);
+                  handleAddPrivacyLog("GitHub Data Room Open", "Ouverture de la Tech Data Room GitHub & Pitch.");
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-amber-950/20 hover:bg-amber-850 border border-amber-500/20 hover:border-amber-500/60 text-amber-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Tech Data Room (GitHub) de MyCity"
+              >
+                <Cpu className="w-3.5 h-3.5 text-amber-400 animate-pulse shrink-0" />
+                <span className="truncate">🐙 GitHub Data Room</span>
+              </button>
+
+              <button
+                id="brand-charter-explorer-btn"
+                onClick={() => {
+                  setIsBrandCharterOpen(true);
+                  handleAddPrivacyLog("Brand Charter Board", "Utilisateur a ouvert la charte graphique officielle de l'app MyCity.");
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-gradient-to-r from-purple-950/40 to-indigo-950/40 hover:from-purple-950/70 hover:to-indigo-950/70 border border-purple-500/30 hover:border-[#00ffcc]/60 text-indigo-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Ouvrir la Charte Graphique Officielle (Normes, Courriers, Rapports & Correspondances)"
+              >
+                <Palette className="w-3.5 h-3.5 text-[#00ffcc] shrink-0" />
+                <span className="truncate">🎨 Charte & Corresp.</span>
+              </button>
+
+              <button
+                id="figma-demo-btn"
+                onClick={() => {
+                  setIsFigmaDemoOpen(true);
+                  handleAddPrivacyLog("Figma Hub Open", "Ouverture du Générateur de Maquettes & Démo Figma.");
+                }}
+                className="flex items-center justify-center gap-1.5 px-3 py-2.5 bg-pink-950/30 hover:bg-pink-900/40 border border-pink-500/30 hover:border-pink-400 text-pink-200 rounded-xl cursor-pointer font-mono text-[10px] md:text-[11px] font-bold transition-all whitespace-nowrap shadow-sm"
+                title="Générer & Télécharger la Démo Maquettes sur FIGMA"
+              >
+                <Palette className="w-3.5 h-3.5 text-pink-400 shrink-0" />
+                <span className="truncate">🎨 Démo Figma</span>
               </button>
             </div>
           </div>
